@@ -1,0 +1,2 @@
+// This is a placeholder for the SDO San Pedro logo image. Please upload the logo image file (e.g., sdo-sanpedro-logo.png) to this folder.
+// Example usage in HTML: <img src="/SDO-BACtrack/sdo-template/logo-imgs/sdo-sanpedro-logo.png" alt="SDO San Pedro Logo">

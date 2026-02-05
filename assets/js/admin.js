@@ -258,6 +258,6 @@ function showNotification(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
-
 // Global APP_URL variable
 const APP_URL = '/SDO-BACtrack';
+

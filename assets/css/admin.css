@@ -1046,39 +1046,6 @@ select.form-control {
     min-height: 600px;
 }
 
-/* Calendar event tooltip */
-.calendar-tooltip {
-    position: absolute;
-    z-index: 1500;
-    background: var(--card-bg);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
-    padding: 10px 12px;
-    min-width: 220px;
-    max-width: 280px;
-    font-size: 0.8rem;
-}
-
-.calendar-tooltip-title {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-.calendar-tooltip-date {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-}
-
-.calendar-tooltip-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-}
-
 .fc {
     font-family: inherit;
 }

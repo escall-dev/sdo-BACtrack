@@ -1,16 +1,27 @@
 <?php
 /**
  * Calendar View
- * SDO-BACtrack
+ * SDO-BACtrack - BAC Members only
  */
+
+require_once __DIR__ . '/../includes/auth.php';
+$auth = auth();
+$auth->requireProcurement();
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/Project.php';
 
 $projectModel = new Project();
-$projects = $projectModel->getAll();
+$projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
 
 $selectedProject = isset($_GET['project']) ? (int)$_GET['project'] : null;
+// If a specific project is selected but it's not approved, ignore it (won't appear in calendar)
+if ($selectedProject) {
+    $approvedIds = array_column($projects, 'id');
+    if (!in_array($selectedProject, $approvedIds)) {
+        $selectedProject = null;
+    }
+}
 ?>
 
 <div class="page-header">
@@ -79,7 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedProject) {
                 url += '&project=' + selectedProject;
             }
-            
+            if (window.SDO_BACTRACK_buildApiUrl) {
+                url = window.SDO_BACTRACK_buildApiUrl(url);
+            }
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -97,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         },
         eventClick: function(info) {
+            info.jsEvent.preventDefault();
             if (activeTooltip) {
                 activeTooltip.remove();
                 activeTooltip = null;

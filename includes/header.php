@@ -85,10 +85,12 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
                     <span class="nav-text">Dashboard</span>
                 </a>
                 
+                <?php if ($auth->isProcurement()): ?>
                 <a href="<?php echo APP_URL; ?>/admin/calendar.php" class="nav-item <?php echo $currentPage === 'calendar' ? 'active' : ''; ?>" data-tooltip="Calendar">
                     <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
                     <span class="nav-text">Calendar</span>
                 </a>
+                <?php endif; ?>
                 
                 <a href="<?php echo APP_URL; ?>/admin/projects.php" class="nav-item <?php echo in_array($currentPage, ['projects', 'project-view', 'project-create']) ? 'active' : ''; ?>" data-tooltip="Projects">
                     <span class="nav-icon"><i class="fas fa-folder-open"></i></span>

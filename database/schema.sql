@@ -11,10 +11,16 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('PROJECT_OWNER', 'PROCUREMENT') NOT NULL DEFAULT 'PROJECT_OWNER',
+    employee_no VARCHAR(50) NULL,
+    position VARCHAR(100) NULL,
+    office VARCHAR(100) NULL,
+    unit_section VARCHAR(100) NULL,
+    status ENUM('PENDING', 'APPROVED') NOT NULL DEFAULT 'APPROVED',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
-    INDEX idx_role (role)
+    INDEX idx_role (role),
+    INDEX idx_status (status)
 ) ENGINE=InnoDB;
 
 -- Projects table
@@ -24,11 +30,17 @@ CREATE TABLE IF NOT EXISTS projects (
     description TEXT,
     procurement_type VARCHAR(50) NOT NULL DEFAULT 'PUBLIC_BIDDING',
     created_by INT NOT NULL,
+    approval_status ENUM('PENDING_APPROVAL', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'APPROVED',
+    rejection_remarks TEXT NULL,
+    rejected_by INT NULL,
+    rejected_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (rejected_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_procurement_type (procurement_type),
-    INDEX idx_created_by (created_by)
+    INDEX idx_created_by (created_by),
+    INDEX idx_approval_status (approval_status)
 ) ENGINE=InnoDB;
 
 -- BAC Cycles table
@@ -76,6 +88,23 @@ CREATE TABLE IF NOT EXISTS project_activities (
     INDEX idx_status (status),
     INDEX idx_planned_dates (planned_start_date, planned_end_date),
     INDEX idx_step_order (step_order)
+) ENGINE=InnoDB;
+
+-- Project Owner Documents table
+CREATE TABLE IF NOT EXISTS project_documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    category VARCHAR(255) NOT NULL DEFAULT 'other',
+    file_path VARCHAR(500) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    file_size INT NOT NULL DEFAULT 0,
+    description TEXT NULL,
+    uploaded_by INT NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE RESTRICT,
+    INDEX idx_project_id (project_id),
+    INDEX idx_category (category)
 ) ENGINE=InnoDB;
 
 -- Activity Documents table

@@ -20,6 +20,11 @@
         </div>
     </div>
 
+    <script>
+        window.SDO_BACTRACK_APP_URL = <?php echo json_encode(APP_URL); ?>;
+        window.SDO_BACTRACK_TOKEN_PARAM = <?php echo json_encode(defined('AUTH_TOKEN_PARAM') ? AUTH_TOKEN_PARAM : 'auth_token'); ?>;
+    </script>
+    <script src="<?php echo APP_URL; ?>/assets/js/auth-token.js"></script>
     <script src="<?php echo APP_URL; ?>/assets/js/admin.js"></script>
     <?php if ($currentPage === 'calendar'): ?>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>

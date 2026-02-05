@@ -163,4 +163,20 @@ class Notification {
             'reference_id' => $requestId
         ]);
     }
+
+    /**
+     * Notify project owner when their project is rejected by BAC.
+     */
+    public function notifyProjectRejected($projectId, $projectTitle, $remarks, $projectOwnerId) {
+        $msg = "Your project '{$projectTitle}' has been declined by BAC. ";
+        $msg .= "Reason: " . $remarks;
+        $this->create([
+            'user_id' => $projectOwnerId,
+            'title' => 'Project Declined',
+            'message' => $msg,
+            'type' => 'PROJECT_REJECTED',
+            'reference_type' => 'project',
+            'reference_id' => $projectId
+        ]);
+    }
 }

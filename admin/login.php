@@ -4,17 +4,15 @@
  * SDO-BACtrack
  */
 
+require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../models/User.php';
 
 $auth = auth();
 
-// Redirect if already logged in
-if ($auth->isLoggedIn()) {
-    $redirect = $_SESSION['redirect_after_login'] ?? APP_URL . '/admin/';
-    unset($_SESSION['redirect_after_login']);
-    header('Location: ' . $redirect);
-    exit;
-}
+// Always show the login form when visiting login.php directly.
+// Do NOT auto-redirect even if user has an active session (cookie/token).
+// This allows users to log in as a different account.
 
 $error = '';
 $email = '';
@@ -27,13 +25,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = 'Please enter both email and password.';
     } else {
-        if ($auth->login($email, $password)) {
+        $token = $auth->login($email, $password);
+        if ($token !== false) {
+            // Token is passed via URL parameter - JavaScript will store it in sessionStorage
+            // and set a tab-specific cookie for refresh support
             $redirect = $_SESSION['redirect_after_login'] ?? APP_URL . '/admin/';
             unset($_SESSION['redirect_after_login']);
+            $sep = strpos($redirect, '?') !== false ? '&' : '?';
+            $redirect .= $sep . AUTH_TOKEN_PARAM . '=' . urlencode($token);
             header('Location: ' . $redirect);
             exit;
         } else {
-            $error = 'Invalid email or password.';
+            $user = (new User())->findByEmail($email);
+            if ($user && isset($user['status']) && $user['status'] === 'PENDING') {
+                $error = 'Your account is pending administrator approval.';
+            } else {
+                $error = 'Invalid email or password.';
+            }
         }
     }
 }
@@ -75,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: var(--bg-dark);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -195,6 +204,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 10px;
         }
+        .success-message {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
         
         .btn {
             display: flex;
@@ -221,15 +239,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(15, 76, 117, 0.4);
         }
-        
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
+
+        .btn-secondary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            margin-top: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .login-divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0 16px;
+            gap: 16px;
         }
         
-        .login-footer p {
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        
+        .login-divider span {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        
+        .btn-create-account {
+            margin-top: 0;
+        }
+        
+        .help-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 16px;
+        }
+        
+        .login-divider-line {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0 0;
+        }
+        
+        .page-footer {
+            text-align: center;
+            margin-top: 5px;
+            padding-top: 24px;
+        }
+        
+        .page-footer p {
             color: var(--text-muted);
             font-size: 0.8rem;
         }
@@ -269,6 +345,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p><?php echo APP_SUBTITLE; ?></p>
             </div>
             
+            <?php if (isset($_GET['registered'])): ?>
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i> Registration successful. Your account will need to be approved by an administrator before you can sign in.
+            </div>
+            <?php endif; ?>
+
             <?php if ($error): ?>
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
@@ -295,16 +377,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
 
-            <div class="credentials-info">
-                <strong><i class="fas fa-info-circle"></i> Default Credentials</strong>
-                Procurement: <code>procurement@sdo.edu.ph</code> / <code>password</code><br>
-                Project Owner: <code>owner@sdo.edu.ph</code> / <code>password</code>
+            <div class="login-divider">
+                <span>Don't have an account?</span>
             </div>
-            
-            <div class="login-footer">
-                <p>&copy; <?php echo date('Y'); ?> SDO-BACtrack<br>BAC Procedural Timeline Tracking System</p>
-            </div>
+            <a href="<?php echo APP_URL; ?>/admin/register.php" class="btn btn-secondary btn-create-account">
+                <i class="fas fa-user-plus"></i> Create Account
+            </a>
+
+            <p class="help-text">Need help? Contact the IT Office</p>
+            <div class="login-divider-line"></div>
+        </div>
+
+        <div class="page-footer">
+            <p>&copy; <?php echo date('Y'); ?> SDO BACtrack - Department of Education<br>
+            Schools Division Office of San Pedro City</p>
         </div>
     </div>
+    <script>
+        try { sessionStorage.removeItem('auth_token'); } catch (e) {}
+    </script>
 </body>
 </html>

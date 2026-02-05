@@ -25,6 +25,11 @@ if (!$project) {
     die('Project not found');
 }
 
+// Project Owners can only print reports for their own projects
+if ($auth->isProjectOwner() && (int)$project['created_by'] !== (int)$auth->getUserId()) {
+    die('Access denied. You can only print reports for your own projects.');
+}
+
 $cycleModel = new BacCycle();
 $activityModel = new ProjectActivity();
 $documentModel = new ActivityDocument();

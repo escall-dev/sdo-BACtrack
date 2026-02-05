@@ -1,15 +1,16 @@
 <?php
 /**
  * Adjustment Requests Management
- * SDO-BACtrack
+ * SDO-BACtrack - BAC Members only
  */
+
+require_once __DIR__ . '/../includes/auth.php';
+$auth = auth();
+$auth->requireProcurement();
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/AdjustmentRequest.php';
 require_once __DIR__ . '/../models/Notification.php';
-
-// Require procurement role
-$auth->requireProcurement();
 
 $adjustmentModel = new AdjustmentRequest();
 

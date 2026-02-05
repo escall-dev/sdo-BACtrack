@@ -11,7 +11,12 @@ require_once __DIR__ . '/../models/BacCycle.php';
 $projectModel = new Project();
 $cycleModel = new BacCycle();
 
-$projects = $projectModel->getAll();
+// Project Owners see only their own projects
+$projectFilters = [];
+if ($auth->isProjectOwner()) {
+    $projectFilters['created_by'] = $auth->getUserId();
+}
+$projects = $projectModel->getAll($projectFilters);
 $selectedProject = isset($_GET['project']) ? (int)$_GET['project'] : null;
 $selectedCycle = isset($_GET['cycle']) ? (int)$_GET['cycle'] : null;
 

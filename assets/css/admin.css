@@ -948,6 +948,9 @@ select.form-control {
 }
 
 .status-pending { background: var(--warning-bg); color: #b45309; }
+.status-pending-approval { background: var(--warning-bg); color: #b45309; }
+.status-rejected { background: var(--danger-bg); color: #dc2626; }
+.status-draft { background: var(--bg-tertiary); color: var(--text-secondary); }
 .status-in_progress, .status-in-progress { background: var(--info-bg); color: #1d4ed8; }
 .status-completed { background: var(--success-bg); color: #047857; }
 .status-delayed { background: var(--danger-bg); color: #dc2626; }
@@ -1157,6 +1160,22 @@ select.form-control {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+}
+
+/* Confirm-style modals (approve, delete) */
+.modal-container.modal-confirm {
+    max-width: 420px;
+}
+
+.modal-confirm .modal-body {
+    padding: 24px 20px;
+}
+
+.modal-confirm-message {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-primary);
 }
 
 /* Activity Detail in Modal */

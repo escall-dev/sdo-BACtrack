@@ -4,11 +4,15 @@
  * SDO-BACtrack
  */
 
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/../models/Project.php';
 require_once __DIR__ . '/../models/BacCycle.php';
 require_once __DIR__ . '/../models/ProjectActivity.php';
 require_once __DIR__ . '/../models/TimelineTemplate.php';
+
+$auth = auth();
+$auth->requireLogin();
 
 $error = '';
 
@@ -27,28 +31,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = db();
             $db->beginTransaction();
 
-            // Create project
             $projectModel = new Project();
-            $projectId = $projectModel->create([
-                'title' => $title,
-                'description' => $description,
-                'procurement_type' => $procurementType,
-                'created_by' => $auth->getUserId()
-            ]);
-
-            // Create BAC cycle
-            $cycleModel = new BacCycle();
-            $cycleId = $cycleModel->create($projectId, 1);
-
-            // Generate activities from template
-            $activityModel = new ProjectActivity();
-            $activityModel->generateFromTemplate($cycleId, $procurementType, $startDate);
+            if ($auth->isProjectOwner()) {
+                // Project owner: create as DRAFT for BAC to review before submit
+                // No cycle/activities yet - created when project owner submits for review
+                $projectId = $projectModel->create([
+                    'title' => $title,
+                    'description' => $description,
+                    'procurement_type' => $procurementType,
+                    'project_start_date' => $startDate,
+                    'created_by' => $auth->getUserId(),
+                    'approval_status' => 'DRAFT'
+                ]);
+            } else {
+                // BAC member: create as APPROVED with timeline immediately
+                $projectId = $projectModel->create([
+                    'title' => $title,
+                    'description' => $description,
+                    'procurement_type' => $procurementType,
+                    'created_by' => $auth->getUserId(),
+                    'approval_status' => 'APPROVED'
+                ]);
+                $cycleModel = new BacCycle();
+                $cycleId = $cycleModel->create($projectId, 1);
+                $activityModel = new ProjectActivity();
+                $activityModel->generateFromTemplate($cycleId, $procurementType, $startDate);
+            }
 
             $db->commit();
 
-            setFlashMessage('success', 'Project created successfully with timeline generated.');
-            header('Location: ' . APP_URL . '/admin/project-view.php?id=' . $projectId);
-            exit;
+            $msg = $auth->isProjectOwner()
+                ? 'Project draft created. BAC can review it. Submit for BAC approval when ready to generate the timeline.'
+                : 'Project created successfully with timeline generated.';
+            setFlashMessage('success', $msg);
+            $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
         } catch (Exception $e) {
             $db->rollback();
             $error = 'Failed to create project: ' . $e->getMessage();
@@ -60,6 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $templateModel = new TimelineTemplate();
 $templates = $templateModel->getByProcurementType('PUBLIC_BIDDING');
 $totalDays = $templateModel->getTotalDuration('PUBLIC_BIDDING');
+
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-header">

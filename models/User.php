@@ -40,6 +40,84 @@ class User {
         return $this->db->lastInsertId();
     }
 
+    /**
+     * Self-registration: creates user with status PENDING (admin must approve) when status column exists.
+     * Returns ['id' => ...] on success or ['error' => 'message'] on failure.
+     */
+    public function register($data) {
+        $email = trim($data['email'] ?? '');
+        $existing = $this->findByEmail($email);
+        if ($existing) {
+            if (isset($existing['role']) && $existing['role'] === 'PROCUREMENT') {
+                return ['error' => 'BAC Member accounts cannot be created through self-registration.'];
+            }
+            return ['error' => 'An account with this email already exists.'];
+        }
+        $name = trim($data['full_name'] ?? $data['name'] ?? '');
+        $password = $data['password'] ?? '';
+        $employeeNo = trim($data['employee_no'] ?? '');
+        $position = trim($data['employee_position'] ?? $data['position'] ?? '');
+        $office = trim($data['office'] ?? '');
+        $unitSection = trim($data['unit_section'] ?? '');
+
+        $hasStatusColumn = $this->usersTableHasStatusColumn();
+
+        $cols = ['name', 'email', 'password_hash', 'role'];
+        $placeholders = ['?', '?', '?', '?'];
+        $params = [$name, $email, password_hash($password, PASSWORD_DEFAULT), 'PROJECT_OWNER'];
+
+        if ($hasStatusColumn) {
+            $cols[] = 'status';
+            $placeholders[] = '?';
+            $params[] = 'PENDING';
+        }
+        if ($hasStatusColumn && $employeeNo !== '') {
+            $cols[] = 'employee_no';
+            $placeholders[] = '?';
+            $params[] = $employeeNo;
+        }
+        if ($hasStatusColumn && $position !== '') {
+            $cols[] = 'position';
+            $placeholders[] = '?';
+            $params[] = $position;
+        }
+        if ($hasStatusColumn && $office !== '') {
+            $cols[] = 'office';
+            $placeholders[] = '?';
+            $params[] = $office;
+        }
+        if ($hasStatusColumn && $unitSection !== '') {
+            $cols[] = 'unit_section';
+            $placeholders[] = '?';
+            $params[] = $unitSection;
+        }
+
+        $this->db->query(
+            'INSERT INTO users (' . implode(', ', $cols) . ') VALUES (' . implode(', ', $placeholders) . ')',
+            $params
+        );
+        return ['id' => $this->db->lastInsertId()];
+    }
+
+    private function usersTableHasStatusColumn() {
+        static $has = null;
+        if ($has !== null) {
+            return $has;
+        }
+        try {
+            $rows = $this->db->fetchAll("SHOW COLUMNS FROM users LIKE 'status'");
+            $has = !empty($rows);
+        } catch (Exception $e) {
+            $has = false;
+        }
+        return $has;
+    }
+
+    public function isApproved($user) {
+        if (!isset($user['status'])) return true;
+        return $user['status'] === 'APPROVED';
+    }
+
     public function update($id, $data) {
         $fields = [];
         $params = [];
@@ -60,6 +138,10 @@ class User {
             $fields[] = 'role = ?';
             $params[] = $data['role'];
         }
+        if (isset($data['status']) && in_array($data['status'], ['PENDING', 'APPROVED'], true)) {
+            $fields[] = 'status = ?';
+            $params[] = $data['status'];
+        }
 
         if (empty($fields)) return false;
 
@@ -75,7 +157,21 @@ class User {
     }
 
     public function getAll() {
-        return $this->db->fetchAll("SELECT * FROM users ORDER BY name");
+        return $this->db->fetchAll("SELECT * FROM users ORDER BY created_at DESC");
+    }
+
+    /**
+     * Update user password.
+     * @param int $userId
+     * @param string $password
+     * @return bool
+     */
+    public function updatePassword($userId, $password) {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        return $this->db->query(
+            "UPDATE users SET password_hash = ? WHERE id = ?",
+            [$hash, $userId]
+        );
     }
 
     public function verifyPassword($email, $password) {

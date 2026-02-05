@@ -18,6 +18,11 @@ if (!$auth->isLoggedIn()) {
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
+if (!$auth->isProcurement()) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Access denied. Calendar is for BAC Members only.']);
+    exit;
+}
 
 require_once __DIR__ . '/../../models/ProjectActivity.php';
 
@@ -28,12 +33,12 @@ $start = $_GET['start'] ?? null;
 $end = $_GET['end'] ?? null;
 $projectId = isset($_GET['project']) ? (int)$_GET['project'] : null;
 
-// Build query
+// Build query - only include activities from APPROVED projects (exclude declined/pending)
 $sql = "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title
         FROM project_activities pa
         LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
         LEFT JOIN projects p ON bc.project_id = p.id
-        WHERE 1=1";
+        WHERE p.approval_status = 'APPROVED'";
 $params = [];
 
 if ($start) {

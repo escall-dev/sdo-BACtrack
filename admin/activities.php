@@ -1,7 +1,7 @@
 <?php
 /**
  * Activities List
- * SDO-BACtrack
+ * SDO-BACtrack - Project Owners see only activities from their projects
  */
 
 require_once __DIR__ . '/../includes/header.php';
@@ -17,18 +17,38 @@ $activityModel->checkAndUpdateDelayed();
 // Get filters
 $filters = [
     'status' => $_GET['status'] ?? '',
-    'project' => $_GET['project'] ?? ''
+    'project' => $_GET['project'] ?? '',
+    'owner' => $_GET['owner'] ?? ''
 ];
 
-$projects = $projectModel->getAll();
+// Project Owners see only their own projects (privacy)
+$projectFilters = [];
+if ($auth->isProjectOwner()) {
+    $projectFilters['created_by'] = $auth->getUserId();
+} elseif (!empty($filters['owner'])) {
+    $projectFilters['created_by'] = $filters['owner'];
+}
+$projects = $projectModel->getAll($projectFilters);
 
-// Get all activities
-$sql = "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title
+// BAC members: get project owners for filter
+$projectOwners = [];
+if ($auth->isProcurement()) {
+    $projectOwners = $projectModel->getProjectOwners();
+}
+
+// Get activities - Project Owners only from their projects
+$sql = "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title, u.name as project_owner_name
         FROM project_activities pa
         LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
         LEFT JOIN projects p ON bc.project_id = p.id
+        LEFT JOIN users u ON p.created_by = u.id
         WHERE 1=1";
 $params = [];
+
+if ($auth->isProjectOwner()) {
+    $sql .= " AND p.created_by = ?";
+    $params[] = $auth->getUserId();
+}
 
 if (!empty($filters['status'])) {
     $sql .= " AND pa.status = ?";
@@ -40,6 +60,11 @@ if (!empty($filters['project'])) {
     $params[] = $filters['project'];
 }
 
+if ($auth->isProcurement() && !empty($filters['owner'])) {
+    $sql .= " AND p.created_by = ?";
+    $params[] = $filters['owner'];
+}
+
 $sql .= " ORDER BY pa.planned_start_date ASC, pa.step_order ASC";
 
 $activities = db()->fetchAll($sql, $params);
@@ -47,13 +72,26 @@ $activities = db()->fetchAll($sql, $params);
 
 <div class="page-header">
     <div>
-        <h2 style="margin: 0;">All Activities</h2>
+        <h2 style="margin: 0;"><?php echo $auth->isProjectOwner() ? 'My Activities' : 'All Activities'; ?></h2>
         <p style="color: var(--text-muted); margin: 4px 0 0;"><?php echo count($activities); ?> activity(ies) found</p>
     </div>
 </div>
 
 <div class="filter-bar">
     <form class="filter-form" method="GET">
+        <?php if ($auth->isProcurement() && !empty($projectOwners)): ?>
+        <div class="filter-group">
+            <label>Project Owner / Bidder</label>
+            <select name="owner" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Owners</option>
+                <?php foreach ($projectOwners as $owner): ?>
+                <option value="<?php echo (int)$owner['id']; ?>" <?php echo ($filters['owner'] ?? '') === (string)$owner['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($owner['name']); ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php endif; ?>
         <div class="filter-group">
             <label>Project</label>
             <select name="project" class="filter-select">
@@ -97,6 +135,9 @@ $activities = db()->fetchAll($sql, $params);
             <tr>
                 <th>Activity</th>
                 <th>Project</th>
+                <?php if ($auth->isProcurement()): ?>
+                <th>Project Owner</th>
+                <?php endif; ?>
                 <th>Planned Start</th>
                 <th>Planned End</th>
                 <th>Duration (Days)</th>
@@ -121,6 +162,9 @@ $activities = db()->fetchAll($sql, $params);
                         </a>
                         <br><small style="color: var(--text-muted);">Cycle <?php echo $activity['cycle_number']; ?></small>
                     </td>
+                    <?php if ($auth->isProcurement()): ?>
+                    <td><?php echo htmlspecialchars($activity['project_owner_name'] ?? '-'); ?></td>
+                    <?php endif; ?>
                     <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
                     <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
                     <td>

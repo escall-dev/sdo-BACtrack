@@ -108,6 +108,22 @@ function initModals() {
     });
 }
 
+function getActivityViewUrl(activityId) {
+    var baseUrl = (typeof APP_URL !== 'undefined' ? APP_URL : '/SDO-BACtrack') + '/admin/activity-view.php?id=' + activityId;
+    if (window.SDO_BACTRACK_buildPageUrl) {
+        return window.SDO_BACTRACK_buildPageUrl(baseUrl);
+    }
+    if (window.SDO_BACTRACK_buildApiUrl) {
+        return window.SDO_BACTRACK_buildApiUrl(baseUrl);
+    }
+    return baseUrl;
+}
+
+function navigateToActivityView(activityId) {
+    var url = getActivityViewUrl(activityId);
+    window.location.href = url;
+}
+
 function openActivityModal(activityId) {
     const modal = document.getElementById('activityModal');
     const modalBody = document.getElementById('modalBody');
@@ -115,11 +131,17 @@ function openActivityModal(activityId) {
     modalBody.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
     modal.classList.add('show');
     
-    fetch(APP_URL + '/admin/api/activity-detail.php?id=' + activityId)
+    var url = APP_URL + '/admin/api/activity-detail.php?id=' + activityId;
+    if (window.SDO_BACTRACK_buildApiUrl) {
+        url = window.SDO_BACTRACK_buildApiUrl(url);
+    }
+    fetch(url)
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                renderActivityModal(data.activity);
+            if (data && (data.id || data.step_name)) {
+                renderActivityModal(data);
+            } else if (data && data.error) {
+                modalBody.innerHTML = '<p class="text-danger">' + (data.error || 'Failed to load activity details.') + '</p>';
             } else {
                 modalBody.innerHTML = '<p class="text-danger">Failed to load activity details.</p>';
             }
@@ -221,9 +243,9 @@ function renderActivityModal(activity) {
         </div>
         
         <div style="margin-top: 20px; text-align: center;">
-            <a href="${APP_URL}/admin/activity-view.php?id=${activity.id}" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" onclick="navigateToActivityView(${activity.id})">
                 <i class="fas fa-eye"></i> View Full Details
-            </a>
+            </button>
         </div>
     `;
 }

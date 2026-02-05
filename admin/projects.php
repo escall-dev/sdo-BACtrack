@@ -1,7 +1,7 @@
 <?php
 /**
  * Projects List
- * SDO-BACtrack
+ * SDO-BACtrack - Project Owners see only their projects
  */
 
 require_once __DIR__ . '/../includes/header.php';
@@ -12,15 +12,28 @@ $projectModel = new Project();
 // Get filters
 $filters = [
     'search' => $_GET['search'] ?? '',
-    'procurement_type' => $_GET['type'] ?? ''
+    'procurement_type' => $_GET['type'] ?? '',
+    'created_by' => $_GET['owner'] ?? '',
+    'approval_status' => $_GET['approval'] ?? ''
 ];
+
+// Project Owners see only their own projects (privacy)
+if ($auth->isProjectOwner()) {
+    $filters['created_by'] = $auth->getUserId();
+}
+
+// BAC members: filter by project owner (bidder)
+$projectOwners = [];
+if ($auth->isProcurement()) {
+    $projectOwners = $projectModel->getProjectOwners();
+}
 
 $projects = $projectModel->getAll($filters);
 ?>
 
 <div class="page-header">
     <div>
-        <h2 style="margin: 0;">BAC Projects</h2>
+        <h2 style="margin: 0;"><?php echo $auth->isProjectOwner() ? 'My Projects' : 'BAC Projects'; ?></h2>
         <p style="color: var(--text-muted); margin: 4px 0 0;"><?php echo count($projects); ?> project(s) found</p>
     </div>
     <a href="<?php echo APP_URL; ?>/admin/project-create.php" class="btn btn-primary">
@@ -46,6 +59,32 @@ $projects = $projectModel->getAll($filters);
                 <?php endforeach; ?>
             </select>
         </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select name="approval" class="filter-select" onchange="this.form.submit()">
+                <option value="">All</option>
+                <?php foreach (PROJECT_APPROVAL_STATUSES as $key => $value): ?>
+                <option value="<?php echo $key; ?>" <?php echo ($filters['approval_status'] ?? '') === $key ? 'selected' : ''; ?>>
+                    <?php echo $value; ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php if ($auth->isProcurement()): ?>
+        <?php if (!empty($projectOwners)): ?>
+        <div class="filter-group">
+            <label>Project Owner / Bidder</label>
+            <select name="owner" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Owners</option>
+                <?php foreach ($projectOwners as $owner): ?>
+                <option value="<?php echo (int)$owner['id']; ?>" <?php echo $filters['created_by'] === (string)$owner['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($owner['name']); ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php endif; ?>
+        <?php endif; ?>
         <div class="filter-actions">
             <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
             <a href="<?php echo APP_URL; ?>/admin/projects.php" class="btn btn-secondary">Reset</a>
@@ -70,8 +109,9 @@ $projects = $projectModel->getAll($filters);
                 <tr>
                     <th>Project Title</th>
                     <th>Procurement Type</th>
+                    <th>Project Owner / Bidder</th>
                     <th>Cycles</th>
-                    <th>Created By</th>
+                    <th>Status</th>
                     <th>Created Date</th>
                     <th>Actions</th>
                 </tr>
@@ -93,17 +133,25 @@ $projects = $projectModel->getAll($filters);
                             <?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?>
                         </span>
                     </td>
+                    <td><?php echo htmlspecialchars($project['creator_name'] ?? '-'); ?></td>
                     <td><?php echo $project['cycle_count']; ?></td>
-                    <td><?php echo htmlspecialchars($project['creator_name']); ?></td>
+                    <td>
+                        <?php $approval = $project['approval_status'] ?? 'APPROVED'; ?>
+                        <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $approval)); ?>">
+                            <?php echo PROJECT_APPROVAL_STATUSES[$approval] ?? $approval; ?>
+                        </span>
+                    </td>
                     <td><?php echo date('M j, Y', strtotime($project['created_at'])); ?></td>
                     <td>
                         <div class="action-buttons">
                             <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $project['id']; ?>" class="btn btn-icon" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            <?php if ($auth->isProcurement()): ?>
                             <a href="<?php echo APP_URL; ?>/admin/calendar.php?project=<?php echo $project['id']; ?>" class="btn btn-icon" title="Calendar">
                                 <i class="fas fa-calendar"></i>
                             </a>
+                            <?php endif; ?>
                             <a href="<?php echo APP_URL; ?>/admin/reports.php?project=<?php echo $project['id']; ?>" class="btn btn-icon" title="Report">
                                 <i class="fas fa-file-alt"></i>
                             </a>

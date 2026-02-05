@@ -1,14 +1,15 @@
 <?php
 /**
  * User Management
- * SDO-BACtrack
+ * SDO-BACtrack - BAC Members only
  */
+
+require_once __DIR__ . '/../includes/auth.php';
+$auth = auth();
+$auth->requireProcurement();
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/User.php';
-
-// Require procurement role
-$auth->requireProcurement();
 
 $userModel = new User();
 
@@ -69,6 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Approve user (pending registration)
+    if ($action === 'approve') {
+        $userId = (int)$_POST['user_id'];
+        $userModel->update($userId, ['status' => 'APPROVED']);
+        setFlashMessage('success', 'User approved. They can now sign in.');
+        if (!headers_sent()) {
+            header('Location: ' . APP_URL . '/admin/users.php');
+            exit;
+        }
+    }
+
     // Delete user
     if ($action === 'delete') {
         $userId = (int)$_POST['user_id'];
@@ -110,14 +122,16 @@ $filteredUsers = array_filter($users, function ($user) use ($filters) {
         return false;
     }
 
-    // Filter by status (1 = active, 0 = inactive)
+    // Filter by status (approval: PENDING, APPROVED; or legacy active/inactive)
     if ($filters['status'] !== '') {
-        $isActive = !empty($user['is_active']);
-        if ($filters['status'] === '1' && !$isActive) {
-            return false;
-        }
-        if ($filters['status'] === '0' && $isActive) {
-            return false;
+        $userStatus = $user['status'] ?? null;
+        if ($userStatus !== null) {
+            if ($filters['status'] === 'PENDING' && $userStatus !== 'PENDING') return false;
+            if ($filters['status'] === 'APPROVED' && $userStatus !== 'APPROVED') return false;
+        } else {
+            $isActive = !empty($user['is_active']);
+            if ($filters['status'] === '1' && !$isActive) return false;
+            if ($filters['status'] === '0' && $isActive) return false;
         }
     }
 
@@ -163,8 +177,8 @@ $displayUsers = array_values($filteredUsers);
             <label>Status</label>
             <select name="status" class="filter-select">
                 <option value="">All Status</option>
-                <option value="1" <?php echo $filters['status'] === '1' ? 'selected' : ''; ?>>Active</option>
-                <option value="0" <?php echo $filters['status'] === '0' ? 'selected' : ''; ?>>Inactive</option>
+                <option value="APPROVED" <?php echo $filters['status'] === 'APPROVED' ? 'selected' : ''; ?>>Approved</option>
+                <option value="PENDING" <?php echo $filters['status'] === 'PENDING' ? 'selected' : ''; ?>>Pending</option>
             </select>
         </div>
 
@@ -229,22 +243,27 @@ $displayUsers = array_values($filteredUsers);
                         </span>
                     </td>
                     <td>
-                        <?php $isActive = !empty($user['is_active']); ?>
-                        <?php if ($isActive): ?>
-                        <span class="status-badge status-active">Active</span>
+                        <?php $approvalStatus = $user['status'] ?? 'APPROVED'; ?>
+                        <?php if ($approvalStatus === 'PENDING'): ?>
+                        <span class="status-badge status-pending">Pending</span>
                         <?php else: ?>
-                        <span class="status-badge status-inactive">Inactive</span>
+                        <span class="status-badge status-active">Approved</span>
                         <?php endif; ?>
                     </td>
                     <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn btn-icon" title="Edit" onclick='editUser(<?php echo json_encode(array_merge($user, ["is_active" => (int)($user["is_active"] ?? 0)])); ?>)'>
+                            <?php if (($user['status'] ?? '') === 'PENDING'): ?>
+                            <button type="button" class="btn btn-icon" title="Approve" onclick="openApproveModal(<?php echo (int)$user['id']; ?>)">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <?php endif; ?>
+                            <button class="btn btn-icon" title="Edit" onclick='editUser(<?php echo json_encode(array_merge($user, ["is_active" => (int)($user["is_active"] ?? 1)])); ?>)'>
                                 <i class="fas fa-edit"></i>
                             </button>
                             <?php if ($user['id'] !== $auth->getUserId()): ?>
                             <button class="btn btn-icon text-danger" title="Delete" 
-                                    onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
+                                    onclick="deleteUser(<?php echo $user['id']; ?>, <?php echo json_encode($user['name']); ?>)">
                                 <i class="fas fa-trash"></i>
                             </button>
                             <?php endif; ?>
@@ -324,9 +343,32 @@ $displayUsers = array_values($filteredUsers);
     </div>
 </div>
 
+<!-- Approve User Confirmation Modal -->
+<div id="approveModal" class="modal-overlay">
+    <div class="modal-container modal-confirm">
+        <form method="POST" id="approveForm">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-check" style="margin-right: 8px; color: var(--success);"></i>Approve User</h2>
+                <button class="modal-close" type="button" onclick="closeApproveModal()" aria-label="Close">&times;</button>
+            </div>
+            <input type="hidden" name="action" value="approve">
+            <input type="hidden" name="user_id" id="approveUserId" value="">
+            <div class="modal-body">
+                <p class="modal-confirm-message">Approve this user so they can sign in?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeApproveModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal-overlay">
-    <div class="modal-container" style="max-width: 400px;">
+    <div class="modal-container modal-confirm">
         <form method="POST">
             <div class="modal-header">
                 <h2>Delete User</h2>
@@ -384,6 +426,15 @@ function closeUserModal() {
     document.getElementById('userModal').classList.remove('show');
 }
 
+function openApproveModal(userId) {
+    document.getElementById('approveUserId').value = userId;
+    document.getElementById('approveModal').classList.add('show');
+}
+
+function closeApproveModal() {
+    document.getElementById('approveModal').classList.remove('show');
+}
+
 function deleteUser(id, name) {
     document.getElementById('deleteUserId').value = id;
     document.getElementById('deleteUserName').textContent = name;
@@ -401,6 +452,13 @@ document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
             overlay.classList.remove('show');
         }
     });
+});
+
+// Close modals with Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('approveModal').classList.contains('show')) closeApproveModal();
+    if (document.getElementById('deleteModal').classList.contains('show')) closeDeleteModal();
 });
 </script>
 

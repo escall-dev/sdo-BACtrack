@@ -92,4 +92,22 @@ class ActivityHistoryLog {
             [$limit]
         );
     }
+
+    /**
+     * Get recent activity history for projects owned by a user.
+     */
+    public function getRecentLogsByProjectOwner($userId, $limit = 20) {
+        return $this->db->fetchAll(
+            "SELECT ahl.*, u.name as changed_by_name, pa.step_name, pa.status as activity_status, p.title as project_title, pa.id as activity_id
+             FROM activity_history_logs ahl
+             LEFT JOIN users u ON ahl.changed_by = u.id
+             LEFT JOIN project_activities pa ON ahl.activity_id = pa.id
+             LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
+             LEFT JOIN projects p ON bc.project_id = p.id
+             WHERE p.created_by = ?
+             ORDER BY ahl.changed_at DESC
+             LIMIT ?",
+            [$userId, $limit]
+        );
+    }
 }

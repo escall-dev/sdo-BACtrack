@@ -5,16 +5,16 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
-$auth = auth();
-$auth->requireProcurement();
-
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/../models/AdjustmentRequest.php';
 require_once __DIR__ . '/../models/Notification.php';
 
+$auth = auth();
+$auth->requireProcurement();
+
 $adjustmentModel = new AdjustmentRequest();
 
-// Handle approval/rejection
+// Handle approval/rejection (must run before header.php outputs HTML)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $requestId = (int)$_POST['request_id'];
     $action = $_POST['action'] ?? '';
@@ -36,9 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    header('Location: ' . APP_URL . '/admin/adjustments.php');
-    exit;
+    $auth->redirect(APP_URL . '/admin/adjustments.php');
 }
+
+require_once __DIR__ . '/../includes/header.php';
 
 $pendingRequests = $adjustmentModel->getPending();
 ?>

@@ -220,9 +220,13 @@ if ($cycleId) {
             background: #1b6ca8;
         }
 
+        @page {
+            margin: 0;
+        }
+
         @media print {
             body {
-                padding: 0;
+                padding: 15mm 10mm;
             }
 
             .no-print {
@@ -387,5 +391,15 @@ if ($cycleId) {
             <div class="signature-line">Approved By</div>
         </div>
     </div>
+<script>
+    // Strip auth_token from URL so it doesn't appear in browser print headers/footers
+    (function() {
+        var url = new URL(window.location.href);
+        if (url.searchParams.has('auth_token')) {
+            url.searchParams.delete('auth_token');
+            window.history.replaceState({}, document.title, url.toString());
+        }
+    })();
+</script>
 </body>
 </html>

@@ -15,7 +15,7 @@ class Project {
 
     public function findById($id) {
         return $this->db->fetch(
-            "SELECT p.*, u.name as creator_name,
+            "SELECT p.*, u.name as creator_name, u.avatar_url as creator_avatar,
                     rej.name as rejected_by_name
              FROM projects p 
              LEFT JOIN users u ON p.created_by = u.id 
@@ -68,7 +68,7 @@ class Project {
     }
 
     public function getAll($filters = []) {
-        $sql = "SELECT p.*, u.name as creator_name,
+        $sql = "SELECT p.*, u.name as creator_name, u.avatar_url as creator_avatar,
                 (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count
                 FROM projects p 
                 LEFT JOIN users u ON p.created_by = u.id 

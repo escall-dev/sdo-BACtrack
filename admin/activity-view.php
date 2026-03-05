@@ -339,7 +339,11 @@ require_once __DIR__ . '/../includes/header.php';
                                 ?>
                             </p>
                             <small style="color: var(--text-muted);">
-                                By <?php echo htmlspecialchars($log['changed_by_name']); ?> • 
+                                By 
+                                <?php if (!empty($log['changed_by_avatar'])): ?>
+                                <img src="<?php echo htmlspecialchars($log['changed_by_avatar']); ?>" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:2px;">
+                                <?php endif; ?>
+                                <?php echo htmlspecialchars($log['changed_by_name']); ?> • 
                                 <?php echo date('M j, Y g:i A', strtotime($log['changed_at'])); ?>
                             </small>
                         </div>

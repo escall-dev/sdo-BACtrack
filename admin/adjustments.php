@@ -78,7 +78,16 @@ $pendingRequests = $adjustmentModel->getPending();
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
             <div>
                 <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Requested By</label>
-                <p style="font-weight: 500;"><?php echo htmlspecialchars($request['requester_name']); ?></p>
+                <div class="user-cell" style="margin-top: 4px;">
+                    <?php if (!empty($request['requester_avatar'])): ?>
+                    <img src="<?php echo htmlspecialchars($request['requester_avatar']); ?>" alt="Avatar" class="user-avatar-sm">
+                    <?php else: ?>
+                    <div class="user-avatar-placeholder-sm">
+                        <?php echo strtoupper(substr($request['requester_name'], 0, 1)); ?>
+                    </div>
+                    <?php endif; ?>
+                    <span style="font-weight: 500;"><?php echo htmlspecialchars($request['requester_name']); ?></span>
+                </div>
             </div>
             <div>
                 <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">New Start Date</label>

@@ -16,7 +16,7 @@ class AdjustmentRequest {
     public function findById($id) {
         return $this->db->fetch(
             "SELECT tar.*, 
-                    u1.name as requester_name, 
+                    u1.name as requester_name, u1.avatar_url as requester_avatar,
                     u2.name as reviewer_name,
                     pa.step_name, pa.planned_start_date, pa.planned_end_date,
                     p.title as project_title
@@ -33,7 +33,7 @@ class AdjustmentRequest {
 
     public function getByActivity($activityId) {
         return $this->db->fetchAll(
-            "SELECT tar.*, u1.name as requester_name, u2.name as reviewer_name
+            "SELECT tar.*, u1.name as requester_name, u1.avatar_url as requester_avatar, u2.name as reviewer_name
              FROM timeline_adjustment_requests tar
              LEFT JOIN users u1 ON tar.requested_by = u1.id
              LEFT JOIN users u2 ON tar.reviewed_by = u2.id
@@ -46,7 +46,7 @@ class AdjustmentRequest {
     public function getPending() {
         return $this->db->fetchAll(
             "SELECT tar.*, 
-                    u1.name as requester_name,
+                    u1.name as requester_name, u1.avatar_url as requester_avatar,
                     pa.step_name,
                     p.title as project_title
              FROM timeline_adjustment_requests tar

@@ -5,15 +5,15 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../models/User.php';
+
 $auth = auth();
 $auth->requireProcurement();
 
-require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../models/User.php';
-
 $userModel = new User();
 
-// Handle form submissions
+// Handle form submissions — must run BEFORE header.php outputs any HTML
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -26,23 +26,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'role' => $_POST['role'] ?? 'PROJECT_OWNER'
         ];
 
+        // Only superadmin can create superadmin users
+        if ($data['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
+            $data['role'] = 'PROJECT_OWNER';
+        }
+
         if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
             setFlashMessage('error', 'All fields are required.');
         } elseif ($userModel->findByEmail($data['email'])) {
             setFlashMessage('error', 'Email address already exists.');
         } else {
-            $userId = $userModel->create($data);
+            $userModel->create($data);
             setFlashMessage('success', 'User created successfully.');
         }
-        if (!headers_sent()) {
-            header('Location: ' . APP_URL . '/admin/users.php');
-            exit;
-        }
+        $auth->redirect(APP_URL . '/admin/users.php');
     }
 
     // Update user
     if ($action === 'update') {
         $userId = (int)$_POST['user_id'];
+        $targetUser = $userModel->findById($userId);
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
@@ -50,24 +53,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'is_active' => isset($_POST['is_active']) ? 1 : 0
         ];
 
-        // Check email uniqueness
-        $existingUser = $userModel->findByEmail($data['email']);
-        if ($existingUser && $existingUser['id'] != $userId) {
-            setFlashMessage('error', 'Email address already exists.');
+        // Protect superadmin accounts from non-superadmins
+        if ($targetUser && $targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
+            setFlashMessage('error', 'You cannot modify a Super Admin account.');
+        } elseif ($data['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
+            setFlashMessage('error', 'Only a Super Admin can assign the Super Admin role.');
         } else {
-            $userModel->update($userId, $data);
-            
-            // Update password if provided
-            if (!empty($_POST['password'])) {
-                $userModel->updatePassword($userId, $_POST['password']);
+            $existingUser = $userModel->findByEmail($data['email']);
+            if ($existingUser && $existingUser['id'] != $userId) {
+                setFlashMessage('error', 'Email address already exists.');
+            } else {
+                $userModel->update($userId, $data);
+                if (!empty($_POST['password'])) {
+                    $userModel->updatePassword($userId, $_POST['password']);
+                }
+                setFlashMessage('success', 'User updated successfully.');
             }
-            
-            setFlashMessage('success', 'User updated successfully.');
         }
-        if (!headers_sent()) {
-            header('Location: ' . APP_URL . '/admin/users.php');
-            exit;
-        }
+        $auth->redirect(APP_URL . '/admin/users.php');
     }
 
     // Approve user (pending registration)
@@ -75,31 +78,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userId = (int)$_POST['user_id'];
         $userModel->update($userId, ['status' => 'APPROVED']);
         setFlashMessage('success', 'User approved. They can now sign in.');
-        if (!headers_sent()) {
-            header('Location: ' . APP_URL . '/admin/users.php');
-            exit;
-        }
+        $auth->redirect(APP_URL . '/admin/users.php');
     }
 
     // Delete user
     if ($action === 'delete') {
         $userId = (int)$_POST['user_id'];
-        
-        // Prevent self-deletion
+        $targetUser = $userModel->findById($userId);
+
         if ($userId === $auth->getUserId()) {
             setFlashMessage('error', 'You cannot delete your own account.');
+        } elseif (!$targetUser) {
+            setFlashMessage('error', 'User not found.');
+        } elseif ($targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
+            setFlashMessage('error', 'You cannot delete a Super Admin account.');
         } else {
-            $userModel->delete($userId);
-            setFlashMessage('success', 'User deleted successfully.');
+            try {
+                $deleted = $userModel->delete($userId);
+                if ($deleted) {
+                    setFlashMessage('success', 'User deleted successfully.');
+                } else {
+                    setFlashMessage('error', 'Unable to delete user.');
+                }
+            } catch (Exception $e) {
+                if (strpos($e->getMessage(), 'SQLSTATE[23000]') !== false) {
+                    setFlashMessage('error', 'Cannot delete this user because they are linked to existing project records.');
+                } else {
+                    setFlashMessage('error', 'Unable to delete user right now. Please try again.');
+                }
+            }
         }
-        if (!headers_sent()) {
-            header('Location: ' . APP_URL . '/admin/users.php');
-            exit;
-        }
+        $auth->redirect(APP_URL . '/admin/users.php');
     }
 }
 
 $users = $userModel->getAll();
+
+require_once __DIR__ . '/../includes/header.php';
 
 // Simple in-memory filters for UI (search / role / status)
 $filters = [
@@ -221,9 +236,13 @@ $displayUsers = array_values($filteredUsers);
                 <tr>
                     <td>
                         <div class="user-cell">
+                            <?php if (!empty($user['avatar_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($user['avatar_url']); ?>" alt="Avatar" class="user-avatar-sm">
+                            <?php else: ?>
                             <div class="user-avatar-placeholder-sm">
                                 <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
                             </div>
+                            <?php endif; ?>
                             <div>
                                 <div class="cell-primary">
                                     <?php echo htmlspecialchars($user['name']); ?>
@@ -238,9 +257,15 @@ $displayUsers = array_values($filteredUsers);
                         </div>
                     </td>
                     <td>
+                        <?php if ($user['role'] === 'SUPERADMIN'): ?>
+                        <span class="status-badge" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                            <i class="fas fa-shield-alt" style="margin-right: 4px;"></i><?php echo USER_ROLES[$user['role']]; ?>
+                        </span>
+                        <?php else: ?>
                         <span class="status-badge status-approved">
                             <?php echo USER_ROLES[$user['role']] ?? $user['role']; ?>
                         </span>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <?php $approvalStatus = $user['status'] ?? 'APPROVED'; ?>
@@ -258,12 +283,15 @@ $displayUsers = array_values($filteredUsers);
                                 <i class="fas fa-check"></i>
                             </button>
                             <?php endif; ?>
+                            <?php $canEditThisUser = ($user['role'] !== 'SUPERADMIN' || $auth->isSuperAdmin()); ?>
+                            <?php if ($canEditThisUser): ?>
                             <button class="btn btn-icon" title="Edit" onclick='editUser(<?php echo json_encode(array_merge($user, ["is_active" => (int)($user["is_active"] ?? 1)])); ?>)'>
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <?php if ($user['id'] !== $auth->getUserId()): ?>
-                            <button class="btn btn-icon text-danger" title="Delete" 
-                                    onclick="deleteUser(<?php echo $user['id']; ?>, <?php echo json_encode($user['name']); ?>)">
+                            <?php endif; ?>
+                                <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser): ?>
+                            <button class='btn btn-icon text-danger' title='Delete'
+                                    onclick='deleteUser(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
                                 <i class="fas fa-trash"></i>
                             </button>
                             <?php endif; ?>
@@ -307,6 +335,7 @@ $displayUsers = array_values($filteredUsers);
                         <select name="role" id="userRole" class="form-control" required>
                             <option value="" disabled selected>-- Select Role --</option>
                             <?php foreach (USER_ROLES as $key => $value): ?>
+                            <?php if ($key === 'SUPERADMIN' && !$auth->isSuperAdmin()) continue; ?>
                             <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -369,9 +398,9 @@ $displayUsers = array_values($filteredUsers);
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal-overlay">
     <div class="modal-container modal-confirm">
-        <form method="POST">
+        <form method="POST" id="deleteForm">
             <div class="modal-header">
-                <h2>Delete User</h2>
+                <h2><i class="fas fa-trash" style="margin-right: 8px;"></i>Delete User</h2>
                 <button class="modal-close" type="button" onclick="closeDeleteModal()">&times;</button>
             </div>
 
@@ -379,13 +408,17 @@ $displayUsers = array_values($filteredUsers);
             <input type="hidden" name="user_id" id="deleteUserId" value="">
             
             <div class="modal-body">
-                <p>Are you sure you want to delete <strong id="deleteUserName"></strong>?</p>
+                <p>Are you sure you want to delete this account?</p>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin: 12px 0;">
+                    <div style="font-weight: 700; color: var(--text-primary);" id="deleteUserName">-</div>
+                    <div style="color: var(--text-muted); margin-top: 2px;" id="deleteUserEmail">-</div>
+                </div>
                 <p class="form-hint" style="color: var(--danger);">This action cannot be undone.</p>
             </div>
             
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                <button type="submit" class="btn btn-danger">Delete User</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
             </div>
         </form>
     </div>
@@ -435,9 +468,10 @@ function closeApproveModal() {
     document.getElementById('approveModal').classList.remove('show');
 }
 
-function deleteUser(id, name) {
+function deleteUser(id, name, email) {
     document.getElementById('deleteUserId').value = id;
     document.getElementById('deleteUserName').textContent = name;
+    document.getElementById('deleteUserEmail').textContent = email;
     document.getElementById('deleteModal').classList.add('show');
 }
 

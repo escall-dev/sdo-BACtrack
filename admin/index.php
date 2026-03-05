@@ -57,13 +57,22 @@ if ($auth->isProjectOwner()) {
         }
     }
 } else {
-    // BAC Member dashboard
+    // BAC Member / Super Admin dashboard
     $projectStats = $projectModel->getStatistics();
     $activityStats = $activityModel->getStatistics();
     $upcomingDeadlines = $activityModel->getUpcomingDeadlines(DEADLINE_WARNING_DAYS);
     $delayedActivities = $activityModel->getDelayedActivities();
     $recentProjects = $projectModel->getAll();
     $recentProjects = array_slice($recentProjects, 0, 5);
+
+    // Super Admin: also load user stats
+    if ($auth->isSuperAdmin()) {
+        require_once __DIR__ . '/../models/User.php';
+        $userModel = new User();
+        $allUsers = $userModel->getAll();
+        $totalUsers = count($allUsers);
+        $pendingUsers = count(array_filter($allUsers, fn($u) => ($u['status'] ?? 'APPROVED') === 'PENDING'));
+    }
 }
 ?>
 
@@ -285,6 +294,29 @@ if ($auth->isProjectOwner()) {
                 <span class="stat-label">Delayed</span>
             </div>
         </div>
+
+        <?php if ($auth->isSuperAdmin()): ?>
+        <a href="<?php echo APP_URL; ?>/admin/users.php" class="stat-card" style="text-decoration: none; color: inherit;">
+            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-value"><?php echo $totalUsers; ?></span>
+                <span class="stat-label">Total Users</span>
+            </div>
+        </a>
+        <?php if ($pendingUsers > 0): ?>
+        <a href="<?php echo APP_URL; ?>/admin/users.php?status=PENDING" class="stat-card" style="text-decoration: none; color: inherit;">
+            <div class="stat-icon delayed">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-value"><?php echo $pendingUsers; ?></span>
+                <span class="stat-label">Pending Users</span>
+            </div>
+        </a>
+        <?php endif; ?>
+        <?php endif; ?>
     </div>
 
     <div class="dashboard-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
@@ -389,7 +421,18 @@ if ($auth->isProjectOwner()) {
                                 </a>
                             </td>
                             <td><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></td>
-                            <td><?php echo htmlspecialchars($project['creator_name']); ?></td>
+                            <td>
+                                <div class="user-cell">
+                                    <?php if (!empty($project['creator_avatar'])): ?>
+                                    <img src="<?php echo htmlspecialchars($project['creator_avatar']); ?>" alt="Avatar" class="user-avatar-sm">
+                                    <?php else: ?>
+                                    <div class="user-avatar-placeholder-sm">
+                                        <?php echo strtoupper(substr($project['creator_name'], 0, 1)); ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <span><?php echo htmlspecialchars($project['creator_name']); ?></span>
+                                </div>
+                            </td>
                             <td><?php echo date('M j, Y', strtotime($project['created_at'])); ?></td>
                             <td>
                                 <div class="action-buttons">

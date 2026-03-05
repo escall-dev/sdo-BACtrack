@@ -133,7 +133,18 @@ $projects = $projectModel->getAll($filters);
                             <?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?>
                         </span>
                     </td>
-                    <td><?php echo htmlspecialchars($project['creator_name'] ?? '-'); ?></td>
+                    <td>
+                        <div class="user-cell">
+                            <?php if (!empty($project['creator_avatar'])): ?>
+                            <img src="<?php echo htmlspecialchars($project['creator_avatar']); ?>" alt="Avatar" class="user-avatar-sm">
+                            <?php else: ?>
+                            <div class="user-avatar-placeholder-sm">
+                                <?php echo strtoupper(substr($project['creator_name'] ?? '-', 0, 1)); ?>
+                            </div>
+                            <?php endif; ?>
+                            <span><?php echo htmlspecialchars($project['creator_name'] ?? '-'); ?></span>
+                        </div>
+                    </td>
                     <td><?php echo $project['cycle_count']; ?></td>
                     <td>
                         <?php $approval = $project['approval_status'] ?? 'APPROVED'; ?>

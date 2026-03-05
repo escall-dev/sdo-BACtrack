@@ -15,7 +15,7 @@ class ActivityHistoryLog {
 
     public function findById($id) {
         return $this->db->fetch(
-            "SELECT ahl.*, u.name as changed_by_name
+            "SELECT ahl.*, u.name as changed_by_name, u.avatar_url as changed_by_avatar
              FROM activity_history_logs ahl
              LEFT JOIN users u ON ahl.changed_by = u.id
              WHERE ahl.id = ?",
@@ -25,7 +25,7 @@ class ActivityHistoryLog {
 
     public function getByActivity($activityId) {
         return $this->db->fetchAll(
-            "SELECT ahl.*, u.name as changed_by_name
+            "SELECT ahl.*, u.name as changed_by_name, u.avatar_url as changed_by_avatar
              FROM activity_history_logs ahl
              LEFT JOIN users u ON ahl.changed_by = u.id
              WHERE ahl.activity_id = ?
@@ -81,7 +81,7 @@ class ActivityHistoryLog {
 
     public function getRecentLogs($limit = 50) {
         return $this->db->fetchAll(
-            "SELECT ahl.*, u.name as changed_by_name, pa.step_name, p.title as project_title
+            "SELECT ahl.*, u.name as changed_by_name, u.avatar_url as changed_by_avatar, pa.step_name, p.title as project_title
              FROM activity_history_logs ahl
              LEFT JOIN users u ON ahl.changed_by = u.id
              LEFT JOIN project_activities pa ON ahl.activity_id = pa.id
@@ -98,7 +98,7 @@ class ActivityHistoryLog {
      */
     public function getRecentLogsByProjectOwner($userId, $limit = 20) {
         return $this->db->fetchAll(
-            "SELECT ahl.*, u.name as changed_by_name, pa.step_name, pa.status as activity_status, p.title as project_title, pa.id as activity_id
+            "SELECT ahl.*, u.name as changed_by_name, u.avatar_url as changed_by_avatar, pa.step_name, pa.status as activity_status, p.title as project_title, pa.id as activity_id
              FROM activity_history_logs ahl
              LEFT JOIN users u ON ahl.changed_by = u.id
              LEFT JOIN project_activities pa ON ahl.activity_id = pa.id

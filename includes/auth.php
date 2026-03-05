@@ -142,11 +142,15 @@ class Auth {
     }
 
     public function isProcurement() {
-        return $this->getUserRole() === 'PROCUREMENT';
+        return $this->getUserRole() === 'PROCUREMENT' || $this->getUserRole() === 'SUPERADMIN';
     }
 
     public function isProjectOwner() {
         return $this->getUserRole() === 'PROJECT_OWNER';
+    }
+
+    public function isSuperAdmin() {
+        return $this->getUserRole() === 'SUPERADMIN';
     }
 
     /**
@@ -173,6 +177,15 @@ class Auth {
     public function requireProcurement() {
         $this->requireLogin();
         if (!$this->isProcurement()) {
+            $_SESSION['flash_error'] = 'You do not have permission to perform this action.';
+            header('Location: ' . APP_URL . '/admin/');
+            exit;
+        }
+    }
+
+    public function requireSuperAdmin() {
+        $this->requireLogin();
+        if (!$this->isSuperAdmin()) {
             $_SESSION['flash_error'] = 'You do not have permission to perform this action.';
             header('Location: ' . APP_URL . '/admin/');
             exit;

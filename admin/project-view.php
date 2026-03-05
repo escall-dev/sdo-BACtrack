@@ -252,7 +252,16 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
                     <div>
                         <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Created By</label>
-                        <p style="font-weight: 500;"><?php echo htmlspecialchars($project['creator_name']); ?></p>
+                        <div class="user-cell" style="margin-top: 4px;">
+                            <?php if (!empty($project['creator_avatar'])): ?>
+                            <img src="<?php echo htmlspecialchars($project['creator_avatar']); ?>" alt="Avatar" class="user-avatar-sm">
+                            <?php else: ?>
+                            <div class="user-avatar-placeholder-sm">
+                                <?php echo strtoupper(substr($project['creator_name'], 0, 1)); ?>
+                            </div>
+                            <?php endif; ?>
+                            <span style="font-weight: 500;"><?php echo htmlspecialchars($project['creator_name']); ?></span>
+                        </div>
                     </div>
                     <div>
                         <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Created Date</label>

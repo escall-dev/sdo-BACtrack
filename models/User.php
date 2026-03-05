@@ -48,8 +48,8 @@ class User {
         $email = trim($data['email'] ?? '');
         $existing = $this->findByEmail($email);
         if ($existing) {
-            if (isset($existing['role']) && $existing['role'] === 'PROCUREMENT') {
-                return ['error' => 'BAC Member accounts cannot be created through self-registration.'];
+            if (isset($existing['role']) && in_array($existing['role'], ['PROCUREMENT', 'SUPERADMIN'], true)) {
+                return ['error' => 'This account cannot be created through self-registration.'];
             }
             return ['error' => 'An account with this email already exists.'];
         }
@@ -142,6 +142,26 @@ class User {
             $fields[] = 'status = ?';
             $params[] = $data['status'];
         }
+        if (isset($data['employee_no'])) {
+            $fields[] = 'employee_no = ?';
+            $params[] = $data['employee_no'];
+        }
+        if (isset($data['position'])) {
+            $fields[] = 'position = ?';
+            $params[] = $data['position'];
+        }
+        if (isset($data['office'])) {
+            $fields[] = 'office = ?';
+            $params[] = $data['office'];
+        }
+        if (isset($data['unit_section'])) {
+            $fields[] = 'unit_section = ?';
+            $params[] = $data['unit_section'];
+        }
+        if (isset($data['avatar_url'])) {
+            $fields[] = 'avatar_url = ?';
+            $params[] = $data['avatar_url'];
+        }
 
         if (empty($fields)) return false;
 
@@ -184,11 +204,16 @@ class User {
 
     public function isProcurement($userId) {
         $user = $this->findById($userId);
-        return $user && $user['role'] === 'PROCUREMENT';
+        return $user && ($user['role'] === 'PROCUREMENT' || $user['role'] === 'SUPERADMIN');
     }
 
     public function isProjectOwner($userId) {
         $user = $this->findById($userId);
         return $user && $user['role'] === 'PROJECT_OWNER';
+    }
+
+    public function isSuperAdmin($userId) {
+        $user = $this->findById($userId);
+        return $user && $user['role'] === 'SUPERADMIN';
     }
 }

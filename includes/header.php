@@ -56,7 +56,7 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/admin.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/admin.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/admin.css'); ?>">
     <?php if ($currentPage === 'calendar'): ?>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <?php endif; ?>
@@ -130,9 +130,13 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
             
             <div class="sidebar-footer">
                 <div class="user-info">
+                    <?php if (!empty($currentUser['avatar_url'])): ?>
+                    <img src="<?php echo htmlspecialchars($currentUser['avatar_url']); ?>" alt="Avatar" class="user-avatar-img-sm">
+                    <?php else: ?>
                     <div class="user-avatar-placeholder">
                         <?php echo strtoupper(substr($currentUser['name'], 0, 1)); ?>
                     </div>
+                    <?php endif; ?>
                     <div class="user-details">
                         <span class="user-name"><?php echo htmlspecialchars($currentUser['name']); ?></span>
                         <span class="user-role"><?php echo USER_ROLES[$currentUser['role']] ?? $currentUser['role']; ?></span>

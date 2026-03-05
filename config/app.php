@@ -48,7 +48,8 @@ define('COMPLIANCE_STATUSES', [
 // User roles
 define('USER_ROLES', [
     'PROJECT_OWNER' => 'Project Owner',
-    'PROCUREMENT' => 'BAC Member'
+    'PROCUREMENT' => 'BAC Member',
+    'SUPERADMIN' => 'Super Admin'
 ]);
 
 // Project approval statuses

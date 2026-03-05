@@ -64,7 +64,8 @@ class Auth {
             $this->user = $this->userModel->findById($session['user_id']);
             // Sliding expiration: extend session on each request so user is only logged out after inactivity
             $this->sessionModel->extendExpiry($token, SESSION_LIFETIME);
-            // Note: Cookies are NOT set to allow multiple accounts in different tabs
+            // Refresh cookie expiry to match the extended DB session
+            setcookie(AUTH_TOKEN_PARAM, $token, time() + SESSION_LIFETIME, APP_URL . '/', '', false, false);
         }
     }
 
@@ -83,6 +84,10 @@ class Auth {
             $deviceInfo = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
             $expiresAt = date('Y-m-d H:i:s', time() + SESSION_LIFETIME);
             $this->sessionModel->create($user['id'], $token, $deviceInfo, $expiresAt);
+
+            // Set auth cookie server-side so it's available on ALL subsequent
+            // requests without waiting for JavaScript to store it.
+            setcookie(AUTH_TOKEN_PARAM, $token, time() + SESSION_LIFETIME, APP_URL . '/', '', false, false);
 
             $this->token = $token;
             $this->user = $user;
@@ -108,8 +113,8 @@ class Auth {
                 $params["secure"], $params["httponly"]
             );
         }
-        // Note: Auth token cookies are not cleared to avoid affecting other tabs
-        // Each tab manages its own token via URL parameters and sessionStorage
+        // Clear auth token cookie
+        setcookie(AUTH_TOKEN_PARAM, '', time() - 42000, APP_URL . '/', '', false, false);
 
         session_destroy();
     }
@@ -168,7 +173,12 @@ class Auth {
 
     public function requireLogin() {
         if (!$this->isLoggedIn()) {
-            $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+            // Strip any auth_token parameter from the saved redirect URL
+            // to prevent stale tokens from poisoning the re-login redirect.
+            $redirectUri = $_SERVER['REQUEST_URI'];
+            $redirectUri = preg_replace('/([?&])' . preg_quote(AUTH_TOKEN_PARAM, '/') . '=[^&]*(&|$)/', '$1', $redirectUri);
+            $redirectUri = rtrim($redirectUri, '?&');
+            $_SESSION['redirect_after_login'] = $redirectUri;
             header('Location: ' . APP_URL . '/admin/login.php');
             exit;
         }

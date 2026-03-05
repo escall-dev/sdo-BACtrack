@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // and set a tab-specific cookie for refresh support
             $redirect = $_SESSION['redirect_after_login'] ?? APP_URL . '/admin/';
             unset($_SESSION['redirect_after_login']);
+            // Strip any stale auth_token params from redirect URL before appending the new one
+            $redirect = preg_replace('/([?&])' . preg_quote(AUTH_TOKEN_PARAM, '/') . '=[^&]*(&|$)/', '$1', $redirect);
+            $redirect = rtrim($redirect, '?&');
             $sep = strpos($redirect, '?') !== false ? '&' : '?';
             $redirect .= $sep . AUTH_TOKEN_PARAM . '=' . urlencode($token);
             header('Location: ' . $redirect);

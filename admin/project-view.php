@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/timeline.php';
 require_once __DIR__ . '/../models/Project.php';
 require_once __DIR__ . '/../models/BacCycle.php';
 require_once __DIR__ . '/../models/ProjectActivity.php';
@@ -132,6 +133,10 @@ foreach ($activities as $activity) {
 
 $progress = $stats['total'] > 0 ? round(($stats['completed'] / $stats['total']) * 100) : 0;
 $isDraft = ($project['approval_status'] ?? '') === 'DRAFT';
+$timelineSummary = timelineProjectSummary($activities);
+$activityTiming = $timelineSummary['meta_by_id'];
+$currentActivity = $timelineSummary['current_activity'];
+$nextActivity = $timelineSummary['next_activity'];
 
 $docModel = new ProjectDocument();
 $projectDocuments = $docModel->getByProjectGrouped($projectId);
@@ -271,6 +276,56 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
+        <?php if (!empty($activities)): ?>
+        <div class="data-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h2><i class="fas fa-route"></i> Timeline Awareness</h2>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; gap: 12px;">
+                    <div style="padding: 14px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Current Step</label>
+                        <?php if ($currentActivity): ?>
+                        <div style="font-weight: 700; margin-top: 4px;"><?php echo htmlspecialchars($currentActivity['step_name']); ?></div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                            <?php echo htmlspecialchars($activityTiming[$currentActivity['id']]['timing_label'] ?? ''); ?>
+                        </div>
+                        <?php else: ?>
+                        <div style="font-weight: 700; margin-top: 4px;">All steps completed</div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div style="padding: 14px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Next Step</label>
+                        <?php if ($nextActivity): ?>
+                        <div style="font-weight: 700; margin-top: 4px;"><?php echo htmlspecialchars($nextActivity['step_name']); ?></div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                            <?php echo htmlspecialchars($activityTiming[$nextActivity['id']]['timing_label'] ?? ''); ?>
+                        </div>
+                        <?php else: ?>
+                        <div style="font-weight: 700; margin-top: 4px;">No next step pending</div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <div style="text-align: center; padding: 12px; background: var(--warning-bg); border-radius: var(--radius-md);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: var(--warning);"><?php echo $timelineSummary['remaining_steps']; ?></div>
+                            <small style="color: var(--text-muted);">Remaining</small>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--info-bg); border-radius: var(--radius-md);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: var(--info);"><?php echo $timelineSummary['due_today_steps']; ?></div>
+                            <small style="color: var(--text-muted);">Due Today</small>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--danger-bg); border-radius: var(--radius-md);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: var(--danger);"><?php echo $timelineSummary['overdue_steps']; ?></div>
+                            <small style="color: var(--text-muted);">Overdue</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Activities List -->
         <div class="data-card">
             <div class="card-header">
@@ -307,23 +362,18 @@ require_once __DIR__ . '/../includes/header.php';
                                        style="color: var(--primary); font-weight: 500; text-decoration: none;">
                                         <?php echo htmlspecialchars($activity['step_name']); ?>
                                     </a>
+                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px;">
+                                        <?php if ($currentActivity && (int)$currentActivity['id'] === (int)$activity['id']): ?>
+                                        <span class="status-badge" style="background: var(--info-bg); color: var(--info);">Current</span>
+                                        <?php elseif ($nextActivity && (int)$nextActivity['id'] === (int)$activity['id']): ?>
+                                        <span class="status-badge" style="background: var(--warning-bg); color: #b45309;">Next</span>
+                                        <?php endif; ?>
+                                        <small style="color: var(--text-muted);"><?php echo htmlspecialchars($activityTiming[$activity['id']]['timing_label'] ?? ''); ?></small>
+                                    </div>
                                 </td>
                                 <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
                                 <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
-                                <td>
-                                    <?php if (!empty($activity['planned_start_date']) && !empty($activity['planned_end_date'])): ?>
-                                        <?php
-                                            $startDate = new DateTime($activity['planned_start_date']);
-                                            $endDate = new DateTime($activity['planned_end_date']);
-                                            $durationDays = $endDate >= $startDate
-                                                ? $startDate->diff($endDate)->days + 1 // inclusive of start & end
-                                                : null;
-                                        ?>
-                                        <?php echo $durationDays !== null ? $durationDays . ' days' : '-'; ?>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
+                                <td><?php echo htmlspecialchars($activityTiming[$activity['id']]['duration_label'] ?? '-'); ?></td>
                                 <td style="white-space: nowrap;">
                                     <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $activity['status'])); ?>">
                                         <?php echo ACTIVITY_STATUSES[$activity['status']] ?? $activity['status']; ?>
@@ -450,6 +500,20 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <div>
+        <?php if (!empty($activities)): ?>
+        <div class="data-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h2><i class="fas fa-hourglass-half"></i> Timeline Totals</h2>
+            </div>
+            <div class="card-body">
+                <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                    <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Planned Step Duration</label>
+                    <div style="font-size: 1.6rem; font-weight: 700; margin-top: 4px;"><?php echo timelineFormatDayCount($timelineSummary['total_planned_days']); ?></div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Progress Card -->
         <div class="data-card" style="margin-bottom: 24px;">
             <div class="card-header">

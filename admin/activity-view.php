@@ -8,6 +8,7 @@
 // redirects and flash messages before any HTML output.
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/timeline.php';
 
 // Require models used on this page
 require_once __DIR__ . '/../models/ProjectActivity.php';
@@ -44,6 +45,11 @@ if ($auth->isProjectOwner() && (int)$project['created_by'] !== (int)$auth->getUs
     $auth->redirect(APP_URL . '/admin/activities.php');
 }
 $projectApproved = ($project['approval_status'] ?? 'APPROVED') === 'APPROVED';
+$projectActivities = $activityModel->getByProject($project['id']);
+$timelineSummary = timelineProjectSummary($projectActivities);
+$activityTiming = timelineActivityMeta($activity);
+$currentActivity = $timelineSummary['current_activity'];
+$nextActivity = $timelineSummary['next_activity'];
 
 $documentModel = new ActivityDocument();
 $documents = $documentModel->getByActivity($activityId);
@@ -186,6 +192,17 @@ require_once __DIR__ . '/../includes/header.php';
                     Cycle <?php echo $activity['cycle_number']; ?>
                 </p>
 
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+                    <?php if ($currentActivity && (int)$currentActivity['id'] === (int)$activity['id']): ?>
+                    <span class="status-badge" style="background: var(--info-bg); color: var(--info);">Current Step</span>
+                    <?php elseif ($nextActivity && (int)$nextActivity['id'] === (int)$activity['id']): ?>
+                    <span class="status-badge" style="background: var(--warning-bg); color: #b45309;">Next Step</span>
+                    <?php endif; ?>
+                    <span class="status-badge" style="background: var(--bg-secondary); color: var(--text-secondary);">
+                        <?php echo htmlspecialchars($activityTiming['timing_label']); ?>
+                    </span>
+                </div>
+
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
                     <div>
                         <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Planned Start</label>
@@ -203,14 +220,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                     <div>
                         <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Duration</label>
-                        <p style="font-weight: 600; font-size: 1.1rem;">
-                            <?php 
-                            $start = new DateTime($activity['planned_start_date']);
-                            $end = new DateTime($activity['planned_end_date']);
-                            $diff = $start->diff($end);
-                            echo ($diff->days + 1) . ' day(s)';
-                            ?>
-                        </p>
+                        <p style="font-weight: 600; font-size: 1.1rem;"><?php echo htmlspecialchars($activityTiming['duration_label']); ?></p>
                     </div>
                 </div>
             </div>
@@ -356,6 +366,38 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <div>
+        <div class="data-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h2><i class="fas fa-route"></i> Timeline Awareness</h2>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; gap: 12px;">
+                    <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Current Step</label>
+                        <div style="font-weight: 700; margin-top: 4px;"><?php echo $currentActivity ? htmlspecialchars($currentActivity['step_name']) : 'All steps completed'; ?></div>
+                    </div>
+                    <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Next Step</label>
+                        <div style="font-weight: 700; margin-top: 4px;"><?php echo $nextActivity ? htmlspecialchars($nextActivity['step_name']) : 'No next step pending'; ?></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <div style="text-align: center; padding: 12px; background: var(--warning-bg); border-radius: var(--radius-md);">
+                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--warning);"><?php echo $timelineSummary['remaining_steps']; ?></div>
+                            <small style="color: var(--text-muted);">Remaining</small>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--info-bg); border-radius: var(--radius-md);">
+                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--info);"><?php echo $timelineSummary['due_today_steps']; ?></div>
+                            <small style="color: var(--text-muted);">Due Today</small>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--danger-bg); border-radius: var(--radius-md);">
+                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--danger);"><?php echo $timelineSummary['overdue_steps']; ?></div>
+                            <small style="color: var(--text-muted);">Overdue</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Update Status (Procurement only) - disabled when project pending approval -->
         <?php if ($auth->canUpdateActivity()): ?>
         <?php if (!$projectApproved): ?>

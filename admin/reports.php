@@ -4,6 +4,7 @@
  * SDO-BACtrack
  */
 
+require_once __DIR__ . '/../includes/timeline.php';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/Project.php';
 require_once __DIR__ . '/../models/BacCycle.php';
@@ -89,7 +90,33 @@ if ($selectedProject) {
     } else {
         $activities = $activityModel->getByProject($selectedProject);
     }
+
+    $timelineSummary = timelineProjectSummary($activities);
+    $activityTiming = $timelineSummary['meta_by_id'];
 ?>
+
+<div class="data-card" style="margin-top: 24px;">
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+            <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Current Step</label>
+                <div style="font-weight: 700; margin-top: 4px;"><?php echo !empty($timelineSummary['current_activity']) ? htmlspecialchars($timelineSummary['current_activity']['step_name']) : 'All steps completed'; ?></div>
+            </div>
+            <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Remaining Steps</label>
+                <div style="font-size: 1.5rem; font-weight: 700; margin-top: 4px;"><?php echo $timelineSummary['remaining_steps']; ?></div>
+            </div>
+            <div style="padding: 12px; background: var(--danger-bg); border-radius: var(--radius-md);">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Overdue</label>
+                <div style="font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: var(--danger);"><?php echo $timelineSummary['overdue_steps']; ?></div>
+            </div>
+            <div style="padding: 12px; background: var(--info-bg); border-radius: var(--radius-md);">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Planned Step Days</label>
+                <div style="font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: var(--info);"><?php echo $timelineSummary['total_planned_days']; ?></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="data-card" style="margin-top: 24px;">
     <div class="card-header">
@@ -124,23 +151,13 @@ if ($selectedProject) {
                     ?>
                     <tr>
                         <td><?php echo $activity['step_order']; ?></td>
-                        <td><?php echo htmlspecialchars($activity['step_name']); ?></td>
+                        <td>
+                            <?php echo htmlspecialchars($activity['step_name']); ?>
+                            <br><small style="color: var(--text-muted);"><?php echo htmlspecialchars($activityTiming[$activity['id']]['timing_label'] ?? ''); ?></small>
+                        </td>
                         <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
                         <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
-                        <td>
-                            <?php if (!empty($activity['planned_start_date']) && !empty($activity['planned_end_date'])): ?>
-                                <?php
-                                    $startDate = new DateTime($activity['planned_start_date']);
-                                    $endDate = new DateTime($activity['planned_end_date']);
-                                    $durationDays = $endDate >= $startDate
-                                        ? $startDate->diff($endDate)->days + 1
-                                        : null;
-                                ?>
-                                <?php echo $durationDays !== null ? $durationDays . ' days' : '-'; ?>
-                            <?php else: ?>
-                                -
-                            <?php endif; ?>
-                        </td>
+                        <td><?php echo htmlspecialchars($activityTiming[$activity['id']]['duration_label'] ?? '-'); ?></td>
                         <td>
                             <?php echo $activity['actual_completion_date'] 
                                 ? date('M j, Y', strtotime($activity['actual_completion_date'])) 

@@ -2,7 +2,7 @@
             
             <footer class="admin-footer">
                 <p>&copy; <?php echo date('Y'); ?> <?php echo APP_NAME; ?> - BAC Procedural Timeline Tracking System<br>
-                Based on RA 9184 IRR</p>
+                Aligned with the RA 12009 procurement timeline reference</p>
             </footer>
         </main>
     </div>

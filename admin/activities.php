@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/timeline.php';
 require_once __DIR__ . '/../models/Project.php';
 require_once __DIR__ . '/../models/ProjectActivity.php';
 
@@ -167,20 +168,7 @@ $activities = db()->fetchAll($sql, $params);
                     <?php endif; ?>
                     <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
                     <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
-                    <td>
-                        <?php if (!empty($activity['planned_start_date']) && !empty($activity['planned_end_date'])): ?>
-                            <?php
-                                $startDate = new DateTime($activity['planned_start_date']);
-                                $endDate = new DateTime($activity['planned_end_date']);
-                                $durationDays = $endDate >= $startDate
-                                    ? $startDate->diff($endDate)->days + 1
-                                    : null;
-                            ?>
-                            <?php echo $durationDays !== null ? $durationDays . ' days' : '-'; ?>
-                        <?php else: ?>
-                            -
-                        <?php endif; ?>
-                    </td>
+                    <td><?php echo htmlspecialchars(timelineDurationLabel($activity['planned_start_date'], $activity['planned_end_date'])); ?></td>
                     <td>
                         <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $activity['status'])); ?>">
                             <?php echo ACTIVITY_STATUSES[$activity['status']] ?? $activity['status']; ?>

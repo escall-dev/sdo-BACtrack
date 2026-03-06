@@ -11,6 +11,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/timeline.php';
 
 $auth = auth();
 if (!$auth->isLoggedIn()) {
@@ -42,10 +43,7 @@ if (!$activity) {
 $documentModel = new ActivityDocument();
 $documents = $documentModel->getByActivity($activityId);
 
-// Calculate duration
-$start = new DateTime($activity['planned_start_date']);
-$end = new DateTime($activity['planned_end_date']);
-$duration = $start->diff($end)->days + 1;
+$timing = timelineActivityMeta($activity);
 
 // Format dates
 $activity['planned_start_date_formatted'] = date('F j, Y', strtotime($activity['planned_start_date']));
@@ -53,7 +51,9 @@ $activity['planned_end_date_formatted'] = date('F j, Y', strtotime($activity['pl
 $activity['actual_completion_date_formatted'] = $activity['actual_completion_date'] 
     ? date('F j, Y', strtotime($activity['actual_completion_date'])) 
     : null;
-$activity['duration_days'] = $duration;
+$activity['duration_days'] = $timing['duration_days'];
+$activity['duration_label'] = $timing['duration_label'];
+$activity['timing_label'] = $timing['timing_label'];
 $activity['status_label'] = ACTIVITY_STATUSES[$activity['status']] ?? $activity['status'];
 $activity['compliance_label'] = $activity['compliance_status'] 
     ? (COMPLIANCE_STATUSES[$activity['compliance_status']] ?? $activity['compliance_status'])

@@ -76,8 +76,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Approve user (pending registration)
     if ($action === 'approve') {
         $userId = (int)$_POST['user_id'];
-        $userModel->update($userId, ['status' => 'APPROVED']);
+        $userModel->update($userId, ['status' => 'APPROVED', 'is_active' => 1]);
         setFlashMessage('success', 'User approved. They can now sign in.');
+        $auth->redirect(APP_URL . '/admin/users.php');
+    }
+
+    // Activate user
+    if ($action === 'activate') {
+        $userId = (int)$_POST['user_id'];
+        $targetUser = $userModel->findById($userId);
+
+        if (!$targetUser) {
+            setFlashMessage('error', 'User not found.');
+        } elseif ($targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
+            setFlashMessage('error', 'You cannot modify a Super Admin account.');
+        } elseif (isset($targetUser['is_active']) && (int)$targetUser['is_active'] === 1) {
+            setFlashMessage('error', 'User is already active.');
+        } else {
+            $userModel->update($userId, ['is_active' => 1]);
+            setFlashMessage('success', 'User activated successfully.');
+        }
+        $auth->redirect(APP_URL . '/admin/users.php');
+    }
+
+    // Deactivate user
+    if ($action === 'deactivate') {
+        $userId = (int)$_POST['user_id'];
+        $targetUser = $userModel->findById($userId);
+
+        if ($userId === $auth->getUserId()) {
+            setFlashMessage('error', 'You cannot deactivate your own account.');
+        } elseif (!$targetUser) {
+            setFlashMessage('error', 'User not found.');
+        } elseif ($targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
+            setFlashMessage('error', 'You cannot deactivate a Super Admin account.');
+        } elseif (($targetUser['status'] ?? '') === 'PENDING') {
+            setFlashMessage('error', 'Pending users cannot be deactivated. Approve them first.');
+        } elseif (isset($targetUser['is_active']) && (int)$targetUser['is_active'] === 0) {
+            setFlashMessage('error', 'User is already inactive.');
+        } else {
+            $userModel->update($userId, ['is_active' => 0]);
+            setFlashMessage('success', 'User deactivated successfully.');
+        }
         $auth->redirect(APP_URL . '/admin/users.php');
     }
 
@@ -137,17 +177,14 @@ $filteredUsers = array_filter($users, function ($user) use ($filters) {
         return false;
     }
 
-    // Filter by status (approval: PENDING, APPROVED; or legacy active/inactive)
+    // Filter by status (PENDING, ACTIVE, INACTIVE)
     if ($filters['status'] !== '') {
-        $userStatus = $user['status'] ?? null;
-        if ($userStatus !== null) {
-            if ($filters['status'] === 'PENDING' && $userStatus !== 'PENDING') return false;
-            if ($filters['status'] === 'APPROVED' && $userStatus !== 'APPROVED') return false;
-        } else {
-            $isActive = !empty($user['is_active']);
-            if ($filters['status'] === '1' && !$isActive) return false;
-            if ($filters['status'] === '0' && $isActive) return false;
-        }
+        $approvalStatus = $user['status'] ?? 'APPROVED';
+        $isActive = isset($user['is_active']) ? (int)$user['is_active'] === 1 : true;
+
+        if ($filters['status'] === 'PENDING' && $approvalStatus !== 'PENDING') return false;
+        if ($filters['status'] === 'ACTIVE' && !($approvalStatus === 'APPROVED' && $isActive)) return false;
+        if ($filters['status'] === 'INACTIVE' && !($approvalStatus === 'APPROVED' && !$isActive)) return false;
     }
 
     return true;
@@ -192,7 +229,8 @@ $displayUsers = array_values($filteredUsers);
             <label>Status</label>
             <select name="status" class="filter-select">
                 <option value="">All Status</option>
-                <option value="APPROVED" <?php echo $filters['status'] === 'APPROVED' ? 'selected' : ''; ?>>Approved</option>
+                <option value="ACTIVE" <?php echo $filters['status'] === 'ACTIVE' ? 'selected' : ''; ?>>Active</option>
+                <option value="INACTIVE" <?php echo $filters['status'] === 'INACTIVE' ? 'selected' : ''; ?>>Inactive</option>
                 <option value="PENDING" <?php echo $filters['status'] === 'PENDING' ? 'selected' : ''; ?>>Pending</option>
             </select>
         </div>
@@ -257,22 +295,19 @@ $displayUsers = array_values($filteredUsers);
                         </div>
                     </td>
                     <td>
-                        <?php if ($user['role'] === 'SUPERADMIN'): ?>
-                        <span class="status-badge" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
-                            <i class="fas fa-shield-alt" style="margin-right: 4px;"></i><?php echo USER_ROLES[$user['role']]; ?>
-                        </span>
-                        <?php else: ?>
-                        <span class="status-badge status-approved">
+                        <span class="role-text">
                             <?php echo USER_ROLES[$user['role']] ?? $user['role']; ?>
                         </span>
-                        <?php endif; ?>
                     </td>
                     <td>
                         <?php $approvalStatus = $user['status'] ?? 'APPROVED'; ?>
+                        <?php $isActive = isset($user['is_active']) ? (int)$user['is_active'] === 1 : true; ?>
                         <?php if ($approvalStatus === 'PENDING'): ?>
                         <span class="status-badge status-pending">Pending</span>
+                        <?php elseif (!$isActive): ?>
+                        <span class="status-badge status-cancelled">Inactive</span>
                         <?php else: ?>
-                        <span class="status-badge status-active">Approved</span>
+                        <span class="status-badge status-active">Active</span>
                         <?php endif; ?>
                     </td>
                     <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
@@ -289,7 +324,18 @@ $displayUsers = array_values($filteredUsers);
                                 <i class="fas fa-edit"></i>
                             </button>
                             <?php endif; ?>
-                                <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser): ?>
+                            <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser && ($approvalStatus ?? 'APPROVED') === 'APPROVED' && (int)($user['is_active'] ?? 1) === 1): ?>
+                            <button class="btn btn-icon" title="Deactivate"
+                                    onclick='openDeactivateModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
+                                <i class="fas fa-ban"></i>
+                            </button>
+                            <?php elseif ($user['id'] !== $auth->getUserId() && $canEditThisUser && ($approvalStatus ?? 'APPROVED') === 'APPROVED' && (int)($user['is_active'] ?? 1) === 0): ?>
+                            <button class="btn btn-icon text-success" title="Activate"
+                                    onclick='openActivateModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                            <?php endif; ?>
+                            <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser): ?>
                             <button class='btn btn-icon text-danger' title='Delete'
                                     onclick='deleteUser(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
                                 <i class="fas fa-trash"></i>
@@ -302,6 +348,64 @@ $displayUsers = array_values($filteredUsers);
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Activate Confirmation Modal -->
+<div id="activateModal" class="modal-overlay">
+    <div class="modal-container modal-confirm">
+        <form method="POST" id="activateForm">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-check" style="margin-right: 8px; color: var(--success);"></i>Activate User</h2>
+                <button class="modal-close" type="button" onclick="closeActivateModal()">&times;</button>
+            </div>
+
+            <input type="hidden" name="action" value="activate">
+            <input type="hidden" name="user_id" id="activateUserId" value="">
+
+            <div class="modal-body">
+                <p>Reactivate this account?</p>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin: 12px 0;">
+                    <div style="font-weight: 700; color: var(--text-primary);" id="activateUserName">-</div>
+                    <div style="color: var(--text-muted); margin-top: 2px;" id="activateUserEmail">-</div>
+                </div>
+                <p class="form-hint">This user will be able to sign in again.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeActivateModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check-circle"></i> Activate</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Deactivate Confirmation Modal -->
+<div id="deactivateModal" class="modal-overlay">
+    <div class="modal-container modal-confirm">
+        <form method="POST" id="deactivateForm">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-slash" style="margin-right: 8px;"></i>Deactivate User</h2>
+                <button class="modal-close" type="button" onclick="closeDeactivateModal()">&times;</button>
+            </div>
+
+            <input type="hidden" name="action" value="deactivate">
+            <input type="hidden" name="user_id" id="deactivateUserId" value="">
+
+            <div class="modal-body">
+                <p>Deactivate this account?</p>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin: 12px 0;">
+                    <div style="font-weight: 700; color: var(--text-primary);" id="deactivateUserName">-</div>
+                    <div style="color: var(--text-muted); margin-top: 2px;" id="deactivateUserEmail">-</div>
+                </div>
+                <p class="form-hint">Inactive users will no longer be able to sign in.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeactivateModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-ban"></i> Deactivate</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -468,6 +572,28 @@ function closeApproveModal() {
     document.getElementById('approveModal').classList.remove('show');
 }
 
+function openActivateModal(id, name, email) {
+    document.getElementById('activateUserId').value = id;
+    document.getElementById('activateUserName').textContent = name;
+    document.getElementById('activateUserEmail').textContent = email;
+    document.getElementById('activateModal').classList.add('show');
+}
+
+function closeActivateModal() {
+    document.getElementById('activateModal').classList.remove('show');
+}
+
+function openDeactivateModal(id, name, email) {
+    document.getElementById('deactivateUserId').value = id;
+    document.getElementById('deactivateUserName').textContent = name;
+    document.getElementById('deactivateUserEmail').textContent = email;
+    document.getElementById('deactivateModal').classList.add('show');
+}
+
+function closeDeactivateModal() {
+    document.getElementById('deactivateModal').classList.remove('show');
+}
+
 function deleteUser(id, name, email) {
     document.getElementById('deleteUserId').value = id;
     document.getElementById('deleteUserName').textContent = name;
@@ -492,6 +618,8 @@ document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
 document.addEventListener('keydown', function(e) {
     if (e.key !== 'Escape') return;
     if (document.getElementById('approveModal').classList.contains('show')) closeApproveModal();
+    if (document.getElementById('activateModal').classList.contains('show')) closeActivateModal();
+    if (document.getElementById('deactivateModal').classList.contains('show')) closeDeactivateModal();
     if (document.getElementById('deleteModal').classList.contains('show')) closeDeleteModal();
 });
 </script>

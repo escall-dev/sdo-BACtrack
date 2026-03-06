@@ -8,6 +8,8 @@ require_once __DIR__ . '/../config/database.php';
 
 class User {
     private $db;
+    private $hasStatusColumn = null;
+    private $hasIsActiveColumn = null;
 
     public function __construct() {
         $this->db = db();
@@ -100,22 +102,36 @@ class User {
     }
 
     private function usersTableHasStatusColumn() {
-        static $has = null;
-        if ($has !== null) {
-            return $has;
+        if ($this->hasStatusColumn !== null) {
+            return $this->hasStatusColumn;
         }
         try {
             $rows = $this->db->fetchAll("SHOW COLUMNS FROM users LIKE 'status'");
-            $has = !empty($rows);
+            $this->hasStatusColumn = !empty($rows);
         } catch (Exception $e) {
-            $has = false;
+            $this->hasStatusColumn = false;
         }
-        return $has;
+        return $this->hasStatusColumn;
+    }
+
+    public function usersTableHasIsActiveColumn() {
+        if ($this->hasIsActiveColumn !== null) {
+            return $this->hasIsActiveColumn;
+        }
+        try {
+            $rows = $this->db->fetchAll("SHOW COLUMNS FROM users LIKE 'is_active'");
+            $this->hasIsActiveColumn = !empty($rows);
+        } catch (Exception $e) {
+            $this->hasIsActiveColumn = false;
+        }
+        return $this->hasIsActiveColumn;
     }
 
     public function isApproved($user) {
         if (!isset($user['status'])) return true;
-        return $user['status'] === 'APPROVED';
+        if ($user['status'] !== 'APPROVED') return false;
+        if (isset($user['is_active']) && (int)$user['is_active'] !== 1) return false;
+        return true;
     }
 
     public function update($id, $data) {
@@ -141,6 +157,10 @@ class User {
         if (isset($data['status']) && in_array($data['status'], ['PENDING', 'APPROVED'], true)) {
             $fields[] = 'status = ?';
             $params[] = $data['status'];
+        }
+        if (isset($data['is_active']) && $this->usersTableHasIsActiveColumn()) {
+            $fields[] = 'is_active = ?';
+            $params[] = (int)$data['is_active'] === 1 ? 1 : 0;
         }
         if (isset($data['employee_no'])) {
             $fields[] = 'employee_no = ?';

@@ -16,11 +16,13 @@ CREATE TABLE IF NOT EXISTS users (
     office VARCHAR(100) NULL,
     unit_section VARCHAR(100) NULL,
     status ENUM('PENDING', 'APPROVED') NOT NULL DEFAULT 'APPROVED',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
     INDEX idx_role (role),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_is_active (is_active)
 ) ENGINE=InnoDB;
 
 -- Projects table

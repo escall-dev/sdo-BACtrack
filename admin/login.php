@@ -42,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = (new User())->findByEmail($email);
             if ($user && isset($user['status']) && $user['status'] === 'PENDING') {
                 $error = 'Your account is pending administrator approval.';
+            } elseif ($user && isset($user['is_active']) && (int)$user['is_active'] !== 1) {
+                $error = 'Your account is inactive. Please contact the administrator.';
             } else {
                 $error = 'Invalid email or password.';
             }

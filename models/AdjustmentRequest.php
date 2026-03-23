@@ -59,6 +59,36 @@ class AdjustmentRequest {
         );
     }
 
+    public function getAll($filters = []) {
+        $sql = "SELECT tar.*, 
+                    u1.name as requester_name, u1.avatar_url as requester_avatar,
+                    pa.step_name,
+                    p.title as project_title
+             FROM timeline_adjustment_requests tar
+             LEFT JOIN users u1 ON tar.requested_by = u1.id
+             LEFT JOIN project_activities pa ON tar.activity_id = pa.id
+             LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
+             LEFT JOIN projects p ON bc.project_id = p.id
+             WHERE 1=1";
+        $params = [];
+
+        if (!empty($filters['status'])) {
+            $sql .= " AND tar.status = ?";
+            $params[] = $filters['status'];
+        }
+
+        if (!empty($filters['search'])) {
+            $sql .= " AND (pa.step_name LIKE ? OR p.title LIKE ? OR u1.name LIKE ?)";
+            $searchTerm = "%{$filters['search']}%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+
+        $sql .= " ORDER BY tar.created_at DESC";
+        return $this->db->fetchAll($sql, $params);
+    }
+
     public function create($data) {
         $this->db->query(
             "INSERT INTO timeline_adjustment_requests 

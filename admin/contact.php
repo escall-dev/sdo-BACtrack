@@ -295,7 +295,7 @@ $projects = $projectModel->getAll($projectFilters);
                         <div class="contact-row-info">
                             <span class="contact-row-label">Outlook</span>
                             <div class="contact-row-value">
-                                <a href="mailto:seijunqt@outlook.com">seijunqt@outlook.com</a>
+                                <a href="mailto:ict.sanpedrocity@deped.gov.ph">ict.sanpedrocity@deped.gov.ph</a>
                             </div>
                         </div>
                     </div>
@@ -304,8 +304,8 @@ $projects = $projectModel->getAll($projectFilters);
                         <div class="contact-row-info">
                             <span class="contact-row-label">Gmail</span>
                             <div class="contact-row-value">
-                                <a id="gmailLink" href="https://mail.google.com/mail/?view=cm&to=redginepinedes09%40gmail.com" target="_blank" rel="noopener noreferrer">
-                                    redginepinedes09@gmail.com
+                                <a id="gmailLink" href="https://mail.google.com/mail/?view=cm&to=ict.sanpedrocity@deped.gov.ph" target="_blank" rel="noopener noreferrer">
+                                    ict.sanpedrocity@deped.gov.ph
                                 </a>
                             </div>
                         </div>

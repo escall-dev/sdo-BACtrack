@@ -33,12 +33,14 @@ $pageTitles = [
     'projects' => 'Projects',
     'project-view' => 'View Project',
     'project-create' => 'Create Project',
-    'activities' => 'Activities',
-    'activity-view' => 'View Activity',
+    'activities' => 'Process',
+    'activity-view' => 'View Process',
     'documents' => 'Documents',
     'adjustments' => 'Adjustment Requests',
+    'analytics' => 'Analytics',
     'reports' => 'Reports',
     'report-print' => 'Print Report',
+    'contact' => 'Contact',
     'users' => 'User Management',
     'profile' => 'My Profile'
 ];
@@ -97,9 +99,9 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
                     <span class="nav-text">Projects</span>
                 </a>
                 
-                <a href="<?php echo APP_URL; ?>/admin/activities.php" class="nav-item <?php echo in_array($currentPage, ['activities', 'activity-view']) ? 'active' : ''; ?>" data-tooltip="Activities">
+                <a href="<?php echo APP_URL; ?>/admin/activities.php" class="nav-item <?php echo in_array($currentPage, ['activities', 'activity-view']) ? 'active' : ''; ?>" data-tooltip="Process">
                     <span class="nav-icon"><i class="fas fa-tasks"></i></span>
-                    <span class="nav-text">Activities</span>
+                    <span class="nav-text">Process</span>
                 </a>
                 
                 <?php if ($auth->isProcurement()): ?>
@@ -113,8 +115,20 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
                     <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
                     <span class="nav-text">Reports</span>
                 </a>
-                
+
                 <?php if ($auth->isProcurement()): ?>
+                <a href="<?php echo APP_URL; ?>/admin/analytics.php" class="nav-item <?php echo $currentPage === 'analytics' ? 'active' : ''; ?>" data-tooltip="Analytics">
+                    <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+                    <span class="nav-text">Analytics</span>
+                </a>
+                <?php endif; ?>
+
+                <a href="<?php echo APP_URL; ?>/admin/contact.php" class="nav-item <?php echo $currentPage === 'contact' ? 'active' : ''; ?>" data-tooltip="Contact">
+                    <span class="nav-icon"><i class="fas fa-envelope"></i></span>
+                    <span class="nav-text">Contact</span>
+                </a>
+                
+                <?php if ($auth->isSuperAdmin()): ?>
                 <div class="nav-divider"></div>
                 <a href="<?php echo APP_URL; ?>/admin/users.php" class="nav-item <?php echo $currentPage === 'users' ? 'active' : ''; ?>" data-tooltip="Users">
                     <span class="nav-icon"><i class="fas fa-users"></i></span>

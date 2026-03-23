@@ -28,7 +28,17 @@ define('DEADLINE_WARNING_DAYS', 2);
 
 // Procurement types
 define('PROCUREMENT_TYPES', [
-    'PUBLIC_BIDDING' => 'Public Bidding'
+    'PUBLIC_BIDDING'              => 'Public Bidding',
+    'LIMITED_SOURCE_BIDDING'      => 'Limited Source Bidding (Selective Bidding)',
+    'COMPETITIVE_DIALOGUE'        => 'Competitive Dialogue',
+    'UNSOLICITED_OFFER'           => 'Unsolicited Offer with Bid Matching',
+    'DIRECT_CONTRACTING'          => 'Direct Contracting (Single Source Procurement)',
+    'DIRECT_ACQUISITION'          => 'Direct Acquisition',
+    'REPEAT_ORDER'                => 'Repeat Order',
+    'SMALL_VALUE_PROCUREMENT'     => 'Small Value Procurement',
+    'NEGOTIATED_PROCUREMENT'      => 'Negotiated Procurement',
+    'DIRECT_SALES'                => 'Direct Sales',
+    'DIRECT_PROCUREMENT_STI'      => 'Direct Procurement for Science, Technology, and Innovation',
 ]);
 
 // Project activity statuses
@@ -47,9 +57,11 @@ define('COMPLIANCE_STATUSES', [
 
 // User roles
 define('USER_ROLES', [
-    'PROJECT_OWNER' => 'Project Owner',
-    'PROCUREMENT' => 'BAC Member',
-    'SUPERADMIN' => 'Super Admin'
+    'PROJECT_OWNER'  => 'Project Owner',
+    'PROCUREMENT'    => 'BAC Member',
+    'BAC_CHAIRMAN'   => 'BAC Chairman',
+    'BAC_SECRETARY'  => 'BAC Secretary',
+    'SUPERADMIN'     => 'Superadmin'
 ]);
 
 // Project approval statuses

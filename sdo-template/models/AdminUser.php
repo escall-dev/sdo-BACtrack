@@ -310,7 +310,7 @@ class AdminUser {
     public function hasPermission($user, $permission) {
         $permissions = json_decode($user['role_permissions'], true);
         
-        // Super admin has all permissions
+        // Superadmin has all permissions
         if (isset($permissions['all']) && $permissions['all'] === true) {
             return true;
         }

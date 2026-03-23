@@ -33,7 +33,7 @@ $projects = $projectModel->getAll($filters);
 
 <div class="page-header">
     <div>
-        <h2 style="margin: 0;"><?php echo $auth->isProjectOwner() ? 'My Projects' : 'BAC Projects'; ?></h2>
+        <!-- Heading removed as requested -->
         <p style="color: var(--text-muted); margin: 4px 0 0;"><?php echo count($projects); ?> project(s) found</p>
     </div>
     <a href="<?php echo APP_URL; ?>/admin/project-create.php" class="btn btn-primary">
@@ -41,55 +41,59 @@ $projects = $projectModel->getAll($filters);
     </a>
 </div>
 
-<div class="filter-bar">
-    <form class="filter-form" method="GET">
-        <div class="filter-group">
-            <label>Search</label>
-            <input type="text" name="search" class="filter-input" placeholder="Project title..." 
-                   value="<?php echo htmlspecialchars($filters['search']); ?>">
+<div class="filter-bar calendar-filter-bar">
+    <div class="calendar-filter-header">
+        <div class="calendar-filter-right">
+            <form class="filter-form calendar-filter-form" method="GET" onkeydown="if(event.key==='Enter'){event.preventDefault();this.submit();}">
+                <div class="filter-group">
+                    <label>Search</label>
+                    <input type="text" name="search" class="filter-input" placeholder="Project title..." 
+                           value="<?php echo htmlspecialchars($filters['search']); ?>">
+                </div>
+                <div class="filter-group">
+                    <label>Procurement Type</label>
+                    <select name="type" class="filter-select">
+                        <option value="">All Types</option>
+                        <?php foreach (PROCUREMENT_TYPES as $key => $value): ?>
+                        <option value="<?php echo $key; ?>" <?php echo $filters['procurement_type'] === $key ? 'selected' : ''; ?>>
+                            <?php echo $value; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select name="approval" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        <?php foreach (PROJECT_APPROVAL_STATUSES as $key => $value): ?>
+                        <option value="<?php echo $key; ?>" <?php echo ($filters['approval_status'] ?? '') === $key ? 'selected' : ''; ?>>
+                            <?php echo $value; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php if ($auth->isProcurement()): ?>
+                <?php if (!empty($projectOwners)): ?>
+                <div class="filter-group">
+                    <label>Project Owner / Bidder</label>
+                    <select name="owner" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Owners</option>
+                        <?php foreach ($projectOwners as $owner): ?>
+                        <option value="<?php echo (int)$owner['id']; ?>" <?php echo $filters['created_by'] === (string)$owner['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($owner['name']); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+                <?php endif; ?>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+                    <a href="<?php echo APP_URL; ?>/admin/projects.php" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
         </div>
-        <div class="filter-group">
-            <label>Procurement Type</label>
-            <select name="type" class="filter-select">
-                <option value="">All Types</option>
-                <?php foreach (PROCUREMENT_TYPES as $key => $value): ?>
-                <option value="<?php echo $key; ?>" <?php echo $filters['procurement_type'] === $key ? 'selected' : ''; ?>>
-                    <?php echo $value; ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Status</label>
-            <select name="approval" class="filter-select" onchange="this.form.submit()">
-                <option value="">All</option>
-                <?php foreach (PROJECT_APPROVAL_STATUSES as $key => $value): ?>
-                <option value="<?php echo $key; ?>" <?php echo ($filters['approval_status'] ?? '') === $key ? 'selected' : ''; ?>>
-                    <?php echo $value; ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <?php if ($auth->isProcurement()): ?>
-        <?php if (!empty($projectOwners)): ?>
-        <div class="filter-group">
-            <label>Project Owner / Bidder</label>
-            <select name="owner" class="filter-select" onchange="this.form.submit()">
-                <option value="">All Owners</option>
-                <?php foreach ($projectOwners as $owner): ?>
-                <option value="<?php echo (int)$owner['id']; ?>" <?php echo $filters['created_by'] === (string)$owner['id'] ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($owner['name']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <?php endif; ?>
-        <?php endif; ?>
-        <div class="filter-actions">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
-            <a href="<?php echo APP_URL; ?>/admin/projects.php" class="btn btn-secondary">Reset</a>
-        </div>
-    </form>
+    </div>
 </div>
 
 <div class="data-card">
@@ -108,12 +112,12 @@ $projects = $projectModel->getAll($filters);
             <thead>
                 <tr>
                     <th>Project Title</th>
-                    <th>Procurement Type</th>
-                    <th>Project Owner / Bidder</th>
-                    <th>Cycles</th>
-                    <th>Status</th>
-                    <th>Created Date</th>
-                    <th>Actions</th>
+                    <th style="text-align: center;">Procurement Type</th>
+                    <th style="text-align: center;">Project Owner / Bidder</th>
+                    <th style="text-align: center;">Cycles</th>
+                    <th style="text-align: center;">Status</th>
+                    <th style="text-align: center;">Created Date</th>
+                    <th style="text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,40 +125,26 @@ $projects = $projectModel->getAll($filters);
                 <tr>
                     <td>
                         <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $project['id']; ?>" 
-                           style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                           style="color: #000; font-weight: 600; text-decoration: none;">
                             <?php echo htmlspecialchars($project['title']); ?>
                         </a>
-                        <?php if ($project['description']): ?>
-                        <br><small style="color: var(--text-muted);"><?php echo htmlspecialchars(substr($project['description'], 0, 60)); ?>...</small>
-                        <?php endif; ?>
                     </td>
-                    <td>
-                        <span class="status-badge" style="background: var(--info-bg); color: var(--info);">
-                            <?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?>
-                        </span>
+                    <td style="text-align: center;">
+                        <?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?>
                     </td>
-                    <td>
-                        <div class="user-cell">
-                            <?php if (!empty($project['creator_avatar'])): ?>
-                            <img src="<?php echo htmlspecialchars($project['creator_avatar']); ?>" alt="Avatar" class="user-avatar-sm">
-                            <?php else: ?>
-                            <div class="user-avatar-placeholder-sm">
-                                <?php echo strtoupper(substr($project['creator_name'] ?? '-', 0, 1)); ?>
-                            </div>
-                            <?php endif; ?>
-                            <span><?php echo htmlspecialchars($project['creator_name'] ?? '-'); ?></span>
-                        </div>
+                    <td style="text-align: center;">
+                        <span><?php echo htmlspecialchars($project['creator_name'] ?? '-'); ?></span>
                     </td>
-                    <td><?php echo $project['cycle_count']; ?></td>
-                    <td>
+                    <td style="text-align: center;"><?php echo $project['cycle_count']; ?></td>
+                    <td style="text-align: center;">
                         <?php $approval = $project['approval_status'] ?? 'APPROVED'; ?>
                         <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $approval)); ?>">
                             <?php echo PROJECT_APPROVAL_STATUSES[$approval] ?? $approval; ?>
                         </span>
                     </td>
-                    <td><?php echo date('M j, Y', strtotime($project['created_at'])); ?></td>
-                    <td>
-                        <div class="action-buttons">
+                    <td style="text-align: center;"><?php echo date('M j, Y', strtotime($project['created_at'])); ?></td>
+                    <td style="text-align: center;">
+                        <div class="action-buttons" style="justify-content: center;">
                             <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $project['id']; ?>" class="btn btn-icon" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>

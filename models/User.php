@@ -31,12 +31,13 @@ class User {
 
     public function create($data) {
         $this->db->query(
-            "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
+            "INSERT INTO users (name, email, password_hash, role, position) VALUES (?, ?, ?, ?, ?)",
             [
                 $data['name'],
                 $data['email'],
                 password_hash($data['password'], PASSWORD_DEFAULT),
-                $data['role'] ?? 'PROJECT_OWNER'
+                $data['role'] ?? 'PROJECT_OWNER',
+                $data['position'] ?? ''
             ]
         );
         return $this->db->lastInsertId();

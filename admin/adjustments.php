@@ -15,7 +15,7 @@ $auth->requireProcurement();
 $adjustmentModel = new AdjustmentRequest();
 
 // Handle approval/rejection (must run before header.php outputs HTML)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $auth->isBacSecretary()) {
     $requestId = (int)$_POST['request_id'];
     $action = $_POST['action'] ?? '';
     $notes = trim($_POST['notes'] ?? '');
@@ -44,23 +44,20 @@ require_once __DIR__ . '/../includes/header.php';
 $pendingRequests = $adjustmentModel->getPending();
 ?>
 
-<div class="page-header">
-    <div>
-        <h2 style="margin: 0;">Timeline Adjustment Requests</h2>
-        <p style="color: var(--text-muted); margin: 4px 0 0;"><?php echo count($pendingRequests); ?> pending request(s)</p>
-    </div>
-</div>
+<p style="color: var(--text-muted); margin: 0 0 8px;"><?php echo count($pendingRequests); ?> pending request(s)</p>
 
+<?php if (empty($pendingRequests)): ?>
 <div class="data-card">
-    <?php if (empty($pendingRequests)): ?>
     <div class="empty-state">
         <div class="empty-icon"><i class="fas fa-calendar-check"></i></div>
         <h3>No pending requests</h3>
         <p>All timeline adjustment requests have been processed.</p>
     </div>
-    <?php else: ?>
+</div>
+<?php else: ?>
+<div style="display: flex; flex-direction: column; gap: 16px;">
     <?php foreach ($pendingRequests as $request): ?>
-    <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+    <div class="data-card" style="padding: 24px; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div>
                 <h3 style="font-size: 1.1rem; margin: 0;">
@@ -106,6 +103,7 @@ $pendingRequests = $adjustmentModel->getPending();
             </p>
         </div>
 
+        <?php if ($auth->isBacSecretary()): ?>
         <form method="POST" style="display: flex; gap: 12px; align-items: flex-end;">
             <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
             <div style="flex: 1;">
@@ -119,9 +117,10 @@ $pendingRequests = $adjustmentModel->getPending();
                 <i class="fas fa-times"></i> Reject
             </button>
         </form>
+        <?php endif; ?>
     </div>
     <?php endforeach; ?>
-    <?php endif; ?>
 </div>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

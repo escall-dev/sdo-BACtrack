@@ -37,23 +37,34 @@ $topOffices = [
 ];
 $unitsByOffice = [
     'OSDS' => [
-        ['id' => 'OSDS-Admin', 'name' => 'Administrative Unit'],
-        ['id' => 'OSDS-Budget', 'name' => 'Budget Section'],
-        ['id' => 'OSDS-HR', 'name' => 'Human Resource'],
+        ['id' => 'OSDS-Personnel', 'name' => 'Personnel'],
+        ['id' => 'OSDS-PropertySupply', 'name' => 'Property and Supply'],
+        ['id' => 'OSDS-Records', 'name' => 'Records'],
         ['id' => 'OSDS-Procurement', 'name' => 'Procurement'],
-        ['id' => 'OSDS-Other', 'name' => 'Other']
+        ['id' => 'OSDS-GeneralServices', 'name' => 'General Services'],
+        ['id' => 'OSDS-Legal', 'name' => 'Legal'],
+        ['id' => 'OSDS-ICT', 'name' => 'Information and Communication Technology'],
+        ['id' => 'OSDS-Cash', 'name' => 'Cash'],
+        ['id' => 'OSDS-FinanceAccounting', 'name' => 'Finance (Accounting)'],
+        ['id' => 'OSDS-FinanceBudget', 'name' => 'Finance (Budget)'],
+        ['id' => 'OSDS-Administrative', 'name' => 'Administrative']
     ],
     'SGOD' => [
-        ['id' => 'SGOD-SSM', 'name' => 'School Management'],
+        ['id' => 'SGOD-SMME', 'name' => 'School Management Monitoring and Evaluation'],
+        ['id' => 'SGOD-HRD', 'name' => 'Human Resource Development'],
+        ['id' => 'SGOD-SMN', 'name' => 'Social Mobilization and Networking'],
+        ['id' => 'SGOD-PR', 'name' => 'Planning and Research'],
+        ['id' => 'SGOD-DRRM', 'name' => 'Disaster Risk Reduction and Management'],
         ['id' => 'SGOD-EF', 'name' => 'Education Facilities'],
-        ['id' => 'SGOD-SDS', 'name' => 'School District Supervision'],
-        ['id' => 'SGOD-Other', 'name' => 'Other']
+        ['id' => 'SGOD-SHN', 'name' => 'School Health and Nutrition'],
+        ['id' => 'SGOD-SHN-Dental', 'name' => 'School Health and Nutrition (Dental)'],
+        ['id' => 'SGOD-SHN-Medical', 'name' => 'School Health and Nutrition (Medical)']
     ],
     'CID' => [
+        ['id' => 'CID-IM', 'name' => 'Instructional Management'],
         ['id' => 'CID-LRM', 'name' => 'Learning Resource Management'],
-        ['id' => 'CID-EduTech', 'name' => 'Education Technology'],
-        ['id' => 'CID-Programs', 'name' => 'Programs Section'],
-        ['id' => 'CID-Other', 'name' => 'Other']
+        ['id' => 'CID-ALS', 'name' => 'Alternative Learning System'],
+        ['id' => 'CID-DIS', 'name' => 'District Instructional Supervision']
     ]
 ];
 

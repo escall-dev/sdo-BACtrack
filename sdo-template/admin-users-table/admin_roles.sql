@@ -42,7 +42,7 @@ CREATE TABLE `admin_roles` (
 --
 
 INSERT INTO `admin_roles` (`id`, `name`, `description`, `permissions`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Super Admin', 'Full system access', '{\"all\": true}', 1, '2026-01-06 03:12:00', '2026-01-06 03:12:00'),
+(1, 'Superadmin', 'Full system access', '{"all": true}', 1, '2026-01-06 03:12:00', '2026-01-06 03:12:00'),
 (2, 'Admin', 'Manage complaints and users', '{\"complaints\": true, \"users\": true, \"reports\": true}', 1, '2026-01-06 03:12:00', '2026-01-06 03:12:00'),
 (3, 'Staff', 'Process complaints', '{\"complaints\": true, \"reports\": false}', 1, '2026-01-06 03:12:00', '2026-01-06 03:12:00'),
 (4, 'Viewer', 'View only access', '{\"complaints_view\": true}', 1, '2026-01-06 03:12:00', '2026-01-06 03:12:00');

@@ -147,7 +147,11 @@ class Auth {
     }
 
     public function isProcurement() {
-        return $this->getUserRole() === 'PROCUREMENT' || $this->getUserRole() === 'SUPERADMIN';
+        return in_array($this->getUserRole(), ['PROCUREMENT', 'BAC_CHAIRMAN', 'BAC_SECRETARY', 'SUPERADMIN'], true);
+    }
+
+    public function isBacSecretary() {
+        return $this->getUserRole() === 'BAC_SECRETARY';
     }
 
     public function isProjectOwner() {
@@ -193,6 +197,15 @@ class Auth {
         }
     }
 
+    public function requireBacSecretary() {
+        $this->requireLogin();
+        if (!$this->isBacSecretary()) {
+            $_SESSION['flash_error'] = 'Only the BAC Secretary can perform this action.';
+            header('Location: ' . APP_URL . '/admin/');
+            exit;
+        }
+    }
+
     public function requireSuperAdmin() {
         $this->requireLogin();
         if (!$this->isSuperAdmin()) {
@@ -203,19 +216,19 @@ class Auth {
     }
 
     public function canUpdateActivity() {
-        return $this->isProcurement();
+        return $this->isBacSecretary();
     }
 
     public function canUploadDocuments() {
-        return $this->isProcurement();
+        return $this->isBacSecretary();
     }
 
     public function canSetCompliance() {
-        return $this->isProcurement();
+        return $this->isBacSecretary();
     }
 
     public function canApproveAdjustments() {
-        return $this->isProcurement();
+        return $this->isBacSecretary();
     }
 
     public function canRequestAdjustment() {

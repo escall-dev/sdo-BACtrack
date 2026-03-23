@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/../models/User.php';
 
 $auth = auth();
-$auth->requireProcurement();
+$auth->requireSuperAdmin();
 
 $userModel = new User();
 
@@ -23,7 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name' => trim($_POST['name'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
             'password' => $_POST['password'] ?? '',
-            'role' => $_POST['role'] ?? 'PROJECT_OWNER'
+            'role' => $_POST['role'] ?? 'PROJECT_OWNER',
+            'position' => trim($_POST['position'] ?? '')
         ];
 
         // Only superadmin can create superadmin users
@@ -50,14 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name' => trim($_POST['name'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
             'role' => $_POST['role'] ?? 'PROJECT_OWNER',
-            'is_active' => isset($_POST['is_active']) ? 1 : 0
+            'is_active' => isset($_POST['is_active']) ? 1 : 0,
+            'position' => trim($_POST['position'] ?? '')
         ];
 
         // Protect superadmin accounts from non-superadmins
         if ($targetUser && $targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
-            setFlashMessage('error', 'You cannot modify a Super Admin account.');
+            setFlashMessage('error', 'You cannot modify a Superadmin account.');
         } elseif ($data['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
-            setFlashMessage('error', 'Only a Super Admin can assign the Super Admin role.');
+            setFlashMessage('error', 'Only a Superadmin can assign the Superadmin role.');
         } else {
             $existingUser = $userModel->findByEmail($data['email']);
             if ($existingUser && $existingUser['id'] != $userId) {
@@ -89,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$targetUser) {
             setFlashMessage('error', 'User not found.');
         } elseif ($targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
-            setFlashMessage('error', 'You cannot modify a Super Admin account.');
+            setFlashMessage('error', 'You cannot modify a Superadmin account.');
         } elseif (isset($targetUser['is_active']) && (int)$targetUser['is_active'] === 1) {
             setFlashMessage('error', 'User is already active.');
         } else {
@@ -109,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (!$targetUser) {
             setFlashMessage('error', 'User not found.');
         } elseif ($targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
-            setFlashMessage('error', 'You cannot deactivate a Super Admin account.');
+            setFlashMessage('error', 'You cannot deactivate a Superadmin account.');
         } elseif (($targetUser['status'] ?? '') === 'PENDING') {
             setFlashMessage('error', 'Pending users cannot be deactivated. Approve them first.');
         } elseif (isset($targetUser['is_active']) && (int)$targetUser['is_active'] === 0) {
@@ -131,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (!$targetUser) {
             setFlashMessage('error', 'User not found.');
         } elseif ($targetUser['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
-            setFlashMessage('error', 'You cannot delete a Super Admin account.');
+            setFlashMessage('error', 'You cannot delete a Superadmin account.');
         } else {
             try {
                 $deleted = $userModel->delete($userId);
@@ -193,9 +195,316 @@ $filteredUsers = array_filter($users, function ($user) use ($filters) {
 $displayUsers = array_values($filteredUsers);
 ?>
 
+<style>
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+}
+
+.users-list-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 22px 10px;
+    margin: 0 0 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.users-list-header-main {
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) 1px 1fr;
+    align-items: center;
+    column-gap: 24px;
+    min-width: 0;
+    flex: 1;
+}
+
+.users-list-header-divider {
+    width: 1px;
+    height: 16px;
+    background: transparent;
+}
+
+.users-list-header-meta {
+    display: flex;
+    gap: 14px;
+    width: 100%;
+}
+
+.users-col-label {
+    flex: 1 1 0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.users-col-label-user {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+
+.users-col-label-action {
+    min-width: 132px;
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.user-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 22px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, #ffffff 100%);
+    transition: border-color 0.2s ease;
+}
+
+.user-entry:hover {
+    border-color: var(--primary);
+}
+
+.user-entry-main {
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) 1px 1fr;
+    align-items: center;
+    column-gap: 24px;
+    row-gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.user-entry-divider {
+    width: 1px;
+    align-self: stretch;
+    background: transparent;
+}
+
+.user-cell {
+    min-width: 0;
+}
+
+.user-entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+}
+
+.user-entry-meta .role-badge,
+.user-entry-meta .status-badge,
+.user-entry-meta .position-badge,
+.user-created-badge {
+    flex: 0 1 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 32px;
+    padding: 6px 16px !important;
+    border-radius: 999px !important;
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.user-created-badge {
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.user-entry-actions {
+    min-width: 132px;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.user-entry-actions .action-buttons {
+    justify-content: flex-end;
+}
+
+@media (max-width: 860px) {
+    .users-list-header {
+        display: none;
+    }
+
+    .user-entry {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .user-entry-main {
+        width: 100%;
+        grid-template-columns: 1fr;
+    }
+
+    .user-entry-divider {
+        display: none;
+    }
+
+    .user-entry-actions {
+        width: 100%;
+        align-self: stretch;
+    }
+
+    .user-entry-meta {
+        flex-wrap: wrap;
+    }
+
+    .user-entry-meta > div {
+        flex: 1 1 calc(50% - 7px) !important;
+    }
+
+    .user-entry-meta .role-badge,
+    .user-entry-meta .status-badge,
+    .user-entry-meta .position-badge,
+    .user-created-badge {
+        flex: 0 1 auto !important;
+        margin: 4px auto;
+    }
+}
+
+@media (max-width: 420px) {
+    .user-entry-meta > div {
+        flex: 1 1 100% !important;
+    }
+    .user-entry-meta .role-badge,
+    .user-entry-meta .status-badge,
+    .user-entry-meta .position-badge,
+    .user-created-badge {
+        flex: 0 1 auto !important;
+        width: auto !important;
+        margin: 4px auto;
+    }
+}
+
+/* Modal Enhancements */
+.form-section-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 28px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.form-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.input-group-custom {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.input-group-custom i {
+    position: absolute;
+    left: 14px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    pointer-events: none;
+    transition: color 0.2s ease;
+}
+.input-group-custom .form-control {
+    padding-left: 42px;
+}
+.input-group-custom .form-control:focus + i {
+    color: var(--primary);
+}
+
+/* Modern Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 22px;
+    flex-shrink: 0;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-tertiary);
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input:checked + .slider {
+    background-color: var(--success);
+}
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.toggle-wrapper:hover {
+    border-color: var(--primary-light);
+    background: #fff;
+}
+.toggle-label-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+</style>
+
 <div class="page-header">
     <div>
-        <h2 style="margin: 0;">User Management</h2>
         <p style="color: var(--text-muted); margin: 4px 0 0;"><?php echo count($displayUsers); ?> user(s)</p>
     </div>
     <button class="btn btn-primary" onclick="openUserModal()">
@@ -204,151 +513,193 @@ $displayUsers = array_values($filteredUsers);
 </div>
 
 <!-- Filters -->
-<div class="filter-bar">
-    <form method="GET" class="filter-form">
-        <div class="filter-group">
-            <label>Search</label>
-            <input type="text" name="search" class="filter-input"
-                   placeholder="Name, email..."
-                   value="<?php echo htmlspecialchars($filters['search']); ?>">
-        </div>
+<div class="filter-bar calendar-filter-bar">
+    <div class="calendar-filter-header">
+        <div class="calendar-filter-right">
+            <form method="GET" class="filter-form calendar-filter-form" onkeydown="if(event.key==='Enter'){event.preventDefault();this.submit();}">
+                <div class="filter-group">
+                    <label>Search</label>
+                    <input type="text" name="search" class="filter-input"
+                           placeholder="Name, email..."
+                           value="<?php echo htmlspecialchars($filters['search']); ?>">
+                </div>
 
-        <div class="filter-group">
-            <label>Role</label>
-            <select name="role" class="filter-select">
-                <option value="">All Roles</option>
-                <?php foreach (USER_ROLES as $key => $value): ?>
-                <option value="<?php echo $key; ?>" <?php echo $filters['role'] === $key ? 'selected' : ''; ?>>
-                    <?php echo $value; ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+                <div class="filter-group">
+                    <label>Role</label>
+                    <select name="role" class="filter-select">
+                        <option value="">All Roles</option>
+                        <?php foreach (USER_ROLES as $key => $value): ?>
+                        <option value="<?php echo $key; ?>" <?php echo $filters['role'] === $key ? 'selected' : ''; ?>>
+                            <?php echo $value; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-        <div class="filter-group">
-            <label>Status</label>
-            <select name="status" class="filter-select">
-                <option value="">All Status</option>
-                <option value="ACTIVE" <?php echo $filters['status'] === 'ACTIVE' ? 'selected' : ''; ?>>Active</option>
-                <option value="INACTIVE" <?php echo $filters['status'] === 'INACTIVE' ? 'selected' : ''; ?>>Inactive</option>
-                <option value="PENDING" <?php echo $filters['status'] === 'PENDING' ? 'selected' : ''; ?>>Pending</option>
-            </select>
-        </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select name="status" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="ACTIVE" <?php echo $filters['status'] === 'ACTIVE' ? 'selected' : ''; ?>>Active</option>
+                        <option value="INACTIVE" <?php echo $filters['status'] === 'INACTIVE' ? 'selected' : ''; ?>>Inactive</option>
+                        <option value="PENDING" <?php echo $filters['status'] === 'PENDING' ? 'selected' : ''; ?>>Pending</option>
+                    </select>
+                </div>
 
-        <div class="filter-actions">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="fas fa-filter"></i> Filter
-            </button>
-            <a href="<?php echo APP_URL; ?>/admin/users.php" class="btn btn-secondary btn-sm">
-                <i class="fas fa-times"></i> Clear
-            </a>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="<?php echo APP_URL; ?>/admin/users.php" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 <div class="data-card">
-    <div class="table-responsive">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($displayUsers)): ?>
-                <tr>
-                    <td colspan="5">
-                        <div class="empty-state small">
-                            <span class="empty-icon"><i class="fas fa-users"></i></span>
-                            <h3>No users found</h3>
-                            <p>Try adjusting your filters or add a new user.</p>
-                        </div>
-                    </td>
-                </tr>
-                <?php else: ?>
-                <?php foreach ($displayUsers as $user): ?>
-                <tr>
-                    <td>
-                        <div class="user-cell">
-                            <?php if (!empty($user['avatar_url'])): ?>
-                            <img src="<?php echo htmlspecialchars($user['avatar_url']); ?>" alt="Avatar" class="user-avatar-sm">
-                            <?php else: ?>
-                            <div class="user-avatar-placeholder-sm">
-                                <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
-                            </div>
-                            <?php endif; ?>
-                            <div>
-                                <div class="cell-primary">
-                                    <?php echo htmlspecialchars($user['name']); ?>
-                                    <?php if ($user['id'] === $auth->getUserId()): ?>
-                                    <span style="font-size: 0.75rem; color: var(--primary); margin-left: 4px;">(You)</span>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="cell-secondary">
-                                    <?php echo htmlspecialchars($user['email']); ?>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="role-text">
-                            <?php echo USER_ROLES[$user['role']] ?? $user['role']; ?>
-                        </span>
-                    </td>
-                    <td>
-                        <?php $approvalStatus = $user['status'] ?? 'APPROVED'; ?>
-                        <?php $isActive = isset($user['is_active']) ? (int)$user['is_active'] === 1 : true; ?>
-                        <?php if ($approvalStatus === 'PENDING'): ?>
-                        <span class="status-badge status-pending">Pending</span>
-                        <?php elseif (!$isActive): ?>
-                        <span class="status-badge status-cancelled">Inactive</span>
-                        <?php else: ?>
-                        <span class="status-badge status-active">Active</span>
-                        <?php endif; ?>
-                    </td>
-                    <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
-                    <td>
-                        <div class="action-buttons">
-                            <?php if (($user['status'] ?? '') === 'PENDING'): ?>
-                            <button type="button" class="btn btn-icon" title="Approve" onclick="openApproveModal(<?php echo (int)$user['id']; ?>)">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <?php endif; ?>
-                            <?php $canEditThisUser = ($user['role'] !== 'SUPERADMIN' || $auth->isSuperAdmin()); ?>
-                            <?php if ($canEditThisUser): ?>
-                            <button class="btn btn-icon" title="Edit" onclick='editUser(<?php echo json_encode(array_merge($user, ["is_active" => (int)($user["is_active"] ?? 1)])); ?>)'>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <?php endif; ?>
-                            <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser && ($approvalStatus ?? 'APPROVED') === 'APPROVED' && (int)($user['is_active'] ?? 1) === 1): ?>
-                            <button class="btn btn-icon" title="Deactivate"
-                                    onclick='openDeactivateModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
-                                <i class="fas fa-ban"></i>
-                            </button>
-                            <?php elseif ($user['id'] !== $auth->getUserId() && $canEditThisUser && ($approvalStatus ?? 'APPROVED') === 'APPROVED' && (int)($user['is_active'] ?? 1) === 0): ?>
-                            <button class="btn btn-icon text-success" title="Activate"
-                                    onclick='openActivateModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
-                                <i class="fas fa-check-circle"></i>
-                            </button>
-                            <?php endif; ?>
-                            <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser): ?>
-                            <button class='btn btn-icon text-danger' title='Delete'
-                                    onclick='deleteUser(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+    <?php if (empty($displayUsers)): ?>
+    <div class="empty-state small">
+        <span class="empty-icon"><i class="fas fa-users"></i></span>
+        <h3>No users found</h3>
+        <p>Try adjusting your filters or add a new user.</p>
     </div>
+    <?php else: ?>
+    <div class="users-list">
+        <div class="users-list-header">
+            <div class="users-list-header-main">
+                <span class="users-col-label-user">User</span>
+                <div class="users-list-header-divider"></div>
+                <div class="users-list-header-meta" style="display:flex;align-items:center;gap:14px;width:100%;">
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Position</span></div>
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Role</span></div>
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Status</span></div>
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Date Created</span></div>
+                </div>
+            </div>
+            <span class="users-col-label-action">Actions</span>
+        </div>
+        <?php foreach ($displayUsers as $user): ?>
+        <?php
+        $roleCssMap = [
+            'PROJECT_OWNER' => 'role-project-owner',
+            'PROCUREMENT'   => 'role-procurement',
+            'BAC_CHAIRMAN'  => 'role-bac-chairman',
+            'BAC_SECRETARY' => 'role-bac-secretary',
+            'SUPERADMIN'    => 'role-superadmin',
+        ];
+        $roleCss = $roleCssMap[$user['role']] ?? 'role-procurement';
+        $approvalStatus = $user['status'] ?? 'APPROVED';
+        $isActive = isset($user['is_active']) ? (int)$user['is_active'] === 1 : true;
+        $canEditThisUser = ($user['role'] !== 'SUPERADMIN' || $auth->isSuperAdmin());
+        ?>
+        <div class="user-entry">
+            <div class="user-entry-main">
+                <div class="user-cell">
+                    <?php if (!empty($user['avatar_url'])): ?>
+                    <img src="<?php echo htmlspecialchars($user['avatar_url']); ?>" alt="Avatar" class="user-avatar-sm">
+                    <?php else: ?>
+                    <div class="user-avatar-placeholder-sm">
+                        <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
+                    </div>
+                    <?php endif; ?>
+                    <div>
+                        <div class="cell-primary">
+                            <?php echo htmlspecialchars($user['name']); ?>
+                            <?php if ($user['id'] === $auth->getUserId()): ?>
+                            <span style="font-size: 0.75rem; color: var(--primary); margin-left: 4px;">(You)</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="cell-secondary">
+                            <?php echo htmlspecialchars($user['email']); ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-entry-divider"></div>
+
+                <div class="user-entry-meta" style="display:flex;align-items:center;gap:14px;width:100%;">
+                    <?php
+                    $badgeStyle = 'display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 16px;border-radius:999px;font-size:0.75rem;font-weight:700;white-space:nowrap;box-sizing:border-box;margin:0 auto;';
+                    $roleColorMap = [
+                        'PROJECT_OWNER' => 'background:#ede9fe;color:#7c3aed;',
+                        'PROCUREMENT'   => 'background:#ede9fe;color:#7c3aed;',
+                        'BAC_CHAIRMAN'  => 'background:#ede9fe;color:#7c3aed;',
+                        'BAC_SECRETARY' => 'background:#ede9fe;color:#7c3aed;',
+                        'SUPERADMIN'    => 'background:#ede9fe;color:#7c3aed;',
+                    ];
+                    $roleColorStyle = $roleColorMap[$user['role']] ?? 'background:#ede9fe;color:#7c3aed;';
+                    $roleColorStyle .= 'text-transform:uppercase;letter-spacing:0.05em;';
+                    ?>
+                    
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
+                        <span class="position-badge" style="<?php echo $badgeStyle; ?>color:var(--text-primary);background:var(--bg-secondary);border:1px solid var(--border-color);font-weight:600;text-transform:none;letter-spacing:normal;max-width:100%;" title="<?php echo htmlspecialchars($user['position'] ?? 'N/A'); ?>">
+                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;text-align:center;"><?php echo htmlspecialchars($user['position'] ?? 'N/A'); ?></span>
+                        </span>
+                    </div>
+
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
+                        <span class="role-badge <?php echo $roleCss; ?>" style="<?php echo $badgeStyle . $roleColorStyle; ?>">
+                            <?php echo htmlspecialchars(USER_ROLES[$user['role']] ?? $user['role']); ?>
+                        </span>
+                    </div>
+
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
+                        <?php if ($approvalStatus === 'PENDING'): ?>
+                        <span class="status-badge status-pending" style="<?php echo $badgeStyle; ?>">Pending</span>
+                        <?php elseif (!$isActive): ?>
+                        <span class="status-badge status-cancelled" style="<?php echo $badgeStyle; ?>">Inactive</span>
+                        <?php else: ?>
+                        <span class="status-badge status-active" style="<?php echo $badgeStyle; ?>">Active</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
+                        <span class="user-created-badge" style="<?php echo $badgeStyle; ?>color:var(--text-muted);background:var(--bg-secondary);border:1px solid var(--border-color);">Created <?php echo date('M j, Y', strtotime($user['created_at'])); ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-entry-actions">
+                <div class="action-buttons">
+                    <?php if (($user['status'] ?? '') === 'PENDING'): ?>
+                    <button type="button" class="btn btn-icon" title="Approve" onclick='openApproveModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <?php endif; ?>
+
+                    <?php if ($canEditThisUser): ?>
+                    <button class="btn btn-icon" title="Edit" onclick='editUser(<?php echo json_encode(array_merge($user, ["is_active" => (int)($user["is_active"] ?? 1)])); ?>)'>
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <?php endif; ?>
+
+                    <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser && $approvalStatus === 'APPROVED' && (int)($user['is_active'] ?? 1) === 1): ?>
+                    <button class="btn btn-icon" title="Deactivate"
+                            onclick='openDeactivateModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
+                        <i class="fas fa-ban"></i>
+                    </button>
+                    <?php elseif ($user['id'] !== $auth->getUserId() && $canEditThisUser && $approvalStatus === 'APPROVED' && (int)($user['is_active'] ?? 1) === 0): ?>
+                    <button class="btn btn-icon text-success" title="Activate"
+                            onclick='openActivateModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                    <?php endif; ?>
+
+                    <?php if ($user['id'] !== $auth->getUserId() && $canEditThisUser): ?>
+                    <button class='btn btn-icon text-danger' title='Delete'
+                            onclick='deleteUser(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Activate Confirmation Modal -->
@@ -422,45 +773,76 @@ $displayUsers = array_values($filteredUsers);
             <input type="hidden" name="user_id" id="userId" value="">
             
             <div class="modal-body">
+                <div class="form-section-title">Personal Information</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Full Name <span style="color: var(--danger);">*</span></label>
-                        <input type="text" name="name" id="userName" class="form-control" required>
+                        <div class="input-group-custom">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="name" id="userName" class="form-control" placeholder="Enter full name" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email Address <span style="color: var(--danger);">*</span></label>
-                        <input type="email" name="email" id="userEmail" class="form-control" required>
+                        <div class="input-group-custom">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" id="userEmail" class="form-control" placeholder="email@example.com" required>
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 24px;">
+                        <label class="form-label">Position</label>
+                        <div class="input-group-custom">
+                            <i class="fas fa-id-badge"></i>
+                            <input type="text" name="position" id="userPosition" class="form-control" placeholder="e.g. IT Officer, Teacher III...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-title">Account Settings</div>
+                <div class="form-row" style="align-items: flex-end;">
                     <div class="form-group">
                         <label class="form-label">Role <span style="color: var(--danger);">*</span></label>
-                        <select name="role" id="userRole" class="form-control" required>
-                            <option value="" disabled selected>-- Select Role --</option>
-                            <?php foreach (USER_ROLES as $key => $value): ?>
-                            <?php if ($key === 'SUPERADMIN' && !$auth->isSuperAdmin()) continue; ?>
-                            <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="input-group-custom">
+                            <i class="fas fa-user-tag"></i>
+                            <select name="role" id="userRole" class="form-control" required style="padding-left: 42px;">
+                                <option value="" disabled selected>-- Select Role --</option>
+                                <?php foreach (USER_ROLES as $key => $value): ?>
+                                <?php if ($key === 'SUPERADMIN' && !$auth->isSuperAdmin()) continue; ?>
+                                <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group" id="statusGroup" style="display: none; align-self: flex-end;">
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="is_active" id="userActive" value="1" checked>
-                            <span>Account is active</span>
+                    <div class="form-group" id="statusGroup" style="display: none;">
+                        <label class="toggle-wrapper" for="userActive">
+                            <span class="switch">
+                                <input type="checkbox" name="is_active" id="userActive" value="1" checked>
+                                <span class="slider"></span>
+                            </span>
+                            <span class="toggle-label-text">Account is active</span>
                         </label>
                     </div>
                 </div>
 
+                <div class="form-section-title">Security</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Password <span id="passwordRequired" style="color: var(--danger);">*</span></label>
-                        <input type="password" name="password" id="userPassword" class="form-control" minlength="6">
+                        <div class="input-group-custom">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password" id="userPassword" class="form-control" minlength="6" placeholder="••••••••">
+                        </div>
                         <small id="passwordHelp" class="form-hint" style="display: none;">Leave blank to keep current password</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Confirm Password</label>
-                        <input type="password" id="userPasswordConfirm" class="form-control" minlength="6">
+                        <div class="input-group-custom">
+                            <i class="fas fa-shield-alt"></i>
+                            <input type="password" id="userPasswordConfirm" class="form-control" minlength="6" placeholder="••••••••">
+                        </div>
                         <small class="form-hint">Re-enter password to confirm</small>
                     </div>
                 </div>
@@ -488,6 +870,10 @@ $displayUsers = array_values($filteredUsers);
             <input type="hidden" name="user_id" id="approveUserId" value="">
             <div class="modal-body">
                 <p class="modal-confirm-message">Approve this user so they can sign in?</p>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin: 12px 0;">
+                    <div style="font-weight: 700; color: var(--text-primary);" id="approveUserName">User Name</div>
+                    <div style="color: var(--text-muted); margin-top: 2px;" id="approveUserEmail">user@example.com</div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeApproveModal()">Cancel</button>
@@ -548,6 +934,7 @@ function editUser(user) {
     document.getElementById('userId').value = user.id;
     document.getElementById('userName').value = user.name;
     document.getElementById('userEmail').value = user.email;
+    document.getElementById('userPosition').value = user.position || '';
     document.getElementById('userRole').value = user.role;
     document.getElementById('userActive').checked = user.is_active == 1;
     document.getElementById('userPassword').value = '';
@@ -563,8 +950,10 @@ function closeUserModal() {
     document.getElementById('userModal').classList.remove('show');
 }
 
-function openApproveModal(userId) {
-    document.getElementById('approveUserId').value = userId;
+function openApproveModal(id, name, email) {
+    document.getElementById('approveUserId').value = id;
+    if(name) document.getElementById('approveUserName').textContent = name;
+    if(email) document.getElementById('approveUserEmail').textContent = email;
     document.getElementById('approveModal').classList.add('show');
 }
 

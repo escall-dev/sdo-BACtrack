@@ -193,6 +193,14 @@ class Project {
             $stats['pending_approval'] = 0;
         }
 
+        try {
+            $stats['rejected'] = $this->db->fetch(
+                "SELECT COUNT(*) as count FROM projects WHERE approval_status = 'REJECTED'"
+            )['count'];
+        } catch (Exception $e) {
+            $stats['rejected'] = 0;
+        }
+
         $stats['by_type'] = $this->db->fetchAll(
             "SELECT procurement_type, COUNT(*) as count 
              FROM projects GROUP BY procurement_type"

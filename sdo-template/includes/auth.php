@@ -159,13 +159,13 @@ class AdminAuth {
     }
 
     /**
-     * Check if current user is Super Admin
+     * Check if current user is Superadmin
      */
     public function isSuperAdmin() {
         if (!$this->user) {
             return false;
         }
-        return strtolower($this->user['role_name']) === 'super admin';
+        return strtolower($this->user['role_name']) === 'superadmin';
     }
 
     /**

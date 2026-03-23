@@ -20,8 +20,8 @@ $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $projectModel = new Project();
 $project = $projectModel->findById($projectId);
 
-// Handle approve action (BAC only)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'approve_project' && $auth->isProcurement() && $projectId) {
+// Handle approve action (BAC Secretary only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'approve_project' && $auth->isBacSecretary() && $projectId) {
     if ($project && ($project['approval_status'] ?? 'APPROVED') === 'PENDING_APPROVAL') {
         $projectModel->approve($projectId);
         setFlashMessage('success', 'Project approved. Progress can now be tracked.');
@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'appro
     $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
 }
 
-// Handle reject action (BAC only) - remarks required
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reject_project' && $auth->isProcurement() && $projectId) {
+// Handle reject action (BAC Secretary only) - remarks required
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reject_project' && $auth->isBacSecretary() && $projectId) {
     $remarks = trim($_POST['rejection_remarks'] ?? '');
     if ($project && ($project['approval_status'] ?? 'APPROVED') === 'PENDING_APPROVAL') {
         if (empty($remarks)) {
@@ -144,8 +144,154 @@ $documentCategories = $docModel->getCategories($project['procurement_type'] ?? '
 $isPendingApproval = ($project['approval_status'] ?? 'APPROVED') === 'PENDING_APPROVAL';
 $isRejected = ($project['approval_status'] ?? '') === 'REJECTED';
 
+$requiredDocs = [
+    'Memorandum',
+    'Source of Fund (SAO)',
+    'Project Proposal',
+    'Signed RFQ (Request for Quotation)',
+];
+$uploadedCategories = array_keys($projectDocuments);
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
+
+<style>
+/* Premium Container Styles for Project View */
+.pv-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 10px 25px -5px rgba(15, 76, 117, 0.04), 0 8px 10px -6px rgba(15, 76, 117, 0.02);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pv-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(15, 76, 117, 0.08), 0 10px 10px -5px rgba(15, 76, 117, 0.04);
+    transform: translateY(-2px);
+}
+.pv-card-header {
+    background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.pv-card-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pv-card-header h2 i {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+.pv-card-body {
+    padding: 20px;
+}
+
+/* Info Tiles */
+.pv-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+.pv-info-tile {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    transition: background 0.2s, border-color 0.2s;
+}
+.pv-info-tile:hover {
+    background: #f0f7ff;
+    border-color: #bfdbfe;
+}
+.pv-info-label {
+    font-size: 0.72rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+}
+.pv-info-value {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Progress Bar */
+.pv-progress-wrap {
+    background: #e2e8f0;
+    border-radius: 999px;
+    height: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+.pv-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+/* Stat Blocks */
+.pv-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+.pv-stat-block {
+    text-align: center;
+    padding: 16px 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pv-stat-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.pv-stat-num {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    line-height: 1;
+}
+.pv-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.pv-stat-pending { border-top: 3px solid #f59e0b; }
+.pv-stat-pending .pv-stat-num { color: #d97706; }
+.pv-stat-pending .pv-stat-label { color: #b45309; }
+
+.pv-stat-progress { border-top: 3px solid #3b82f6; }
+.pv-stat-progress .pv-stat-num { color: #2563eb; }
+.pv-stat-progress .pv-stat-label { color: #1d4ed8; }
+
+.pv-stat-completed { border-top: 3px solid #10b981; }
+.pv-stat-completed .pv-stat-num { color: #059669; }
+.pv-stat-completed .pv-stat-label { color: #047857; }
+
+.pv-stat-delayed { border-top: 3px solid #ef4444; }
+.pv-stat-delayed .pv-stat-num { color: #dc2626; }
+.pv-stat-delayed .pv-stat-label { color: #b91c1c; }
+</style>
 
 <div class="page-header">
     <div>
@@ -165,7 +311,7 @@ require_once __DIR__ . '/../includes/header.php';
         <a href="<?php echo APP_URL; ?>/admin/project-edit.php?id=<?php echo $projectId; ?>" class="btn btn-secondary">
             <i class="fas fa-edit"></i> Edit Draft
         </a>
-        <?php elseif ($auth->isProcurement() && $isPendingApproval): ?>
+        <?php elseif ($auth->isBacSecretary() && $isPendingApproval): ?>
         <form method="POST" style="margin: 0; display: inline;">
             <input type="hidden" name="action" value="approve_project">
             <button type="submit" class="btn btn-success">
@@ -190,8 +336,8 @@ require_once __DIR__ . '/../includes/header.php';
 <div style="display: grid; grid-template-columns: 1fr 350px; gap: 24px;">
     <div>
         <!-- Project Info -->
-        <div class="data-card" style="margin-bottom: 24px;">
-            <div class="card-header">
+        <div class="pv-card">
+            <div class="pv-card-header">
                 <h2><i class="fas fa-info-circle"></i> Project Information</h2>
                 <?php if (isset($project['approval_status'])): ?>
                 <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $project['approval_status'])); ?>">
@@ -199,7 +345,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </span>
                 <?php endif; ?>
             </div>
-            <div class="card-body">
+            <div class="pv-card-body">
                 <?php if ($isDraft): ?>
                 <div class="alert alert-info" style="margin-bottom: 16px;">
                     <i class="fas fa-file-alt"></i>
@@ -217,7 +363,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <i class="fas fa-clock"></i>
                     <span>This project is awaiting BAC approval. Progress cannot be updated until a BAC member accepts or declines it.</span>
                 </div>
-                <?php if ($auth->isProcurement()): ?>
+                <?php if ($auth->isBacSecretary()): ?>
                 <div id="rejectForm" style="display: none; margin-bottom: 16px; padding: 16px; background: var(--danger-bg); border-radius: var(--radius-md); border: 1px solid rgba(239,68,68,0.3);">
                     <form method="POST">
                         <input type="hidden" name="action" value="reject_project">
@@ -250,13 +396,13 @@ require_once __DIR__ . '/../includes/header.php';
                 <p style="color: var(--text-secondary); margin-bottom: 16px;"><?php echo nl2br(htmlspecialchars($project['description'])); ?></p>
                 <?php endif; ?>
                 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                    <div>
-                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Procurement Type</label>
-                        <p style="font-weight: 500;"><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></p>
+                <div class="pv-info-grid">
+                    <div class="pv-info-tile">
+                        <span class="pv-info-label">Procurement Type</span>
+                        <p class="pv-info-value"><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></p>
                     </div>
-                    <div>
-                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Created By</label>
+                    <div class="pv-info-tile">
+                        <span class="pv-info-label">Created By</span>
                         <div class="user-cell" style="margin-top: 4px;">
                             <?php if (!empty($project['creator_avatar'])): ?>
                             <img src="<?php echo htmlspecialchars($project['creator_avatar']); ?>" alt="Avatar" class="user-avatar-sm">
@@ -265,45 +411,45 @@ require_once __DIR__ . '/../includes/header.php';
                                 <?php echo strtoupper(substr($project['creator_name'], 0, 1)); ?>
                             </div>
                             <?php endif; ?>
-                            <span style="font-weight: 500;"><?php echo htmlspecialchars($project['creator_name']); ?></span>
+                            <span class="pv-info-value"><?php echo htmlspecialchars($project['creator_name']); ?></span>
                         </div>
                     </div>
-                    <div>
-                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Created Date</label>
-                        <p style="font-weight: 500;"><?php echo date('F j, Y', strtotime($project['created_at'])); ?></p>
+                    <div class="pv-info-tile">
+                        <span class="pv-info-label">Created Date</span>
+                        <p class="pv-info-value"><?php echo date('F j, Y', strtotime($project['created_at'])); ?></p>
                     </div>
                 </div>
             </div>
         </div>
 
         <?php if (!empty($activities)): ?>
-        <div class="data-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-                <h2><i class="fas fa-route"></i> Timeline Awareness</h2>
+        <div class="pv-card">
+            <div class="pv-card-header">
+                <h2><i class="fas fa-route"></i> Process Awareness</h2>
             </div>
-            <div class="card-body">
+            <div class="pv-card-body">
                 <div style="display: grid; gap: 12px;">
                     <div style="padding: 14px; background: var(--bg-secondary); border-radius: var(--radius-md);">
-                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Current Step</label>
+                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Current Process</label>
                         <?php if ($currentActivity): ?>
                         <div style="font-weight: 700; margin-top: 4px;"><?php echo htmlspecialchars($currentActivity['step_name']); ?></div>
                         <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
                             <?php echo htmlspecialchars($activityTiming[$currentActivity['id']]['timing_label'] ?? ''); ?>
                         </div>
                         <?php else: ?>
-                        <div style="font-weight: 700; margin-top: 4px;">All steps completed</div>
+                        <div style="font-weight: 700; margin-top: 4px;">All process completed</div>
                         <?php endif; ?>
                     </div>
 
                     <div style="padding: 14px; background: var(--bg-secondary); border-radius: var(--radius-md);">
-                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Next Step</label>
+                        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Next Process</label>
                         <?php if ($nextActivity): ?>
                         <div style="font-weight: 700; margin-top: 4px;"><?php echo htmlspecialchars($nextActivity['step_name']); ?></div>
                         <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
                             <?php echo htmlspecialchars($activityTiming[$nextActivity['id']]['timing_label'] ?? ''); ?>
                         </div>
                         <?php else: ?>
-                        <div style="font-weight: 700; margin-top: 4px;">No next step pending</div>
+                        <div style="font-weight: 700; margin-top: 4px;">No next process pending</div>
                         <?php endif; ?>
                     </div>
 
@@ -326,17 +472,17 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <?php endif; ?>
 
-        <!-- Activities List -->
-        <div class="data-card">
-            <div class="card-header">
-                <h2><i class="fas fa-tasks"></i> BAC Activities - Cycle <?php echo $activeCycle ? $activeCycle['cycle_number'] : 1; ?></h2>
+        <!-- Process List -->
+        <div class="pv-card">
+            <div class="pv-card-header">
+                <h2><i class="fas fa-tasks"></i> BAC Process - Cycle <?php echo $activeCycle ? $activeCycle['cycle_number'] : 1; ?></h2>
             </div>
-            <div class="card-body" style="padding: 0;">
+            <div class="pv-card-body" style="padding: 0;">
                 <?php if (empty($activities)): ?>
                 <div class="empty-state">
                     <div class="empty-icon"><i class="fas fa-tasks"></i></div>
-                    <h3>No activities found</h3>
-                    <p>This project has no activities generated yet.</p>
+                    <h3>No process found</h3>
+                    <p>This project has no process generated yet.</p>
                 </div>
                 <?php else: ?>
                 <div class="table-responsive">
@@ -344,11 +490,11 @@ require_once __DIR__ . '/../includes/header.php';
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Activity</th>
+                                <th>Process Name</th>
                                 <th>Planned Start</th>
                                 <th>Planned End</th>
                                 <th>Duration (Days)</th>
-                                <th>Status</th>
+                                <th style="text-align: center;">Status</th>
                                 <th>Compliance</th>
                                 <th>Actions</th>
                             </tr>
@@ -374,7 +520,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
                                 <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
                                 <td><?php echo htmlspecialchars($activityTiming[$activity['id']]['duration_label'] ?? '-'); ?></td>
-                                <td style="white-space: nowrap;">
+                                <td style="text-align: center; white-space: nowrap;">
                                     <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $activity['status'])); ?>">
                                         <?php echo ACTIVITY_STATUSES[$activity['status']] ?? $activity['status']; ?>
                                     </span>
@@ -403,24 +549,49 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
         <!-- Project Documents (Project Owners upload, both can view) -->
-        <div class="data-card" style="margin-bottom: 24px;">
-            <div class="card-header">
+        <div class="pv-card">
+            <div class="pv-card-header">
                 <h2><i class="fas fa-folder-open"></i> Project Documents</h2>
-                <span style="color: var(--text-muted); font-weight: 400;">
+                <span style="color: var(--text-muted); font-weight: 600; font-size: 0.85rem;">
                     <?php echo array_sum(array_map('count', $projectDocuments)); ?> file(s)
                 </span>
             </div>
-            <div class="card-body">
+            <div class="pv-card-body">
                 <?php if ($auth->isProjectOwner() && (int)$project['created_by'] === (int)$auth->getUserId()): ?>
+                <!-- Required Documents Checklist -->
+                <div style="margin-bottom: 20px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+                    <h4 style="margin: 0 0 12px; font-size: 0.95rem; color: var(--text-primary);"><i class="fas fa-clipboard-list" style="margin-right: 6px;"></i>Required Documents</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <?php foreach ($requiredDocs as $reqDoc): ?>
+                        <?php $uploaded = in_array($reqDoc, $uploadedCategories); ?>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <?php if ($uploaded): ?>
+                            <span style="color: var(--success); font-size: 1rem;"><i class="fas fa-check-circle"></i></span>
+                            <span style="color: var(--text-secondary); text-decoration: line-through;"><?php echo htmlspecialchars($reqDoc); ?></span>
+                            <?php else: ?>
+                            <span style="color: var(--danger); font-size: 1rem;"><i class="fas fa-times-circle"></i></span>
+                            <span style="color: var(--text-primary); font-weight: 500;"><?php echo htmlspecialchars($reqDoc); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
                 <form method="POST" enctype="multipart/form-data" style="margin-bottom: 20px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-md);">
                     <input type="hidden" name="action" value="upload_project_document">
                     <div style="display: grid; gap: 12px;">
                         <div>
-                            <label class="form-label">Category (Procurement Procedure)</label>
+                            <label class="form-label">Category</label>
                             <select name="category" class="form-control" required>
-                                <?php foreach ($documentCategories as $cat): ?>
-                                <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
-                                <?php endforeach; ?>
+                                <optgroup label="Required Documents">
+                                    <?php foreach ($requiredDocs as $req): ?>
+                                    <option value="<?php echo htmlspecialchars($req); ?>"><?php echo htmlspecialchars($req); ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                                <optgroup label="Procurement Procedure">
+                                    <?php foreach ($documentCategories as $cat): ?>
+                                    <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                             </select>
                         </div>
                         <div>
@@ -501,50 +672,50 @@ require_once __DIR__ . '/../includes/header.php';
 
     <div>
         <?php if (!empty($activities)): ?>
-        <div class="data-card" style="margin-bottom: 24px;">
-            <div class="card-header">
+        <div class="pv-card">
+            <div class="pv-card-header">
                 <h2><i class="fas fa-hourglass-half"></i> Timeline Totals</h2>
             </div>
-            <div class="card-body">
-                <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
-                    <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Planned Step Duration</label>
-                    <div style="font-size: 1.6rem; font-weight: 700; margin-top: 4px;"><?php echo timelineFormatDayCount($timelineSummary['total_planned_days']); ?></div>
+            <div class="pv-card-body">
+                <div class="pv-info-tile" style="text-align: center;">
+                    <span class="pv-info-label">Planned Process Duration</span>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-top: 8px;"><?php echo timelineFormatDayCount($timelineSummary['total_planned_days']); ?></div>
                 </div>
             </div>
         </div>
         <?php endif; ?>
 
         <!-- Progress Card -->
-        <div class="data-card" style="margin-bottom: 24px;">
-            <div class="card-header">
+        <div class="pv-card">
+            <div class="pv-card-header">
                 <h2><i class="fas fa-chart-pie"></i> Progress</h2>
             </div>
-            <div class="card-body">
+            <div class="pv-card-body">
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 3rem; font-weight: 800; color: var(--primary);"><?php echo $progress; ?>%</div>
-                    <p style="color: var(--text-muted);">Overall Completion</p>
+                    <div style="font-size: 3.5rem; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 4px;"><?php echo $progress; ?>%</div>
+                    <p style="color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">Overall Completion</p>
                 </div>
                 
-                <div style="background: var(--bg-secondary); border-radius: 10px; height: 10px; margin-bottom: 20px;">
-                    <div style="background: var(--success); border-radius: 10px; height: 100%; width: <?php echo $progress; ?>%;"></div>
+                <div class="pv-progress-wrap">
+                    <div class="pv-progress-fill" style="width: <?php echo $progress; ?>%;"></div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div style="text-align: center; padding: 12px; background: var(--warning-bg); border-radius: var(--radius-md);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);"><?php echo $stats['pending']; ?></div>
-                        <small style="color: var(--text-muted);">Pending</small>
+                <div class="pv-stat-grid">
+                    <div class="pv-stat-block pv-stat-pending">
+                        <div class="pv-stat-num"><?php echo $stats['pending']; ?></div>
+                        <div class="pv-stat-label">Pending</div>
                     </div>
-                    <div style="text-align: center; padding: 12px; background: var(--info-bg); border-radius: var(--radius-md);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--info);"><?php echo $stats['in_progress']; ?></div>
-                        <small style="color: var(--text-muted);">In Progress</small>
+                    <div class="pv-stat-block pv-stat-progress">
+                        <div class="pv-stat-num"><?php echo $stats['in_progress']; ?></div>
+                        <div class="pv-stat-label">In Progress</div>
                     </div>
-                    <div style="text-align: center; padding: 12px; background: var(--success-bg); border-radius: var(--radius-md);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);"><?php echo $stats['completed']; ?></div>
-                        <small style="color: var(--text-muted);">Completed</small>
+                    <div class="pv-stat-block pv-stat-completed">
+                        <div class="pv-stat-num"><?php echo $stats['completed']; ?></div>
+                        <div class="pv-stat-label">Completed</div>
                     </div>
-                    <div style="text-align: center; padding: 12px; background: var(--danger-bg); border-radius: var(--radius-md);">
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);"><?php echo $stats['delayed']; ?></div>
-                        <small style="color: var(--text-muted);">Delayed</small>
+                    <div class="pv-stat-block pv-stat-delayed">
+                        <div class="pv-stat-num"><?php echo $stats['delayed']; ?></div>
+                        <div class="pv-stat-label">Delayed</div>
                     </div>
                 </div>
             </div>
@@ -552,11 +723,11 @@ require_once __DIR__ . '/../includes/header.php';
 
         <?php if ($auth->isProcurement()): ?>
         <!-- Cycle Info - BAC Members only -->
-        <div class="data-card">
-            <div class="card-header">
+        <div class="pv-card">
+            <div class="pv-card-header">
                 <h2><i class="fas fa-sync"></i> BAC Cycles</h2>
             </div>
-            <div class="card-body">
+            <div class="pv-card-body">
                 <?php if (empty($cycles)): ?>
                 <p style="color: var(--text-muted);">No cycles found.</p>
                 <?php else: ?>

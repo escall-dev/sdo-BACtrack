@@ -6,8 +6,31 @@ document.addEventListener('DOMContentLoaded', function() {
     initSidebar();
     initFlashMessages();
     initNotifications();
+    initNotificationPolling();
     initModals();
+    initFilterEnterKey();
 });
+
+/**
+ * Filter Bar - Submit on Enter key
+ */
+function initFilterEnterKey() {
+    document.querySelectorAll('.filter-form input, .filter-form select').forEach(function(el) {
+        el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var form = el.closest('form');
+                if (form) {
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }
+            }
+        });
+    });
+}
 
 /**
  * Sidebar Toggle
@@ -64,6 +87,84 @@ function initFlashMessages() {
             }, 300);
         }, 5000);
     });
+}
+
+/**
+/**
+ * Notification Sound + Polling
+ * Polls every 30 s. Plays a chime when the unread count increases.
+ */
+function initNotificationPolling() {
+    // Build the API URL using the same helper pattern used elsewhere
+    var base = (typeof APP_URL !== 'undefined' ? APP_URL : '') + '/admin/api/notification-count.php';
+    var apiUrl = (window.SDO_BACTRACK_buildApiUrl ? window.SDO_BACTRACK_buildApiUrl(base) : base);
+
+    // Read the initial count already rendered by PHP so first poll never false-fires
+    var badge = document.querySelector('.notification-badge');
+    var lastCount = badge ? (parseInt(badge.textContent, 10) || 0) : 0;
+
+    // Synthesise a short double-chime using Web Audio API (no external file needed)
+    function playChime() {
+        try {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+            function beep(freq, startTime, duration) {
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            }
+
+            var t = ctx.currentTime;
+            beep(880, t,        0.18);   // first note  (A5)
+            beep(1100, t + 0.2, 0.22);   // second note (C#6)
+        } catch (e) {
+            // Web Audio not supported — silent fallback
+        }
+    }
+
+    function poll() {
+        fetch(apiUrl, { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var count = data.unread || 0;
+                if (count > lastCount) {
+                    playChime();
+
+                    // Update the badge in the header without a full reload
+                    var btn = document.getElementById('notificationBtn');
+                    if (btn) {
+                        var existing = btn.querySelector('.notification-badge');
+                        if (count > 0) {
+                            if (existing) {
+                                existing.textContent = count > 99 ? '99+' : count;
+                            } else {
+                                var span = document.createElement('span');
+                                span.className = 'notification-badge';
+                                span.textContent = count > 99 ? '99+' : count;
+                                btn.appendChild(span);
+                            }
+                        }
+                    }
+                } else if (count === 0) {
+                    // All read — remove badge
+                    var existing = document.querySelector('.notification-badge');
+                    if (existing) existing.remove();
+                }
+                lastCount = count;
+            })
+            .catch(function() { /* network error — skip silently */ });
+    }
+
+    // First poll after 30 s; repeat every 30 s
+    setInterval(poll, 30000);
 }
 
 /**

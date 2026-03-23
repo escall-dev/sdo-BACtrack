@@ -735,6 +735,137 @@ body {
     border: 1px solid #93c5fd;
 }
 
+/* Toast Notifications (iPhone Style) */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    pointer-events: none;
+    width: 100%;
+    max-width: 450px;
+}
+
+.toast-item {
+    pointer-events: auto;
+    width: 90%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    animation: iphone-slide-down 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.toast-item.hide {
+    animation: iphone-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes iphone-slide-down {
+    from { transform: translateY(-100px) scale(0.9); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes iphone-slide-up {
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to { transform: translateY(-100px) scale(0.9); opacity: 0; }
+}
+
+.toast-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1d1d1f;
+    margin-bottom: 2px;
+}
+
+.toast-message {
+    font-size: 0.8rem;
+    color: #424245;
+    line-height: 1.3;
+}
+
+.toast-close {
+    background: rgba(0,0,0,0.05);
+    border: none;
+    color: #8e8e93;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.toast-close:hover {
+    background: rgba(0,0,0,0.1);
+    color: var(--danger);
+}
+
+.toast-success .toast-icon { background: #34c759; color: white; }
+.toast-danger .toast-icon { background: #ff3b30; color: white; }
+.toast-warning .toast-icon { background: #ff9500; color: white; }
+.toast-info .toast-icon { background: #007aff; color: white; }
+
+/* Remove old border-left style */
+.toast-success, .toast-danger, .toast-warning, .toast-info { border-left: none; }
+
+/* Progress bar for auto-hide */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(0,0,0,0.05);
+}
+
+.toast-progress-fill {
+    height: 100%;
+    background: #007aff;
+    opacity: 0.5;
+    width: 100%;
+    transform-origin: left;
+}
+
+@keyframes toast-progress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
 /* Dashboard Stats */
 .stats-row {
     display: grid;
@@ -1902,4 +2033,50 @@ input[type="file"].form-control::file-selector-button:hover {
         width: calc(100vw - 40px);
         right: -10px;
     }
+}
+
+/* Pagination Styles */
+.card-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+    font-family: inherit;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--bg-primary);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 60px;
+    text-align: center;
 }

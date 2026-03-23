@@ -567,7 +567,7 @@ input:checked + .slider:before {
         <p>Try adjusting your filters or add a new user.</p>
     </div>
     <?php else: ?>
-    <div class="users-list">
+    <div class="users-list" data-paginate="15">
         <div class="users-list-header">
             <div class="users-list-header-main">
                 <span class="users-col-label-user">User</span>

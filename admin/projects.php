@@ -108,7 +108,7 @@ $projects = $projectModel->getAll($filters);
     </div>
     <?php else: ?>
     <div class="table-responsive">
-        <table class="data-table">
+        <table class="data-table" data-paginate="15">
             <thead>
                 <tr>
                     <th>Project Title</th>

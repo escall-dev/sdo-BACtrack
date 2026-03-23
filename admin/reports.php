@@ -93,7 +93,7 @@ if ($selectedProject) {
     }
 
     // Pagination logic
-    $itemsPerPage = 10;
+    $itemsPerPage = 15;
     $totalItems = count($activities);
     $totalPages = ceil($totalItems / $itemsPerPage);
     $currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;

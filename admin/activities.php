@@ -206,7 +206,7 @@ $activities = db()->fetchAll($sql, $params);
     </div>
     <?php else: ?>
     <div class="table-responsive">
-        <table class="data-table">
+        <table class="data-table" data-paginate="15">
             <thead>
             <tr>
                 <th style="width: 80px; text-align: center;">Step</th>

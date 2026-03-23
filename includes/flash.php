@@ -25,6 +25,7 @@ function hasFlashMessage($type) {
 function displayFlashMessages() {
     $types = ['success', 'error', 'warning', 'info'];
     $output = '';
+    $jsonMessages = [];
     
     foreach ($types as $type) {
         $message = getFlashMessage($type);
@@ -34,7 +35,24 @@ function displayFlashMessages() {
             $output .= '<i class="fas fa-' . getAlertIcon($type) . '"></i>';
             $output .= '<span>' . htmlspecialchars($message) . '</span>';
             $output .= '</div>';
+            
+            $jsonMessages[] = [
+                'type' => $type === 'error' ? 'danger' : $type,
+                'message' => addslashes($message)
+            ];
         }
+    }
+    
+    if (!empty($jsonMessages)) {
+        $output .= '<script>
+            document.addEventListener("DOMContentLoaded", function() {
+                if (typeof showToast === "function") {
+                    ' . implode('', array_map(function($m) {
+                        return 'showToast("' . ucfirst($m['type']) . '", "' . $m['message'] . '", "' . $m['type'] . '");';
+                    }, $jsonMessages)) . '
+                }
+            });
+        </script>';
     }
     
     return $output;

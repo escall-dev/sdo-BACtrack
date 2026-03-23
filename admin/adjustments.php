@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $auth->isBacSecretary()) {
     $action = $_POST['action'] ?? '';
     $notes = trim($_POST['notes'] ?? '');
 
-    if (empty($notes)) {
-        setFlashMessage('danger', 'Review notes are required for this action.');
+    if ($action === 'reject' && empty($notes)) {
+        setFlashMessage('danger', 'Review notes (reason) are required when rejecting a request.');
         $auth->redirect(APP_URL . '/admin/adjustments.php');
     }
 
@@ -102,7 +102,155 @@ $requests = $adjustmentModel->getAll($filters);
     text-overflow: ellipsis;
 }
 .action-cell {
-    min-width: 250px;
+    width: 120px;
+}
+.action-wrapper {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    margin: 10% auto;
+    width: 90%;
+    max-width: 500px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-header h3 i {
+    color: var(--danger);
+    font-size: 1.2rem;
+}
+
+.close-btn {
+    background: #f1f5f9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 24px;
+    background: #fafafa;
+}
+
+#modal-notes {
+    border: 1.5px solid var(--border-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    resize: none;
+}
+
+#modal-notes:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), inset 0 2px 4px rgba(0,0,0,0.02);
+    outline: none;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #ffffff;
+}
+
+.btn-modal {
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-modal-cancel {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-modal-cancel:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.btn-modal-reject {
+    background: var(--danger);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.btn-modal-reject:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.35);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 </style>
 
@@ -139,7 +287,7 @@ $requests = $adjustmentModel->getAll($filters);
     </div>
     <?php else: ?>
     <div class="table-responsive">
-        <table class="data-table">
+        <table class="data-table" data-paginate="15">
             <thead>
                 <tr>
                     <th>Process</th>
@@ -187,22 +335,23 @@ $requests = $adjustmentModel->getAll($filters);
                     </td>
                     <?php if ($auth->isBacSecretary()): ?>
                     <td class="action-cell">
-                        <?php if ($request['status'] === 'PENDING'): ?>
-                        <form method="POST" style="display: flex; gap: 8px; width: 100%; justify-content: center;">
-                            <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
-                            <input type="text" name="notes" class="form-control form-control-sm" placeholder="Reason/Notes..." required style="flex: 1; max-width: 250px; min-width: 150px;">
-                            <button type="submit" name="action" value="approve" class="btn btn-sm btn-success" title="Approve">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger" title="Reject">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </form>
-                        <?php else: ?>
-                            <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">
-                                <?php echo $request['reviewed_at'] ? date('M j, Y', strtotime($request['reviewed_at'])) : '-'; ?>
-                            </div>
-                        <?php endif; ?>
+                        <div class="action-wrapper">
+                            <?php if ($request['status'] === 'PENDING'): ?>
+                                <form method="POST" style="display: flex; gap: 8px;">
+                                    <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                                    <button type="submit" name="action" value="approve" class="btn btn-sm btn-success" title="Approve">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" title="Reject" onclick="openRejectModal(<?php echo $request['id']; ?>)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                                    <div><?php echo $request['reviewed_at'] ? date('M j, Y', strtotime($request['reviewed_at'])) : '-'; ?></div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </td>
                     <?php endif; ?>
                 </tr>
@@ -212,5 +361,58 @@ $requests = $adjustmentModel->getAll($filters);
     </div>
     <?php endif; ?>
 </div>
+
+<!-- Rejection Modal -->
+<div id="rejectModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-circle"></i> Rejection Reason</h3>
+            <button type="button" class="close-btn" onclick="closeRejectModal()">&times;</button>
+        </div>
+        <form method="POST">
+            <input type="hidden" name="request_id" id="modal-request-id">
+            <input type="hidden" name="action" value="reject">
+            <div class="modal-body">
+                <label for="modal-notes" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px;">
+                    REASON FOR REJECTION
+                </label>
+                <textarea name="notes" class="form-control" rows="4" placeholder="Type your reason here..." required id="modal-notes" style="width: 100%; border-radius: var(--radius-md); padding: 12px; font-size: 0.95rem;"></textarea>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> This note will be visible to the requester.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeRejectModal()">
+                    <i class="fas fa-undo"></i> Cancel
+                </button>
+                <button type="submit" class="btn-modal btn-modal-reject">
+                    <i class="fas fa-minus-circle"></i> Confirm Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openRejectModal(id) {
+    document.getElementById('modal-request-id').value = id;
+    document.getElementById('rejectModal').style.display = 'block';
+    setTimeout(() => {
+        document.getElementById('modal-notes').focus();
+    }, 100);
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+
+// Close on click outside
+window.onclick = function(event) {
+    const modal = document.getElementById('rejectModal');
+    if (event.target == modal) {
+        closeRejectModal();
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -589,51 +589,6 @@ html, body {
     flex-direction: column;
 }
 
-.card-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-top: 10px;
-    margin-top: 8px;
-    border-top: 1px solid var(--border-light);
-    flex-shrink: 0;
-}
-
-.pagination-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 12px;
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-base);
-    font-family: inherit;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--bg-primary);
-}
-
-.pagination-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
-.pagination-info {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    min-width: 38px;
-    text-align: center;
-}
-
 /* Remove scrollbars from table-based dashboard cards */
 .dashboard-card .card-body .table-responsive {
     overflow: hidden;
@@ -823,47 +778,6 @@ document.querySelectorAll('.stats-tab-btn').forEach(function(btn) {
             p.style.display = p.getAttribute('data-tab-content') === tab ? '' : 'none';
         });
     });
-});
-
-// Pagination for activity lists
-document.querySelectorAll('.activity-list[data-paginate]').forEach(function(list) {
-    var pageSize = parseInt(list.getAttribute('data-paginate')) || 4;
-    var items = Array.from(list.querySelectorAll('.activity-item'));
-    if (items.length <= pageSize) return;
-
-    var page = 0;
-    var totalPages = Math.ceil(items.length / pageSize);
-
-    function showPage(p) {
-        items.forEach(function(item, i) {
-            item.style.display = (i >= p * pageSize && i < (p + 1) * pageSize) ? '' : 'none';
-        });
-        prevBtn.disabled = (p === 0);
-        nextBtn.disabled = (p === totalPages - 1);
-        pageInfo.textContent = (p + 1) + ' / ' + totalPages;
-    }
-
-    var nav = document.createElement('div');
-    nav.className = 'card-pagination';
-
-    var prevBtn = document.createElement('button');
-    prevBtn.className = 'pagination-btn';
-    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Prev';
-    prevBtn.addEventListener('click', function() { if (page > 0) showPage(--page); });
-
-    var pageInfo = document.createElement('span');
-    pageInfo.className = 'pagination-info';
-
-    var nextBtn = document.createElement('button');
-    nextBtn.className = 'pagination-btn';
-    nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
-    nextBtn.addEventListener('click', function() { if (page < totalPages - 1) showPage(++page); });
-
-    nav.appendChild(prevBtn);
-    nav.appendChild(pageInfo);
-    nav.appendChild(nextBtn);
-    list.after(nav);
-    showPage(0);
 });
 </script>
 

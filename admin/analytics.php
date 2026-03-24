@@ -38,7 +38,7 @@ if (!in_array($statusFilter, $allowedStatusFilters, true)) {
     $statusFilter = '';
 }
 
-$allowedRoleFilters = ['', 'BAC_CHAIRMAN', 'BAC_SECRETARY', 'BAC_MEMBER', 'PROJECT_OWNER', 'SUPERADMIN'];
+$allowedRoleFilters = ['', 'BAC_SECRETARY', 'ADMIN', 'SUPERADMIN'];
 if (!in_array($roleFilter, $allowedRoleFilters, true)) {
     $roleFilter = '';
 }
@@ -611,10 +611,8 @@ $statusFilterLabels = [
 
 $roleFilterLabels = [
     '' => 'All Roles',
-    'BAC_CHAIRMAN' => 'BAC Chairman',
     'BAC_SECRETARY' => 'BAC Secretary',
-    'BAC_MEMBER' => 'BAC Member',
-    'PROJECT_OWNER' => 'Project Owner',
+    'ADMIN' => 'Admin',
     'SUPERADMIN' => 'Superadmin',
 ];
 

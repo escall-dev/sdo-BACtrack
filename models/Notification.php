@@ -139,7 +139,7 @@ class Notification {
         $users = $userModel->getAll();
 
         foreach ($users as $user) {
-            if ($user['role'] === 'PROCUREMENT') {
+            if (in_array($user['role'], ['ADMIN', 'BAC_SECRETARY', 'SUPERADMIN'], true)) {
                 $this->create([
                     'user_id' => $user['id'],
                     'title' => 'Timeline Adjustment Request',

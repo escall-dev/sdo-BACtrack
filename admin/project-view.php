@@ -197,9 +197,6 @@ require_once __DIR__ . '/../includes/header.php';
 
 /* Info Tiles */
 .pv-info-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
 }
 .pv-info-tile {
     background: #f8fafc;
@@ -248,9 +245,6 @@ require_once __DIR__ . '/../includes/header.php';
 
 /* Stat Blocks */
 .pv-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
 }
 .pv-stat-block {
     text-align: center;
@@ -333,7 +327,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 350px; gap: 24px;">
+<div class="grid-main-sidebar">
     <div>
         <!-- Project Info -->
         <div class="pv-card">
@@ -396,7 +390,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <p style="color: var(--text-secondary); margin-bottom: 16px;"><?php echo nl2br(htmlspecialchars($project['description'])); ?></p>
                 <?php endif; ?>
                 
-                <div class="pv-info-grid">
+                <div class="pv-info-grid grid-3-col">
                     <div class="pv-info-tile">
                         <span class="pv-info-label">Procurement Type</span>
                         <p class="pv-info-value"><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></p>
@@ -700,7 +694,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="pv-progress-fill" style="width: <?php echo $progress; ?>%;"></div>
                 </div>
 
-                <div class="pv-stat-grid">
+                <div class="pv-stat-grid grid-2-col">
                     <div class="pv-stat-block pv-stat-pending">
                         <div class="pv-stat-num"><?php echo $stats['pending']; ?></div>
                         <div class="pv-stat-label">Pending</div>

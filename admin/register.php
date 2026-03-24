@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($result['error'])) {
             $error = $result['error'];
         } else {
-            header('Location: ' . APP_URL . '/admin/login.php?registered=1');
+            header('Location: ' . APP_URL . '/admin/landing.php?registered=1');
             exit;
         }
     }
@@ -349,7 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-user-plus"></i> Register
                 </button>
 
-                <a href="<?php echo APP_URL; ?>/admin/login.php" class="btn btn-secondary">
+                <a href="<?php echo APP_URL; ?>/admin/landing.php" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to Login
                 </a>
             </form>

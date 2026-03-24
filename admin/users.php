@@ -23,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name' => trim($_POST['name'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
             'password' => $_POST['password'] ?? '',
-            'role' => $_POST['role'] ?? 'PROJECT_OWNER',
+            'role' => $_POST['role'] ?? 'ADMIN',
             'position' => trim($_POST['position'] ?? '')
         ];
 
         // Only superadmin can create superadmin users
         if ($data['role'] === 'SUPERADMIN' && !$auth->isSuperAdmin()) {
-            $data['role'] = 'PROJECT_OWNER';
+            $data['role'] = 'ADMIN';
         }
 
         if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
-            'role' => $_POST['role'] ?? 'PROJECT_OWNER',
+            'role' => $_POST['role'] ?? 'ADMIN',
             'is_active' => isset($_POST['is_active']) ? 1 : 0,
             'position' => trim($_POST['position'] ?? '')
         ];
@@ -196,310 +196,19 @@ $displayUsers = array_values($filteredUsers);
 ?>
 
 <style>
-.users-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 18px;
-}
-
-.users-list-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 10px 22px 10px;
-    margin: 0 0 8px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-}
-
-.users-list-header-main {
-    display: grid;
-    grid-template-columns: minmax(200px, 260px) 1px 1fr;
-    align-items: center;
-    column-gap: 24px;
-    min-width: 0;
-    flex: 1;
-}
-
-.users-list-header-divider {
-    width: 1px;
-    height: 16px;
-    background: transparent;
-}
-
-.users-list-header-meta {
-    display: flex;
-    gap: 14px;
-    width: 100%;
-}
-
-.users-col-label {
-    flex: 1 1 0;
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    text-align: center;
-}
-
-.users-col-label-user {
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
-}
-
-.users-col-label-action {
-    min-width: 132px;
-    flex-shrink: 0;
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    text-align: right;
-}
-
-.user-entry {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 18px 22px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, #ffffff 100%);
-    transition: border-color 0.2s ease;
-}
-
-.user-entry:hover {
-    border-color: var(--primary);
-}
-
-.user-entry-main {
-    display: grid;
-    grid-template-columns: minmax(200px, 260px) 1px 1fr;
-    align-items: center;
-    column-gap: 24px;
-    row-gap: 12px;
-    min-width: 0;
-    flex: 1;
-}
-
-.user-entry-divider {
-    width: 1px;
-    align-self: stretch;
-    background: transparent;
-}
-
+/* Page-specific refinements moved to admin.css */
 .user-cell {
-    min-width: 0;
-}
-
-.user-entry-meta {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    width: 100%;
-}
-
-.user-entry-meta .role-badge,
-.user-entry-meta .status-badge,
-.user-entry-meta .position-badge,
-.user-created-badge {
-    flex: 0 1 auto !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 32px;
-    padding: 6px 16px !important;
-    border-radius: 999px !important;
-    font-size: 0.74rem !important;
-    font-weight: 700 !important;
-    line-height: 1;
-    text-align: center;
-    white-space: nowrap;
-    box-sizing: border-box;
-    margin: 0 auto;
-}
-
-.user-created-badge {
-    color: var(--text-muted);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-}
-
-.user-entry-actions {
-    min-width: 132px;
-    flex-shrink: 0;
-    align-self: center;
-}
-
-.user-entry-actions .action-buttons {
-    justify-content: flex-end;
-}
-
-@media (max-width: 860px) {
-    .users-list-header {
-        display: none;
-    }
-
-    .user-entry {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .user-entry-main {
-        width: 100%;
-        grid-template-columns: 1fr;
-    }
-
-    .user-entry-divider {
-        display: none;
-    }
-
-    .user-entry-actions {
-        width: 100%;
-        align-self: stretch;
-    }
-
-    .user-entry-meta {
-        flex-wrap: wrap;
-    }
-
-    .user-entry-meta > div {
-        flex: 1 1 calc(50% - 7px) !important;
-    }
-
-    .user-entry-meta .role-badge,
-    .user-entry-meta .status-badge,
-    .user-entry-meta .position-badge,
-    .user-created-badge {
-        flex: 0 1 auto !important;
-        margin: 4px auto;
-    }
-}
-
-@media (max-width: 420px) {
-    .user-entry-meta > div {
-        flex: 1 1 100% !important;
-    }
-    .user-entry-meta .role-badge,
-    .user-entry-meta .status-badge,
-    .user-entry-meta .position-badge,
-    .user-created-badge {
-        flex: 0 1 auto !important;
-        width: auto !important;
-        margin: 4px auto;
-    }
-}
-
-/* Modal Enhancements */
-.form-section-title {
-    font-size: 0.72rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin: 28px 0 16px;
     display: flex;
     align-items: center;
     gap: 12px;
 }
-.form-section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-}
-
-.input-group-custom {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-.input-group-custom i {
-    position: absolute;
-    left: 14px;
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    pointer-events: none;
-    transition: color 0.2s ease;
-}
-.input-group-custom .form-control {
-    padding-left: 42px;
-}
-.input-group-custom .form-control:focus + i {
-    color: var(--primary);
-}
-
-/* Modern Toggle Switch */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 42px;
-    height: 22px;
-    flex-shrink: 0;
-}
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg-tertiary);
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 24px;
-}
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-input:checked + .slider {
-    background-color: var(--success);
-}
-input:checked + .slider:before {
-    transform: translateX(20px);
-}
-
-.toggle-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.toggle-wrapper:hover {
-    border-color: var(--primary-light);
-    background: #fff;
-}
-.toggle-label-text {
-    font-size: 0.9rem;
-    font-weight: 500;
+.cell-primary {
+    font-weight: 600;
     color: var(--text-primary);
+}
+.cell-secondary {
+    font-size: 0.8rem;
+    color: var(--text-muted);
 }
 </style>
 
@@ -567,26 +276,23 @@ input:checked + .slider:before {
         <p>Try adjusting your filters or add a new user.</p>
     </div>
     <?php else: ?>
-    <div class="users-list" data-paginate="15">
-        <div class="users-list-header">
-            <div class="users-list-header-main">
-                <span class="users-col-label-user">User</span>
-                <div class="users-list-header-divider"></div>
-                <div class="users-list-header-meta" style="display:flex;align-items:center;gap:14px;width:100%;">
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Position</span></div>
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Role</span></div>
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Status</span></div>
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;"><span class="users-col-label" style="text-align: center;">Date Created</span></div>
+    <div class="list-container" data-paginate="15">
+        <div class="list-header">
+            <div class="list-header-main">
+                <span class="list-header-label list-col" style="flex: 0 0 260px;">User</span>
+                <div class="list-col" style="display: flex; align-items: center; gap: 14px; width: 100%;">
+                    <div class="list-header-label list-col" style="text-align: center;">Position</div>
+                    <div class="list-header-label list-col" style="text-align: center;">Role</div>
+                    <div class="list-header-label list-col" style="text-align: center;">Status</div>
+                    <div class="list-header-label list-col" style="text-align: center;">Date Created</div>
                 </div>
             </div>
-            <span class="users-col-label-action">Actions</span>
+            <span class="list-header-label list-col-fixed" style="width: 120px; text-align: right;">Actions</span>
         </div>
         <?php foreach ($displayUsers as $user): ?>
         <?php
         $roleCssMap = [
-            'PROJECT_OWNER' => 'role-project-owner',
-            'PROCUREMENT'   => 'role-procurement',
-            'BAC_CHAIRMAN'  => 'role-bac-chairman',
+            'ADMIN'         => 'role-procurement', // Reusing existing CSS or can add new
             'BAC_SECRETARY' => 'role-bac-secretary',
             'SUPERADMIN'    => 'role-superadmin',
         ];
@@ -595,9 +301,9 @@ input:checked + .slider:before {
         $isActive = isset($user['is_active']) ? (int)$user['is_active'] === 1 : true;
         $canEditThisUser = ($user['role'] !== 'SUPERADMIN' || $auth->isSuperAdmin());
         ?>
-        <div class="user-entry">
-            <div class="user-entry-main">
-                <div class="user-cell">
+        <div class="list-row">
+            <div class="list-row-main">
+                <div class="user-cell list-col" style="flex: 0 0 260px;">
                     <?php if (!empty($user['avatar_url'])): ?>
                     <img src="<?php echo htmlspecialchars($user['avatar_url']); ?>" alt="Avatar" class="user-avatar-sm">
                     <?php else: ?>
@@ -618,51 +324,38 @@ input:checked + .slider:before {
                     </div>
                 </div>
 
-                <div class="user-entry-divider"></div>
-
-                <div class="user-entry-meta" style="display:flex;align-items:center;gap:14px;width:100%;">
-                    <?php
-                    $badgeStyle = 'display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 16px;border-radius:999px;font-size:0.75rem;font-weight:700;white-space:nowrap;box-sizing:border-box;margin:0 auto;';
-                    $roleColorMap = [
-                        'PROJECT_OWNER' => 'background:#ede9fe;color:#7c3aed;',
-                        'PROCUREMENT'   => 'background:#ede9fe;color:#7c3aed;',
-                        'BAC_CHAIRMAN'  => 'background:#ede9fe;color:#7c3aed;',
-                        'BAC_SECRETARY' => 'background:#ede9fe;color:#7c3aed;',
-                        'SUPERADMIN'    => 'background:#ede9fe;color:#7c3aed;',
-                    ];
-                    $roleColorStyle = $roleColorMap[$user['role']] ?? 'background:#ede9fe;color:#7c3aed;';
-                    $roleColorStyle .= 'text-transform:uppercase;letter-spacing:0.05em;';
-                    ?>
-                    
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
-                        <span class="position-badge" style="<?php echo $badgeStyle; ?>color:var(--text-primary);background:var(--bg-secondary);border:1px solid var(--border-color);font-weight:600;text-transform:none;letter-spacing:normal;max-width:100%;" title="<?php echo htmlspecialchars($user['position'] ?? 'N/A'); ?>">
-                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;text-align:center;"><?php echo htmlspecialchars($user['position'] ?? 'N/A'); ?></span>
+                <div class="list-col" style="display: flex; align-items: center; gap: 14px; width: 100%;">
+                    <div class="list-col" style="display: flex; justify-content: center;">
+                        <span class="position-badge" style="color:var(--text-primary);background:var(--bg-secondary);border:1px solid var(--border-color);font-weight:600;" title="<?php echo htmlspecialchars($user['position'] ?? 'N/A'); ?>">
+                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?php echo htmlspecialchars($user['position'] ?? 'N/A'); ?></span>
                         </span>
                     </div>
 
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
-                        <span class="role-badge <?php echo $roleCss; ?>" style="<?php echo $badgeStyle . $roleColorStyle; ?>">
+                    <div class="list-col" style="display: flex; justify-content: center;">
+                        <span class="role-badge <?php echo $roleCss; ?>">
                             <?php echo htmlspecialchars(USER_ROLES[$user['role']] ?? $user['role']); ?>
                         </span>
                     </div>
 
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
+                    <div class="list-col" style="display: flex; justify-content: center;">
                         <?php if ($approvalStatus === 'PENDING'): ?>
-                        <span class="status-badge status-pending" style="<?php echo $badgeStyle; ?>">Pending</span>
+                        <span class="status-badge status-pending">Pending</span>
                         <?php elseif (!$isActive): ?>
-                        <span class="status-badge status-cancelled" style="<?php echo $badgeStyle; ?>">Inactive</span>
+                        <span class="status-badge status-inactive">Inactive</span>
                         <?php else: ?>
-                        <span class="status-badge status-active" style="<?php echo $badgeStyle; ?>">Active</span>
+                        <span class="status-badge status-active">Active</span>
                         <?php endif; ?>
                     </div>
 
-                    <div style="flex: 1 1 0; display: flex; justify-content: center;">
-                        <span class="user-created-badge" style="<?php echo $badgeStyle; ?>color:var(--text-muted);background:var(--bg-secondary);border:1px solid var(--border-color);">Created <?php echo date('M j, Y', strtotime($user['created_at'])); ?></span>
+                    <div class="list-col" style="display: flex; justify-content: center;">
+                        <span class="position-badge" style="color:var(--text-muted);background:var(--bg-secondary);border:1px solid var(--border-color); font-weight: 500;">
+                            <?php echo date('M j, Y', strtotime($user['created_at'])); ?>
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <div class="user-entry-actions">
+            <div class="list-col-actions">
                 <div class="action-buttons">
                     <?php if (($user['status'] ?? '') === 'PENDING'): ?>
                     <button type="button" class="btn btn-icon" title="Approve" onclick='openApproveModal(<?php echo (int)$user["id"]; ?>, <?php echo json_encode($user["name"]); ?>, <?php echo json_encode($user["email"]); ?>)'>

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role ENUM('PROJECT_OWNER', 'PROCUREMENT', 'BAC_CHAIRMAN', 'BAC_SECRETARY', 'SUPERADMIN') NOT NULL DEFAULT 'PROJECT_OWNER',
+    role ENUM('BAC_SECRETARY', 'ADMIN', 'SUPERADMIN') NOT NULL DEFAULT 'ADMIN',
     employee_no VARCHAR(50) NULL,
     position VARCHAR(100) NULL,
     office VARCHAR(100) NULL,
@@ -186,10 +186,12 @@ INSERT INTO timeline_templates (procurement_type, step_name, step_order, default
 ('PUBLIC_BIDDING', 'Notice of Award Preparation and Approval', 9, 2),
 ('PUBLIC_BIDDING', 'Notice of Award Issuance', 10, 1),
 ('PUBLIC_BIDDING', 'Contract Preparation and Signing', 11, 5),
-('PUBLIC_BIDDING', 'Notice to Proceed', 12, 1);
+('PUBLIC_BIDDING', 'Notice to Proceed', 12, 1),
+('PUBLIC_BIDDING', 'Delivery and Inspection', 13, 1),
+('PUBLIC_BIDDING', 'Payment', 14, 1);
 
 -- Insert default users (password: admin123)
 INSERT INTO users (name, email, password_hash, role) VALUES
 ('Superadmin', 'superadmin@sdo.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'SUPERADMIN'),
-('Procurement Admin', 'procurement@sdo.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'PROCUREMENT'),
-('Project Owner', 'owner@sdo.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'PROJECT_OWNER');
+('Admin User', 'admin@sdo.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN'),
+('BAC Secretary', 'secretary@sdo.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'BAC_SECRETARY');

@@ -8,5 +8,5 @@
 
 require_once __DIR__ . '/config/app.php';
 
-header('Location: ' . APP_URL . '/admin/login.php');
+header('Location: ' . APP_URL . '/admin/landing.php');
 exit;

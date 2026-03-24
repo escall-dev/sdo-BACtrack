@@ -36,7 +36,7 @@ class User {
                 $data['name'],
                 $data['email'],
                 password_hash($data['password'], PASSWORD_DEFAULT),
-                $data['role'] ?? 'PROJECT_OWNER',
+                $data['role'] ?? 'ADMIN',
                 $data['position'] ?? ''
             ]
         );
@@ -51,7 +51,7 @@ class User {
         $email = trim($data['email'] ?? '');
         $existing = $this->findByEmail($email);
         if ($existing) {
-            if (isset($existing['role']) && in_array($existing['role'], ['PROCUREMENT', 'SUPERADMIN'], true)) {
+            if (isset($existing['role']) && in_array($existing['role'], ['ADMIN', 'BAC_SECRETARY', 'SUPERADMIN'], true)) {
                 return ['error' => 'This account cannot be created through self-registration.'];
             }
             return ['error' => 'An account with this email already exists.'];
@@ -67,7 +67,7 @@ class User {
 
         $cols = ['name', 'email', 'password_hash', 'role'];
         $placeholders = ['?', '?', '?', '?'];
-        $params = [$name, $email, password_hash($password, PASSWORD_DEFAULT), 'PROJECT_OWNER'];
+        $params = [$name, $email, password_hash($password, PASSWORD_DEFAULT), 'ADMIN'];
 
         if ($hasStatusColumn) {
             $cols[] = 'status';
@@ -225,12 +225,16 @@ class User {
 
     public function isProcurement($userId) {
         $user = $this->findById($userId);
-        return $user && ($user['role'] === 'PROCUREMENT' || $user['role'] === 'SUPERADMIN');
+        return $user && in_array($user['role'], ['ADMIN', 'BAC_SECRETARY', 'SUPERADMIN'], true);
+    }
+
+    public function isAdmin($userId) {
+        $user = $this->findById($userId);
+        return $user && $user['role'] === 'ADMIN';
     }
 
     public function isProjectOwner($userId) {
-        $user = $this->findById($userId);
-        return $user && $user['role'] === 'PROJECT_OWNER';
+        return false;
     }
 
     public function isSuperAdmin($userId) {

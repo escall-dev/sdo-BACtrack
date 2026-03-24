@@ -62,6 +62,15 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
     <?php if ($currentPage === 'calendar'): ?>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <?php endif; ?>
+    <!-- Inline override to ensure header stays visible while scrolling (helps if external CSS is cached or overridden) -->
+    <style>
+        .admin-layout .top-bar{position:fixed!important;left:var(--sidebar-width)!important;right:0!important;top:0!important;z-index:9999!important;}
+        .main-content{padding-top:calc(var(--topbar-height) + 16px)!important;margin-left:var(--sidebar-width)!important;}
+        @media (max-width:992px){
+            .admin-layout .top-bar{left:0!important;right:0!important}
+            .main-content{margin-left:0!important;padding-top:calc(var(--topbar-height) + 12px)!important}
+        }
+    </style>
 </head>
 <body>
     <div class="admin-layout">

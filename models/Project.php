@@ -34,7 +34,7 @@ class Project {
             "SELECT DISTINCT u.id, u.name 
              FROM users u 
              INNER JOIN projects p ON p.created_by = u.id 
-             WHERE u.role = 'PROJECT_OWNER'
+             WHERE u.role = 'ADMIN' OR u.role = 'SUPERADMIN'
              ORDER BY u.name ASC"
         );
     }

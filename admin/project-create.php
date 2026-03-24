@@ -15,12 +15,8 @@ require_once __DIR__ . '/../models/ProjectDocument.php';
 $auth = auth();
 $auth->requireLogin();
 
-$requiredDocs = [
-    'memorandum'  => 'Memorandum',
-    'source_fund' => 'Source of Fund (SAO)',
-    'proposal'    => 'Project Proposal',
-    'rfq'         => 'Signed RFQ (Request for Quotation)',
-];
+
+
 
 $error = '';
 
@@ -34,17 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Project title is required.';
     } elseif (empty($startDate)) {
         $error = 'Project start date is required.';
-    } else {
-        // Validate all 4 required documents are uploaded
-        $missingDocs = [];
-        foreach ($requiredDocs as $key => $label) {
-            if (!isset($_FILES[$key]) || $_FILES[$key]['error'] !== UPLOAD_ERR_OK) {
-                $missingDocs[] = $label;
-            }
-        }
-        if (!empty($missingDocs)) {
-            $error = 'The following required documents must be uploaded: ' . implode(', ', $missingDocs) . '.';
-        }
     }
 
     if (empty($error)) {
@@ -53,49 +38,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->beginTransaction();
 
             $projectModel = new Project();
-            if ($auth->isProjectOwner()) {
-                // Project owner: create as DRAFT for BAC to review before submit
-                // No cycle/activities yet - created when project owner submits for review
-                $projectId = $projectModel->create([
-                    'title' => $title,
-                    'description' => $description,
-                    'procurement_type' => $procurementType,
-                    'project_start_date' => $startDate,
-                    'created_by' => $auth->getUserId(),
-                    'approval_status' => 'DRAFT'
-                ]);
-            } else {
-                // BAC member: create as APPROVED with timeline immediately
-                $projectId = $projectModel->create([
-                    'title' => $title,
-                    'description' => $description,
-                    'procurement_type' => $procurementType,
-                    'created_by' => $auth->getUserId(),
-                    'approval_status' => 'APPROVED'
-                ]);
-                $cycleModel = new BacCycle();
-                $cycleId = $cycleModel->create($projectId, 1);
-                $activityModel = new ProjectActivity();
-                $activityModel->generateFromTemplate($cycleId, $procurementType, $startDate);
-            }
+            // All roles now create APPROVED projects with timeline immediately
+            $projectId = $projectModel->create([
+                'title' => $title,
+                'description' => $description,
+                'procurement_type' => $procurementType,
+                'project_start_date' => $startDate,
+                'created_by' => $auth->getUserId(),
+                'approval_status' => 'APPROVED'
+            ]);
+            
+            $cycleModel = new BacCycle();
+            $cycleId = $cycleModel->create($projectId, 1);
+            $activityModel = new ProjectActivity();
+            $activityModel->generateFromTemplate($cycleId, $procurementType, $startDate);
 
             $db->commit();
 
-            // Upload any required documents submitted with the form
-            $docModel = new ProjectDocument();
-            foreach ($requiredDocs as $key => $label) {
-                if (isset($_FILES[$key]) && $_FILES[$key]['error'] === UPLOAD_ERR_OK) {
-                    try {
-                        $docModel->upload($_FILES[$key], $projectId, $label, $auth->getUserId());
-                    } catch (Exception $e) {
-                        // Non-fatal: project still created
-                    }
-                }
-            }
-
-            $msg = $auth->isProjectOwner()
-                ? 'Project draft created. BAC can review it. Submit for BAC approval when ready to generate the timeline.'
-                : 'Project created successfully with timeline generated.';
+            $msg = 'Project created successfully with timeline generated.';
             setFlashMessage('success', $msg);
             $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
         } catch (Exception $e) {
@@ -105,11 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
 // Get template info for display
 $templateModel = new TimelineTemplate();
 $templates = $templateModel->getByProcurementType('PUBLIC_BIDDING');
 $totalDays = $templateModel->getTotalDuration('PUBLIC_BIDDING');
-$requiredDocCount = count($requiredDocs);
 $timelineStepCount = count($templates);
 
 require_once __DIR__ . '/../includes/header.php';
@@ -357,41 +317,9 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+
 <div class="project-create-layout">
     <div class="project-create-column">
-        <div class="data-card">
-            <div class="card-header">
-                <h2><i class="fas fa-clipboard-list"></i> Required Documents</h2>
-            </div>
-            <div class="card-body">
-                <div class="required-docs-head">
-                    <p class="required-docs-note">Please prepare and upload the following documents after creating your project:</p>
-                    <span id="docUploadCount" class="docs-count-badge">0/<?php echo $requiredDocCount; ?> uploaded</span>
-                </div>
-                <div class="required-docs-list">
-                    <?php foreach ($requiredDocs as $key => $label): ?>
-                    <div class="required-doc-item" data-doc-key="<?php echo htmlspecialchars($key); ?>">
-                        <div class="required-doc-label">
-                            <i class="fas fa-file-alt" style="color: var(--primary); flex-shrink: 0;"></i>
-                            <span style="font-weight: 500;"><?php echo htmlspecialchars($label); ?></span>
-                        </div>
-                        <div class="required-doc-actions">
-                            <span id="<?php echo $key; ?>-status" class="doc-status"></span>
-                            <label class="required-doc-upload">
-                                <input type="file" name="<?php echo $key; ?>" form="createProjectForm" style="display: none;"
-                                       onchange="updateFileLabel(this, '<?php echo $key; ?>-label')">
-                                <span id="<?php echo $key; ?>-label" class="btn btn-sm btn-secondary upload-btn" style="pointer-events: none;">
-                                    <span class="upload-icon"><i class="fas fa-cloud-arrow-up"></i></span>
-                                    <span class="upload-text">Upload</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-
         <div class="data-card">
             <div class="card-header">
                 <h2><i class="fas fa-folder-plus"></i> Create New Project</h2>
@@ -404,7 +332,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <?php endif; ?>
 
-            <form method="POST" action="" id="createProjectForm" enctype="multipart/form-data">
+            <form method="POST" action="" id="createProjectForm">
                 <div class="form-group">
                     <label class="form-label" for="title">Project Title *</label>
                     <input type="text" id="title" name="title" class="form-control" required
@@ -487,95 +415,6 @@ require_once __DIR__ . '/../includes/header.php';
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 
 <!-- Validation Modal -->
-<div id="validationModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-    <div style="background:var(--bg-primary); border-radius:var(--radius-lg); padding:28px 32px; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-            <div style="width:40px; height:40px; border-radius:50%; background:var(--danger-bg); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fas fa-exclamation-triangle" style="color:var(--danger); font-size:1.1rem;"></i>
-            </div>
-            <h3 style="margin:0; font-size:1.05rem; color:var(--text-primary);">Required Documents Missing</h3>
-        </div>
-        <p style="margin:0 0 12px; color:var(--text-secondary); font-size:0.9rem;">Please upload all required documents before submitting:</p>
-        <ul id="validationList" style="margin:0 0 20px; padding-left:20px; color:var(--danger); font-size:0.9rem; line-height:2;"></ul>
-        <div style="text-align:right;">
-            <button onclick="document.getElementById('validationModal').style.display='none';" class="btn btn-primary">
-                <i class="fas fa-check"></i> OK
-            </button>
-        </div>
-    </div>
-</div>
 
-<script>
-const REQUIRED_DOC_TOTAL = <?php echo (int)$requiredDocCount; ?>;
 
-function refreshUploadCounter() {
-    const readyCount = document.querySelectorAll('.required-doc-item.doc-ready').length;
-    const counter = document.getElementById('docUploadCount');
-    if (!counter) {
-        return;
-    }
 
-    counter.textContent = readyCount + '/' + REQUIRED_DOC_TOTAL + ' uploaded';
-    counter.classList.toggle('is-complete', readyCount === REQUIRED_DOC_TOTAL && REQUIRED_DOC_TOTAL > 0);
-}
-
-function updateFileLabel(input, labelId) {
-    const label = document.getElementById(labelId);
-    if (!label) {
-        return;
-    }
-
-    const row = input.closest('.required-doc-item');
-    const status = document.getElementById(input.name + '-status');
-
-    if (input.files && input.files.length > 0) {
-        const name = input.files[0].name.length > 20
-            ? input.files[0].name.substring(0, 18) + '…'
-            : input.files[0].name;
-
-        if (row) {
-            row.classList.add('doc-ready');
-        }
-        if (status) {
-            status.textContent = 'Ready';
-            status.classList.add('doc-status-ready');
-        }
-
-        label.classList.add('file-selected');
-        label.innerHTML = '<span class="upload-icon"><i class="fas fa-circle-check"></i></span><span class="upload-text">' + name + '</span>';
-    } else {
-        if (row) {
-            row.classList.remove('doc-ready');
-        }
-        if (status) {
-            status.textContent = '';
-            status.classList.remove('doc-status-ready');
-        }
-
-        label.classList.remove('file-selected');
-        label.innerHTML = '<span class="upload-icon"><i class="fas fa-cloud-arrow-up"></i></span><span class="upload-text">Upload</span>';
-    }
-
-    refreshUploadCounter();
-}
-
-refreshUploadCounter();
-
-document.getElementById('createProjectForm').addEventListener('submit', function(e) {
-    const keys = ['memorandum', 'source_fund', 'proposal', 'rfq'];
-    const labels = <?php echo json_encode(array_values($requiredDocs)); ?>;
-    const missing = [];
-    keys.forEach(function(key, i) {
-        const input = document.querySelector('input[name="' + key + '"]');
-        if (!input || !input.files || input.files.length === 0) {
-            missing.push(labels[i]);
-        }
-    });
-    if (missing.length > 0) {
-        e.preventDefault();
-        const list = document.getElementById('validationList');
-        list.innerHTML = missing.map(function(m) { return '<li>' + m + '</li>'; }).join('');
-        document.getElementById('validationModal').style.display = 'flex';
-    }
-});
-</script>

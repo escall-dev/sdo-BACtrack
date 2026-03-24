@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $auth->redirect(APP_URL . '/admin/activity-view.php?id=' . $activityId);
     }
 
-    // Upload Document (Procurement only) - blocked if project not approved
+    // Upload Document (Project Owner only) - blocked if project not approved
     if ($action === 'upload_document' && $auth->canUploadDocuments() && $projectApproved) {
         if (isset($_FILES['document']) && $_FILES['document']['error'] !== UPLOAD_ERR_NO_FILE) {
             try {
@@ -175,7 +175,7 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- Dashboard Overlays -->
-<div class="dash-stats">
+<div class="dash-stats grid-4-col">
     <div class="stat-card">
         <div class="stat-label">Remaining Process</div>
         <div class="stat-value"><?php echo $timelineSummary['remaining_steps']; ?></div>
@@ -194,7 +194,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 380px; gap: 32px; align-items: flex-start;">
+<div class="grid-main-sidebar" style="gap: 32px;">
     <div class="main-column">
         <!-- Process Info -->
         <div class="data-card" style="padding: 40px;">
@@ -214,7 +214,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 24px; background: #f9fafb; border-radius: 16px; border: 1px solid #e5e7eb;">
+            <div class="grid-3-col" style="padding: 24px; background: #f9fafb; border-radius: 16px; border: 1px solid #e5e7eb;">
                 <div>
                     <label style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px;">Planned Start</label>
                     <div style="font-size: 1.1rem; font-weight: 700; color: #111827;"><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></div>
@@ -246,7 +246,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <div style="display: flex; gap: 16px; align-items: center;">
                         <input type="file" name="document" class="form-control" style="flex: 1; border-style: none; background: transparent;" required>
                         <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
-                            Upload New
+                            Upload Document
                         </button>
                     </div>
                 </form>
@@ -308,66 +308,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
-        <!-- History Log -->
-        <div class="data-card">
-            <div class="card-header">
-                <h2>Process Pulse</h2>
-            </div>
-            <div class="card-body">
-                <?php if (empty($history)): ?>
-                <div class="empty-state small">
-                    <p>No activity recorded yet.</p>
-                </div>
-                <?php else: ?>
-                <!-- ... existing timeline HTML ... -->
-<?php /* Timeline HTML from previous turn remains here */ ?>
-                <div class="timeline" style="padding-left: 8px;">
-                    <?php foreach ($history as $log): 
-                        $icon = 'fa-history';
-                        if ($log['action_type'] === 'STATUS_CHANGE') $icon = 'fa-sync-alt';
-                        elseif ($log['action_type'] === 'DATE_CHANGE') $icon = 'fa-calendar-alt';
-                        elseif ($log['action_type'] === 'COMPLIANCE_TAG') $icon = 'fa-tag';
-                        elseif ($log['action_type'] === 'DOCUMENT_UPLOAD') $icon = 'fa-file-upload';
-                    ?>
-                    <div class="timeline-item">
-                        <div class="timeline-marker">
-                        </div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">
-                                <?php echo ACTION_TYPES[$log['action_type']] ?? $log['action_type']; ?>
-                            </div>
-                            <div class="timeline-desc">
-                                <?php 
-                                if ($log['action_type'] === 'STATUS_CHANGE') {
-                                    echo 'Changed status from <span style="font-weight:600;">' . $log['old_value'] . '</span> to <span style="font-weight:700; color:var(--primary);">' . $log['new_value'] . '</span>';
-                                } elseif ($log['action_type'] === 'DATE_CHANGE') {
-                                    $old = json_decode($log['old_value'], true);
-                                    $new = json_decode($log['new_value'], true);
-                                    echo 'Adjusted schedule: <span style="text-decoration:line-through;opacity:0.6;">' . $old['start'] . '</span> &rarr; <span style="font-weight:600;">' . $new['start'] . '</span>';
-                                } elseif ($log['action_type'] === 'COMPLIANCE_TAG') {
-                                    $new = json_decode($log['new_value'], true);
-                                    echo 'Tagged as <span class="compliance-badge compliance-' . strtolower(str_replace('_', '-', $new['status'])) . '" style="padding: 2px 8px; font-size: 0.75rem;">' . (COMPLIANCE_STATUSES[$new['status']] ?? $new['status']) . '</span>';
-                                    if (!empty($new['remarks'])) {
-                                        echo ' &bull; <span style="font-style:italic; color:var(--text-muted);">"' . htmlspecialchars($new['remarks']) . '"</span>';
-                                    }
-                                }
-                                ?>
-                            </div>
-                            <div class="timeline-meta">
-                                <span class="timeline-user">
-                                    <?php echo htmlspecialchars($log['changed_by_name']); ?>
-                                </span>
-                                <span class="timeline-date">
-                                    <?php echo date('M j, Y g:i A', strtotime($log['changed_at'])); ?>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-            </div>
-        </div>
+
     </div>
 
     <div class="sidebar-column">
@@ -449,7 +390,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="alert alert-warning" style="margin: 0; padding: 12px; font-size: 0.85rem;">
                         Pending review...
                     </div>
-                    <?php else: ?>
+                    <?php elseif ($auth->canRequestAdjustment()): ?>
                     <button type="button" class="btn btn-secondary" style="width: 100%; border-style: dashed;" onclick="this.style.display='none'; document.getElementById('adjForm').style.display='block';">
                         Request New Dates
                     </button>
@@ -467,6 +408,10 @@ require_once __DIR__ . '/../includes/header.php';
                             </div>
                         </form>
                     </div>
+                    <?php else: ?>
+                    <div style="font-size: 0.85rem; color: #6b7280; font-style: italic;">
+                        No pending requests.
+                    </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -482,8 +427,8 @@ body {
     background-color: #f3f4f6;
 }
 
+/* Shared page-header moved to admin.css */
 .page-header {
-    margin-bottom: 24px;
     animation: slideDown 0.4s ease-out;
 }
 
@@ -814,9 +759,6 @@ body {
 }
 /* Dash Stats */
 .dash-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
     margin-bottom: 32px;
 }
 

@@ -147,15 +147,19 @@ class Auth {
     }
 
     public function isProcurement() {
-        return in_array($this->getUserRole(), ['PROCUREMENT', 'BAC_CHAIRMAN', 'BAC_SECRETARY', 'SUPERADMIN'], true);
+        return in_array($this->getUserRole(), ['ADMIN', 'BAC_SECRETARY', 'SUPERADMIN'], true);
     }
 
     public function isBacSecretary() {
         return $this->getUserRole() === 'BAC_SECRETARY';
     }
 
+    public function isAdmin() {
+        return $this->getUserRole() === 'ADMIN';
+    }
+
     public function isProjectOwner() {
-        return $this->getUserRole() === 'PROJECT_OWNER';
+        return false;
     }
 
     public function isSuperAdmin() {
@@ -183,7 +187,7 @@ class Auth {
             $redirectUri = preg_replace('/([?&])' . preg_quote(AUTH_TOKEN_PARAM, '/') . '=[^&]*(&|$)/', '$1', $redirectUri);
             $redirectUri = rtrim($redirectUri, '?&');
             $_SESSION['redirect_after_login'] = $redirectUri;
-            header('Location: ' . APP_URL . '/admin/login.php');
+            header('Location: ' . APP_URL . '/admin/landing.php');
             exit;
         }
     }
@@ -220,7 +224,7 @@ class Auth {
     }
 
     public function canUploadDocuments() {
-        return $this->isBacSecretary();
+        return $this->isAdmin() || $this->isBacSecretary() || $this->isSuperAdmin();
     }
 
     public function canSetCompliance() {
@@ -232,7 +236,7 @@ class Auth {
     }
 
     public function canRequestAdjustment() {
-        return $this->isLoggedIn();
+        return $this->isAdmin() || $this->isBacSecretary();
     }
 }
 

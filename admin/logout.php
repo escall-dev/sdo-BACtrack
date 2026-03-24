@@ -9,5 +9,5 @@ require_once __DIR__ . '/../includes/auth.php';
 $auth = auth();
 $auth->logout();
 
-header('Location: ' . APP_URL . '/admin/login.php?logged_out=1');
+header('Location: ' . APP_URL . '/admin/landing.php?logged_out=1');
 exit;

@@ -167,6 +167,14 @@ class ProjectActivity {
         $templateModel = new TimelineTemplate();
         $templates = $templateModel->getByProcurementType($procurementType);
 
+        if (empty($templates) && $procurementType !== 'PUBLIC_BIDDING') {
+            $templates = $templateModel->getByProcurementType('PUBLIC_BIDDING');
+        }
+
+        if (empty($templates)) {
+            throw new RuntimeException('No timeline template configured for the selected procurement type.');
+        }
+
         $currentDate = new DateTime($startDate);
         $activities = [];
 

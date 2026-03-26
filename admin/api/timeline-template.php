@@ -30,7 +30,7 @@ if (empty($procurementType) || !array_key_exists($procurementType, PROCUREMENT_T
 }
 
 $templateModel = new TimelineTemplate();
-$steps = $templateModel->getByType($procurementType);
+$steps = $templateModel->getByProcurementType($procurementType);
 
 // Calculate total duration
 $totalDays = 0;

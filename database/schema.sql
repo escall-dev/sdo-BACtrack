@@ -190,6 +190,42 @@ INSERT INTO timeline_templates (procurement_type, step_name, step_order, default
 ('PUBLIC_BIDDING', 'Delivery and Inspection', 13, 1),
 ('PUBLIC_BIDDING', 'Payment', 14, 1);
 
+-- Insert seed data for timeline templates (COMPETITIVE_BIDDING / Annex A)
+INSERT INTO timeline_templates (procurement_type, step_name, step_order, default_duration_days) VALUES
+('COMPETITIVE_BIDDING', 'Preparation of Bidding Documents', 1, 1),
+('COMPETITIVE_BIDDING', 'Pre-Procurement Conference', 2, 1),
+('COMPETITIVE_BIDDING', 'Advertisement / Posting of Invitation to Bid', 3, 7),
+('COMPETITIVE_BIDDING', 'Pre-Bid Conference', 4, 12),
+('COMPETITIVE_BIDDING', 'Eligibility Check / Deadline of Submission and Receipt of Bids / Bid Opening', 5, 1),
+('COMPETITIVE_BIDDING', 'Bid Evaluation', 6, 1),
+('COMPETITIVE_BIDDING', 'Post-Qualification', 7, 12),
+('COMPETITIVE_BIDDING', 'Preparation and Approval of Resolution to Award', 8, 11),
+('COMPETITIVE_BIDDING', 'Issuance and Signing of Notice of Award', 9, 1),
+('COMPETITIVE_BIDDING', 'Contract Preparation and Signing of Contract', 10, 11),
+('COMPETITIVE_BIDDING', 'Issuance and Signing of Notice to Proceed', 11, 1);
+
+-- Insert seed data for timeline templates (SMALL_VALUE_PROCUREMENT / Annex B)
+INSERT INTO timeline_templates (procurement_type, step_name, step_order, default_duration_days) VALUES
+('SMALL_VALUE_PROCUREMENT', 'Preparation of Purchase Request', 1, 1),
+('SMALL_VALUE_PROCUREMENT', 'Submission and Receipt of Approved Purchase Request', 2, 1),
+('SMALL_VALUE_PROCUREMENT', 'Preparation of Request for Quotation (RFQ)', 3, 3),
+('SMALL_VALUE_PROCUREMENT', 'Posting of RFQ or Conduct of Canvass', 4, 3),
+('SMALL_VALUE_PROCUREMENT', 'Opening of bids documents / Preparation of Abstract of Quotation', 5, 1),
+('SMALL_VALUE_PROCUREMENT', 'Preparation and Approval of Purchase Order (PO)', 6, 4),
+('SMALL_VALUE_PROCUREMENT', 'Allowance period of the supplier', 7, 10);
+
+-- Insert seed data for timeline templates (SMALL_VALUE_PROCUREMENT_200K)
+INSERT INTO timeline_templates (procurement_type, step_name, step_order, default_duration_days) VALUES
+('SMALL_VALUE_PROCUREMENT_200K', 'Preparation of Purchase Request', 1, 1),
+('SMALL_VALUE_PROCUREMENT_200K', 'Submission and Receipt of Approved PR', 2, 1),
+('SMALL_VALUE_PROCUREMENT_200K', 'Preparation of Request for Quotation (RFQ)', 3, 4),
+('SMALL_VALUE_PROCUREMENT_200K', 'Posting of RFQ or Conduct of Canvass', 4, 3),
+('SMALL_VALUE_PROCUREMENT_200K', 'Preparation of Abstract of Quotation / Resolution to Award', 5, 3),
+('SMALL_VALUE_PROCUREMENT_200K', 'Notice of Award', 6, 2),
+('SMALL_VALUE_PROCUREMENT_200K', 'Preparation and Approval of Purchase Order (PO)', 7, 4),
+('SMALL_VALUE_PROCUREMENT_200K', 'Preparation and Signing of Notice to Proceed', 8, 2),
+('SMALL_VALUE_PROCUREMENT_200K', 'Allowance period of the supplier', 9, 10);
+
 -- Insert default users (password: admin123)
 INSERT INTO users (name, email, password_hash, role) VALUES
 ('Superadmin', 'superadmin@sdo.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'SUPERADMIN'),

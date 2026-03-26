@@ -15,6 +15,14 @@ require_once __DIR__ . '/../models/ProjectDocument.php';
 $auth = auth();
 $auth->requireLogin();
 
+$templateModel = new TimelineTemplate();
+$allTemplates = $templateModel->getAll();
+
+$defaultProcurementType = 'PUBLIC_BIDDING';
+if (!array_key_exists($defaultProcurementType, PROCUREMENT_TYPES)) {
+    $allTypes = array_keys(PROCUREMENT_TYPES);
+    $defaultProcurementType = $allTypes[0] ?? 'PUBLIC_BIDDING';
+}
 
 
 
@@ -23,13 +31,15 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
-    $procurementType = $_POST['procurement_type'] ?? 'PUBLIC_BIDDING';
+    $procurementType = $_POST['procurement_type'] ?? $defaultProcurementType;
     $startDate = $_POST['start_date'] ?? '';
 
     if (empty($title)) {
         $error = 'Project title is required.';
     } elseif (empty($startDate)) {
         $error = 'Project start date is required.';
+    } elseif (!array_key_exists($procurementType, PROCUREMENT_TYPES)) {
+        $error = 'Invalid procurement type selected.';
     }
 
     if (empty($error)) {
@@ -67,9 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 // Get template info for display
-$templateModel = new TimelineTemplate();
-$templates = $templateModel->getByProcurementType('PUBLIC_BIDDING');
-$totalDays = $templateModel->getTotalDuration('PUBLIC_BIDDING');
+$selectedProcurementType = $_POST['procurement_type'] ?? $defaultProcurementType;
+if (!array_key_exists($selectedProcurementType, PROCUREMENT_TYPES)) {
+    $selectedProcurementType = $defaultProcurementType;
+}
+
+$templates = $templateModel->getByProcurementType($selectedProcurementType);
+$totalDays = $templateModel->getTotalDuration($selectedProcurementType);
 $timelineStepCount = count($templates);
 
 require_once __DIR__ . '/../includes/header.php';
@@ -349,7 +363,9 @@ require_once __DIR__ . '/../includes/header.php';
                     <label class="form-label" for="procurement_type">Procurement Type *</label>
                     <select id="procurement_type" name="procurement_type" class="form-control" required>
                         <?php foreach (PROCUREMENT_TYPES as $key => $value): ?>
-                        <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+                        <option value="<?php echo $key; ?>" <?php echo $selectedProcurementType === $key ? 'selected' : ''; ?>>
+                            <?php echo $value; ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -358,7 +374,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <label class="form-label" for="start_date">Project Start Date *</label>
                     <input type="date" id="start_date" name="start_date" class="form-control" required
                            value="<?php echo htmlspecialchars($_POST['start_date'] ?? date('Y-m-d')); ?>">
-                    <small style="color: var(--text-muted);">The first activity will start on this date. Total timeline: <?php echo $totalDays; ?> days.</small>
+                          <small id="totalDaysHint" style="color: var(--text-muted);">The first activity will start on this date. Total timeline: <?php echo $totalDays; ?> days.</small>
                 </div>
 
                 <div class="project-actions">
@@ -379,8 +395,8 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="card-body">
                 <div class="timeline-summary">
-                    <span><strong><?php echo $timelineStepCount; ?></strong> Process</span>
-                    <span><strong><?php echo (int)$totalDays; ?></strong> Total Days</span>
+                    <span><strong id="timelineStepCount"><?php echo $timelineStepCount; ?></strong> Process</span>
+                    <span><strong id="timelineTotalDays"><?php echo (int)$totalDays; ?></strong> Total Days</span>
                 </div>
                 <div>
                     <table class="data-table">
@@ -392,6 +408,11 @@ require_once __DIR__ . '/../includes/header.php';
                             </tr>
                         </thead>
                         <tbody>
+                            <?php if (empty($templates)): ?>
+                            <tr>
+                                <td colspan="3" style="text-align:center; color: var(--text-muted);">No template available for this procurement type.</td>
+                            </tr>
+                            <?php endif; ?>
                             <?php foreach ($templates as $template): ?>
                             <tr>
                                 <td><?php echo $template['step_order']; ?></td>
@@ -411,6 +432,65 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    const procurementSelect = document.getElementById('procurement_type');
+    const templateBody = document.querySelector('.timeline-template-card tbody');
+    const stepCountEl = document.getElementById('timelineStepCount');
+    const totalDaysEl = document.getElementById('timelineTotalDays');
+    const totalDaysHintEl = document.getElementById('totalDaysHint');
+
+    if (!procurementSelect || !templateBody || !stepCountEl || !totalDaysEl || !totalDaysHintEl) {
+        return;
+    }
+
+    const renderRows = function (steps) {
+        if (!Array.isArray(steps) || steps.length === 0) {
+            templateBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">No template available for this procurement type.</td></tr>';
+            return;
+        }
+
+        const rows = steps.map(function (step) {
+            const order = step.step_order || '';
+            const name = step.step_name || '';
+            const days = step.default_duration_days || 0;
+            return '<tr><td>' + order + '</td><td>' + name + '</td><td>' + days + '</td></tr>';
+        });
+        templateBody.innerHTML = rows.join('');
+    };
+
+    const loadTemplate = function (type) {
+        fetch('<?php echo APP_URL; ?>/admin/api/timeline-template.php?type=' + encodeURIComponent(type), {
+            credentials: 'same-origin'
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Failed to load template');
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                const steps = Array.isArray(data.steps) ? data.steps : [];
+                const totalDays = Number(data.total_days || 0);
+                renderRows(steps);
+                stepCountEl.textContent = String(steps.length);
+                totalDaysEl.textContent = String(totalDays);
+                totalDaysHintEl.textContent = 'The first activity will start on this date. Total timeline: ' + totalDays + ' days.';
+            })
+            .catch(function () {
+                renderRows([]);
+                stepCountEl.textContent = '0';
+                totalDaysEl.textContent = '0';
+                totalDaysHintEl.textContent = 'The first activity will start on this date. Total timeline: 0 days.';
+            });
+    };
+
+    procurementSelect.addEventListener('change', function () {
+        loadTemplate(procurementSelect.value);
+    });
+})();
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 

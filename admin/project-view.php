@@ -12,6 +12,7 @@ require_once __DIR__ . '/../models/BacCycle.php';
 require_once __DIR__ . '/../models/ProjectActivity.php';
 require_once __DIR__ . '/../models/ProjectDocument.php';
 require_once __DIR__ . '/../models/Notification.php';
+require_once __DIR__ . '/../services/ProcurementTimelineService.php';
 
 $auth = auth();
 $auth->requireLogin();
@@ -84,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $startDate = trim($_POST['project_start_date'] ?? '');
     if ($project && ($project['approval_status'] ?? '') === 'DRAFT' && (int)$project['created_by'] === (int)$auth->getUserId()) {
         if (empty($startDate)) {
-            setFlashMessage('error', 'Project start date is required to submit for review.');
+            setFlashMessage('error', 'Implementation date is required to submit for review.');
         } else {
             try {
                 $projectModel->submitForReview($projectId, $startDate);
@@ -94,6 +95,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
             }
         }
     }
+    $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
+}
+
+// Handle timeline regeneration for legacy/incomplete step sets.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'regenerate_timeline' && $projectId) {
+    $isOwner = $auth->isProjectOwner() && $project && (int)$project['created_by'] === (int)$auth->getUserId();
+    if (!$isOwner && !$auth->isSuperAdmin()) {
+        setFlashMessage('error', 'You do not have permission to regenerate the timeline.');
+        $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
+    }
+
+    try {
+        $implementationDate = trim((string)($project['project_start_date'] ?? ''));
+        if ($implementationDate === '') {
+            throw new RuntimeException('Implementation date is required before regenerating timeline.');
+        }
+
+        $cycleModel = new BacCycle();
+        $activeCycle = $cycleModel->getActiveCycle($projectId);
+        if (!$activeCycle) {
+            throw new RuntimeException('No active BAC cycle found.');
+        }
+
+        $activityModel = new ProjectActivity();
+        $existingActivities = $activityModel->getByCycle($activeCycle['id']);
+        $hasProgress = false;
+        foreach ($existingActivities as $item) {
+            if (($item['status'] ?? 'PENDING') !== 'PENDING' || !empty($item['actual_completion_date'])) {
+                $hasProgress = true;
+                break;
+            }
+        }
+        if ($hasProgress) {
+            throw new RuntimeException('Timeline cannot be regenerated because workflow progress already exists.');
+        }
+
+        $db = db();
+        $db->beginTransaction();
+        $activityModel->deleteByCycle($activeCycle['id']);
+        $activityModel->generateFromTemplate($activeCycle['id'], $project['procurement_type'] ?? 'PUBLIC_BIDDING', $implementationDate);
+        $db->commit();
+
+        setFlashMessage('success', 'Timeline regenerated with complete Public Bidding workflow.');
+    } catch (Exception $e) {
+        if (isset($db) && $db->inTransaction()) {
+            $db->rollback();
+        }
+        setFlashMessage('error', 'Failed to regenerate timeline: ' . $e->getMessage());
+    }
+
     $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
 }
 
@@ -114,6 +165,21 @@ $activeCycle = $cycleModel->getActiveCycle($projectId);
 
 $activityModel = new ProjectActivity();
 $activities = $activeCycle ? $activityModel->getByCycle($activeCycle['id']) : [];
+$timelineEngine = new ProcurementTimelineService();
+$expectedStageCount = $timelineEngine->getExpectedStageCount($project['procurement_type'] ?? 'PUBLIC_BIDDING');
+$canRegenerateTimeline = !empty($activities)
+    && count($activities) !== $expectedStageCount
+    && array_reduce($activities, function ($carry, $item) {
+        if (!$carry) {
+            return false;
+        }
+        return (($item['status'] ?? 'PENDING') === 'PENDING') && empty($item['actual_completion_date']);
+    }, true);
+$activityPhaseById = [];
+foreach ($activities as $activityRow) {
+    $stageKey = $timelineEngine->mapStepNameToStageKey($activityRow['step_name'] ?? '');
+    $activityPhaseById[$activityRow['id']] = $timelineEngine->getStagePhase($stageKey ?: '', $project['procurement_type'] ?? 'PUBLIC_BIDDING');
+}
 
 // Calculate statistics
 $stats = [
@@ -133,6 +199,7 @@ foreach ($activities as $activity) {
 
 $progress = $stats['total'] > 0 ? round(($stats['completed'] / $stats['total']) * 100) : 0;
 $isDraft = ($project['approval_status'] ?? '') === 'DRAFT';
+$implementationDateValue = !empty($project['project_start_date']) ? $project['project_start_date'] : ($project['created_at'] ?? date('Y-m-d'));
 $timelineSummary = timelineProjectSummary($activities);
 $activityTiming = $timelineSummary['meta_by_id'];
 $currentActivity = $timelineSummary['current_activity'];
@@ -308,7 +375,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php if ($auth->isProjectOwner() && $isDraft): ?>
         <form method="POST" style="margin: 0; display: inline;" id="submitForReviewForm">
             <input type="hidden" name="action" value="submit_for_review">
-            <input type="date" name="project_start_date" value="<?php echo htmlspecialchars($project['project_start_date'] ?? date('Y-m-d')); ?>" required style="margin-right: 8px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <input type="date" name="project_start_date" aria-label="Implementation Date" value="<?php echo htmlspecialchars($project['project_start_date'] ?? date('Y-m-d')); ?>" required style="margin-right: 8px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-paper-plane"></i> Submit for BAC Review
             </button>
@@ -368,7 +435,19 @@ require_once __DIR__ . '/../includes/header.php';
                     <i class="fas fa-clock"></i>
                     <span>This project is awaiting BAC approval. Progress cannot be updated until a BAC member accepts or declines it.</span>
                 </div>
-                <?php if ($auth->isBacSecretary()): ?>
+                <?php endif; ?>
+                <?php if ($canRegenerateTimeline && ($auth->isSuperAdmin() || ($auth->isProjectOwner() && (int)$project['created_by'] === (int)$auth->getUserId()))): ?>
+                <div class="alert alert-warning" style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <span><i class="fas fa-exclamation-triangle"></i> This project is using an incomplete legacy process set (<?php echo count($activities); ?> of <?php echo $expectedStageCount; ?> steps).</span>
+                    <form method="POST" style="margin: 0;">
+                        <input type="hidden" name="action" value="regenerate_timeline">
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('Regenerate timeline with complete Public Bidding workflow? Existing pending process rows will be replaced.');">
+                            <i class="fas fa-sync"></i> Rebuild Timeline
+                        </button>
+                    </form>
+                </div>
+                <?php endif; ?>
+                <?php if ($auth->isBacSecretary() && $isPendingApproval): ?>
                 <div id="rejectForm" style="display: none; margin-bottom: 16px; padding: 16px; background: var(--danger-bg); border-radius: var(--radius-md); border: 1px solid rgba(239,68,68,0.3);">
                     <form method="POST">
                         <input type="hidden" name="action" value="reject_project">
@@ -382,7 +461,6 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </form>
                 </div>
-                <?php endif; ?>
                 <?php endif; ?>
                 <?php if ($isRejected && !empty($project['rejection_remarks'])): ?>
                 <div class="alert alert-danger" style="margin-bottom: 16px;">
@@ -420,8 +498,8 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
                     <div class="pv-info-tile">
-                        <span class="pv-info-label">Created Date</span>
-                        <p class="pv-info-value"><?php echo date('F j, Y', strtotime($project['created_at'])); ?></p>
+                        <span class="pv-info-label">Implementation Date</span>
+                        <p class="pv-info-value"><?php echo date('F j, Y', strtotime($implementationDateValue)); ?></p>
                     </div>
                 </div>
             </div>
@@ -491,7 +569,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <?php else: ?>
                 <div class="table-responsive">
-                    <table class="data-table">
+                    <table class="data-table" data-no-paginate="1">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -505,7 +583,19 @@ require_once __DIR__ . '/../includes/header.php';
                             </tr>
                         </thead>
                         <tbody>
+                            <?php $renderedPhases = []; ?>
                             <?php foreach ($activities as $activity): ?>
+                            <?php
+                                $phase = $activityPhaseById[$activity['id']] ?? null;
+                                if ($phase && !isset($renderedPhases[$phase])):
+                                    $renderedPhases[$phase] = true;
+                            ?>
+                            <tr>
+                                <td colspan="8" style="background: #f8fafc; font-weight: 700; color: #1e293b;">
+                                    <?php echo $phase === 'backward_timeline' ? 'Procurement Phase (Backward Timeline)' : 'Execution Phase (Forward Timeline)'; ?>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
                             <tr>
                                 <td><?php echo $activity['step_order']; ?></td>
                                 <td>
@@ -514,6 +604,11 @@ require_once __DIR__ . '/../includes/header.php';
                                         <?php echo htmlspecialchars($activity['step_name']); ?>
                                     </a>
                                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px;">
+                                        <?php if ($phase === 'backward_timeline'): ?>
+                                        <span class="status-badge" style="background: #eff6ff; color: #1d4ed8;">Backward</span>
+                                        <?php elseif ($phase === 'forward_execution'): ?>
+                                        <span class="status-badge" style="background: #ecfdf5; color: #047857;">Forward</span>
+                                        <?php endif; ?>
                                         <?php if ($currentActivity && (int)$currentActivity['id'] === (int)$activity['id']): ?>
                                         <span class="status-badge" style="background: var(--info-bg); color: var(--info);">Current</span>
                                         <?php elseif ($nextActivity && (int)$nextActivity['id'] === (int)$activity['id']): ?>

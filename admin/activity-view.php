@@ -17,6 +17,7 @@ require_once __DIR__ . '/../models/ProjectDocument.php';
 require_once __DIR__ . '/../models/ActivityHistoryLog.php';
 require_once __DIR__ . '/../models/AdjustmentRequest.php';
 require_once __DIR__ . '/../models/Notification.php';
+require_once __DIR__ . '/../services/ProcurementTimelineService.php';
 
 // Ensure user is authenticated and get auth helper
 $auth = auth();
@@ -65,9 +66,46 @@ $adjustmentModel = new AdjustmentRequest();
 $adjustments = $adjustmentModel->getByActivity($activityId);
 $hasPendingAdjustment = $adjustmentModel->hasPendingRequest($activityId);
 
+$timelineEngine = new ProcurementTimelineService();
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    $enforcedActions = procurementConfig()['enforced_actions'] ?? [];
+    if (in_array($action, $enforcedActions, true)) {
+        $implementationDate = trim((string)($project['project_start_date'] ?? ''));
+        if ($implementationDate === '') {
+            setFlashMessage('error', 'Implementation date is required before workflow actions can proceed.');
+            $auth->redirect(APP_URL . '/admin/activity-view.php?id=' . $activityId);
+        }
+
+        try {
+            $computedTimeline = $timelineEngine->generateTimeline($implementationDate, $project['procurement_type'] ?? 'PUBLIC_BIDDING');
+            $activityStageKey = $timelineEngine->mapStepNameToStageKey($activity['step_name'] ?? '');
+
+            $justificationText = trim($_POST['reason'] ?? '');
+            $hasDelayJustification = !empty($adjustments) || !empty($justificationText);
+
+            $stageValidation = $timelineEngine->validateActionForCurrentStage(
+                $computedTimeline,
+                $activityStageKey,
+                $action,
+                [
+                    'is_completed' => ((int)$timelineSummary['remaining_steps'] === 0),
+                    'has_justification' => $hasDelayJustification,
+                ]
+            );
+
+            if (!$stageValidation['allowed']) {
+                setFlashMessage('error', $stageValidation['message']);
+                $auth->redirect(APP_URL . '/admin/activity-view.php?id=' . $activityId);
+            }
+        } catch (Exception $e) {
+            setFlashMessage('error', 'Unable to validate procurement stage: ' . $e->getMessage());
+            $auth->redirect(APP_URL . '/admin/activity-view.php?id=' . $activityId);
+        }
+    }
 
     // Update Status (Procurement only) - blocked if project not approved
     if ($action === 'update_status' && $auth->canUpdateActivity() && $projectApproved) {

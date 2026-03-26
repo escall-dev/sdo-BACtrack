@@ -188,7 +188,8 @@ INSERT INTO timeline_templates (procurement_type, step_name, step_order, default
 ('PUBLIC_BIDDING', 'Contract Preparation and Signing', 11, 5),
 ('PUBLIC_BIDDING', 'Notice to Proceed', 12, 1),
 ('PUBLIC_BIDDING', 'Delivery and Inspection', 13, 1),
-('PUBLIC_BIDDING', 'Payment', 14, 1);
+('PUBLIC_BIDDING', 'Implementation', 14, 1),
+('PUBLIC_BIDDING', 'Payment', 15, 1);
 
 -- Insert seed data for timeline templates (COMPETITIVE_BIDDING / Annex A)
 INSERT INTO timeline_templates (procurement_type, step_name, step_order, default_duration_days) VALUES

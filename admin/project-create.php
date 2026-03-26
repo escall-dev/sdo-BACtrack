@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($title)) {
         $error = 'Project title is required.';
     } elseif (empty($startDate)) {
-        $error = 'Project start date is required.';
+        $error = 'Implementation date is required.';
     } elseif (!array_key_exists($procurementType, PROCUREMENT_TYPES)) {
         $error = 'Invalid procurement type selected.';
     }
@@ -371,10 +371,10 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="start_date">Project Start Date *</label>
+                    <label class="form-label" for="start_date">Implementation Date *</label>
                     <input type="date" id="start_date" name="start_date" class="form-control" required
                            value="<?php echo htmlspecialchars($_POST['start_date'] ?? date('Y-m-d')); ?>">
-                          <small id="totalDaysHint" style="color: var(--text-muted);">The first activity will start on this date. Total timeline: <?php echo $totalDays; ?> days.</small>
+                          <small id="totalDaysHint" style="color: var(--text-muted);">This date anchors the BAC process timeline. Total timeline: <?php echo $totalDays; ?> days.</small>
                 </div>
 
                 <div class="project-actions">
@@ -476,13 +476,13 @@ require_once __DIR__ . '/../includes/header.php';
                 renderRows(steps);
                 stepCountEl.textContent = String(steps.length);
                 totalDaysEl.textContent = String(totalDays);
-                totalDaysHintEl.textContent = 'The first activity will start on this date. Total timeline: ' + totalDays + ' days.';
+                totalDaysHintEl.textContent = 'This date anchors the BAC process timeline. Total timeline: ' + totalDays + ' days.';
             })
             .catch(function () {
                 renderRows([]);
                 stepCountEl.textContent = '0';
                 totalDaysEl.textContent = '0';
-                totalDaysHintEl.textContent = 'The first activity will start on this date. Total timeline: 0 days.';
+                totalDaysHintEl.textContent = 'This date anchors the BAC process timeline. Total timeline: 0 days.';
             });
     };
 

@@ -35,8 +35,10 @@ define('PROCUREMENT_TYPES', [
     'DIRECT_CONTRACTING'          => 'Direct Contracting (Single Source Procurement)',
     'DIRECT_ACQUISITION'          => 'Direct Acquisition',
     'REPEAT_ORDER'                => 'Repeat Order',
-    'SMALL_VALUE_PROCUREMENT'     => 'Small Value Procurement',
+    'SMALL_VALUE_PROCUREMENT_200K' => 'Small Value Procurement (200k & Above)',
+    'SMALL_VALUE_PROCUREMENT'     => 'Small Value Procurement (200k & Below)',
     'NEGOTIATED_PROCUREMENT'      => 'Negotiated Procurement',
+    'COMPETITIVE_BIDDING'         => 'Competitive Bidding',
     'DIRECT_SALES'                => 'Direct Sales',
     'DIRECT_PROCUREMENT_STI'      => 'Direct Procurement for Science, Technology, and Innovation',
 ]);

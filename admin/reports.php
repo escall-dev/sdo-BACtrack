@@ -55,17 +55,7 @@ if ($selectedProject) {
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="filter-group">
-                    <label>Select Cycle</label>
-                    <select name="cycle" class="filter-select" id="cycleSelect" <?php echo empty($cycles) ? 'disabled' : ''; ?>>
-                        <option value="">All Cycles</option>
-                        <?php foreach ($cycles as $cycle): ?>
-                        <option value="<?php echo $cycle['id']; ?>" <?php echo $selectedCycle == $cycle['id'] ? 'selected' : ''; ?>>
-                            Cycle <?php echo $cycle['cycle_number']; ?> (<?php echo $cycle['status']; ?>)
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <!-- Cycle filter removed -->
                 <div class="filter-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Load

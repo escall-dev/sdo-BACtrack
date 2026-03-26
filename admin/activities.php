@@ -101,18 +101,7 @@ $activities = db()->fetchAll($sql, $params);
     border: 1px solid #e2e8f0;
 }
 
-.cycle-badge {
-    display: inline-block;
-    background: #f8fafc;
-    color: #64748b;
-    font-size: 0.67rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 999px;
-    margin-top: 5px;
-    border: 1px solid #e2e8f0;
-    letter-spacing: 0.3px;
-}
+.cycle-badge { display: none; }
 
 .act-project-link {
     color: #1e293b;
@@ -240,7 +229,7 @@ $activities = db()->fetchAll($sql, $params);
                         <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $activity['project_id']; ?>" class="act-project-link">
                             <?php echo htmlspecialchars($activity['project_title']); ?>
                         </a>
-                        <br><span class="cycle-badge">Cycle <?php echo $activity['cycle_number']; ?></span>
+                        
                     </td>
                     <?php if ($auth->isProcurement()): ?>
                     <td class="owner-cell"><?php echo htmlspecialchars($activity['project_owner_name'] ?? '-'); ?></td>

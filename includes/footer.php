@@ -34,6 +34,7 @@
         function initPagination() {
             document.querySelectorAll('[data-paginate], .data-table').forEach(function(el) {
                 if (el.hasAttribute('data-paginated')) return;
+                if (el.hasAttribute('data-no-paginate')) return;
                 
                 var pageSize = parseInt(el.getAttribute('data-paginate')) || 15;
                 var items;

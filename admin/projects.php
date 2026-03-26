@@ -116,7 +116,7 @@ $projects = $projectModel->getAll($filters);
                     <th style="text-align: center;">Project Owner / Bidder</th>
                     <th style="text-align: center;">Cycles</th>
                     <th style="text-align: center;">Status</th>
-                    <th style="text-align: center;">Created Date</th>
+                    <th style="text-align: center;">Implementation Date</th>
                     <th style="text-align: center;">Actions</th>
                 </tr>
             </thead>
@@ -142,7 +142,7 @@ $projects = $projectModel->getAll($filters);
                             <?php echo PROJECT_APPROVAL_STATUSES[$approval] ?? $approval; ?>
                         </span>
                     </td>
-                    <td style="text-align: center;"><?php echo date('M j, Y', strtotime($project['created_at'])); ?></td>
+                    <td style="text-align: center;"><?php echo date('M j, Y', strtotime(!empty($project['project_start_date']) ? $project['project_start_date'] : $project['created_at'])); ?></td>
                     <td style="text-align: center;">
                         <div class="action-buttons" style="justify-content: center;">
                             <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $project['id']; ?>" class="btn btn-icon" title="View">

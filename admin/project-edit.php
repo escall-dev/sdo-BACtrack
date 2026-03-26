@@ -98,7 +98,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="project_start_date">Project Start Date (for timeline when submitted)</label>
+                <label class="form-label" for="project_start_date">Implementation Date (used for timeline when submitted)</label>
                 <input type="date" id="project_start_date" name="project_start_date" class="form-control"
                        value="<?php echo htmlspecialchars($project['project_start_date'] ?? date('Y-m-d')); ?>">
             </div>

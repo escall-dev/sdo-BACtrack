@@ -62,6 +62,13 @@ class ProjectActivity {
         return $this->db->lastInsertId();
     }
 
+    public function deleteByCycle($cycleId) {
+        return $this->db->query(
+            "DELETE FROM project_activities WHERE bac_cycle_id = ?",
+            [$cycleId]
+        );
+    }
+
     public function updateStatus($id, $status, $actualCompletionDate = null) {
         $sql = "UPDATE project_activities SET status = ?";
         $params = [$status];
@@ -163,41 +170,24 @@ class ProjectActivity {
     }
 
     public function generateFromTemplate($cycleId, $procurementType, $startDate) {
-        require_once __DIR__ . '/TimelineTemplate.php';
-        $templateModel = new TimelineTemplate();
-        $templates = $templateModel->getByProcurementType($procurementType);
+        require_once __DIR__ . '/../services/ProcurementTimelineService.php';
 
-        if (empty($templates) && $procurementType !== 'PUBLIC_BIDDING') {
-            $templates = $templateModel->getByProcurementType('PUBLIC_BIDDING');
-        }
-
-        if (empty($templates)) {
-            throw new RuntimeException('No timeline template configured for the selected procurement type.');
-        }
-
-        $currentDate = new DateTime($startDate);
+        $timelineService = new ProcurementTimelineService();
+        $computedTimeline = $timelineService->generateTimeline($startDate, $procurementType);
         $activities = [];
 
-        foreach ($templates as $template) {
-            $plannedStart = $currentDate->format('Y-m-d');
-            $duration = $template['default_duration_days'] - 1;
-            $currentDate->modify("+{$duration} days");
-            $plannedEnd = $currentDate->format('Y-m-d');
-
+        foreach ($computedTimeline as $index => $stage) {
             $activityId = $this->create([
                 'bac_cycle_id' => $cycleId,
-                'template_id' => $template['id'],
-                'step_name' => $template['step_name'],
-                'step_order' => $template['step_order'],
-                'planned_start_date' => $plannedStart,
-                'planned_end_date' => $plannedEnd,
+                'template_id' => null,
+                'step_name' => $stage['stage'],
+                'step_order' => $index + 1,
+                'planned_start_date' => $stage['planned_start_date'],
+                'planned_end_date' => $stage['planned_end_date'],
                 'status' => 'PENDING'
             ]);
 
             $activities[] = $activityId;
-
-            // Next step starts the day after
-            $currentDate->modify('+1 day');
         }
 
         return $activities;

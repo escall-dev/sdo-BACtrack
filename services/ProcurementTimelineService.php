@@ -25,9 +25,15 @@ class ProcurementTimelineService {
         $backwardRows = [];
         for ($i = count($backwardStages) - 1; $i >= 0; $i--) {
             $stage = $backwardStages[$i];
-            $durationDays = max(1, (int)$stage['days']);
-            $plannedEnd = $cursor;
-            $plannedStart = $plannedEnd->sub(new DateInterval('P' . ($durationDays - 1) . 'D'));
+            $durationDays = max(0, (int)$stage['days']);
+            if ($durationDays === 0) {
+                // Zero-day milestones are placed on the next stage date without consuming a day.
+                $plannedStart = $cursor->add(new DateInterval('P1D'));
+                $plannedEnd = $plannedStart;
+            } else {
+                $plannedEnd = $cursor;
+                $plannedStart = $plannedEnd->sub(new DateInterval('P' . ($durationDays - 1) . 'D'));
+            }
 
             $backwardRows[] = [
                 'stage_key' => $stage['key'],
@@ -38,7 +44,9 @@ class ProcurementTimelineService {
                 'duration_days' => $durationDays,
             ];
 
-            $cursor = $plannedStart->sub(new DateInterval('P1D'));
+            if ($durationDays > 0) {
+                $cursor = $plannedStart->sub(new DateInterval('P1D'));
+            }
         }
 
         $timeline = array_merge($timeline, array_reverse($backwardRows));
@@ -173,15 +181,22 @@ class ProcurementTimelineService {
         $normalized = preg_replace('/[^a-z0-9]+/', '', strtolower((string)$stepName));
 
         $map = [
+            'preparationofbiddingdocuments' => 'preparation_bidding_documents',
+            'preparationbiddingdocuments' => 'preparation_bidding_documents',
             'preprocurementconference' => 'pre_procurement',
             'preprocurement' => 'pre_procurement',
             'advertisementandpostingofinvitationtobid' => 'posting_advertisement',
+            'advertisementpostingofinvitationtobid' => 'posting_advertisement',
             'postingadvertisement' => 'posting_advertisement',
             'posting' => 'posting_advertisement',
             'advertisement' => 'posting_advertisement',
             'issuanceandavailabilityofbiddingdocuments' => 'issuance_bidding_documents',
             'prebidconference' => 'pre_bid_conference',
             'submissionandopeningofbids' => 'bid_submission_opening',
+            'eligibilitycheckdeadlineofsubmissionandreceiptofbidsbidopening' => 'eligibility_submission_opening',
+            'eligibilitycheck' => 'eligibility_submission_opening',
+            'deadlineofsubmissionandreceiptofbids' => 'eligibility_submission_opening',
+            'bidsubmissionandopening' => 'eligibility_submission_opening',
             'bidsubmissionopening' => 'bid_submission_opening',
             'bidopening' => 'bid_submission_opening',
             'bidevaluation' => 'bid_evaluation',
@@ -189,10 +204,16 @@ class ProcurementTimelineService {
             'postqualification' => 'post_qualification',
             'bacresolutionrecommendingaward' => 'bac_resolution_award',
             'bacresolution' => 'bac_resolution_award',
+            'preparationandapprovalofresolutiontoaward' => 'resolution_to_award',
+            'resolutiontoaward' => 'resolution_to_award',
             'noticeofawardpreparationandapproval' => 'noa_preparation_approval',
+            'issuanceandsigningofnoticeofaward' => 'noa_issuance_signing',
             'noticeofawardissuance' => 'noa_issuance',
             'noticeofaward' => 'noa_issuance',
+            'noticeofawardsigning' => 'noa_issuance_signing',
             'contractpreparationandsigning' => 'contract_preparation_signing',
+            'contractpreparationandsigningofcontract' => 'contract_preparation_signing',
+            'issuanceandsigningofnoticetoproceed' => 'notice_to_proceed',
             'noticetoproceed' => 'notice_to_proceed',
             'ntp' => 'notice_to_proceed',
             'implementation' => 'implementation',
@@ -201,6 +222,32 @@ class ProcurementTimelineService {
             'inspection' => 'delivery_inspection',
             'payment' => 'payment_processing',
             'paymentprocessing' => 'payment_processing',
+            'preparationofpurchaserequest' => 'preparation_purchase_request',
+            'purchaserequest' => 'preparation_purchase_request',
+            'submissionandreceiptofapprovedpurchaserequest' => 'submission_receipt_approved_pr',
+            'submissionandreceiptofapprovedpr' => 'submission_receipt_approved_pr',
+            'approvedpurchaserequestsubmission' => 'submission_receipt_approved_pr',
+            'preparationofrequestforquotationrfq' => 'preparation_rfq',
+            'preparationofrequestforquotation' => 'preparation_rfq',
+            'preparationrfq' => 'preparation_rfq',
+            'rfqpreparation' => 'preparation_rfq',
+            'postingofrfqorconductofcanvass' => 'posting_rfq_canvass',
+            'postingofrfq' => 'posting_rfq_canvass',
+            'conductofcanvass' => 'posting_rfq_canvass',
+            'rfqposting' => 'posting_rfq_canvass',
+            'openingofbidsdocumentspreparationofabstractofquotation' => 'opening_bids_abstract_quotation',
+            'openingofbidsdocuments' => 'opening_bids_abstract_quotation',
+            'preparationofabstractofquotation' => 'opening_bids_abstract_quotation',
+            'abstractofquotation' => 'opening_bids_abstract_quotation',
+            'preparationofabstractofquotationresolutiontoaward' => 'resolution_to_award',
+            'abstractofquotationresolutiontoaward' => 'resolution_to_award',
+            'preparationandapprovalofpurchaseorderpo' => 'preparation_approval_po',
+            'preparationandapprovalofpurchaseorder' => 'preparation_approval_po',
+            'purchaseorderpreparationapproval' => 'preparation_approval_po',
+            'preparationandsigningofnoticetoproceed' => 'notice_to_proceed',
+            'allowanceperiodofthesupplier' => 'allowance_period_supplier',
+            'allowanceperiodsupplier' => 'allowance_period_supplier',
+            'supplierallowanceperiod' => 'allowance_period_supplier',
         ];
 
         if (isset($map[$normalized])) {

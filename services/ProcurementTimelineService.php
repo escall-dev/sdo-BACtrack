@@ -254,9 +254,13 @@ class ProcurementTimelineService {
             return $map[$normalized];
         }
 
-        foreach ($this->getFlattenedStages() as $stage) {
-            if ($normalized === preg_replace('/[^a-z0-9]+/', '', strtolower($stage['name']))) {
-                return $stage['key'];
+        $workflows = $this->config['workflows'] ?? [];
+        foreach (array_keys($workflows) as $procurementType) {
+            foreach ($this->getFlattenedStages($procurementType) as $stage) {
+                $stageNormalized = preg_replace('/[^a-z0-9]+/', '', strtolower($stage['name']));
+                if ($normalized === $stageNormalized) {
+                    return $stage['key'];
+                }
             }
         }
 

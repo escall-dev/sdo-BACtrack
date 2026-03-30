@@ -100,6 +100,108 @@ if (!function_exists('procurementConfig')) {
                         ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
                     ],
                 ],
+                'COMPETITIVE_DIALOGUE' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'invitation_pre_qualification', 'name' => 'Invitation and Pre-qualification', 'days' => 75],
+                        ['key' => 'dialogue_stage', 'name' => 'Dialogue Stage', 'days' => 15],
+                        ['key' => 'submission_final_proposals', 'name' => 'Submission of Final Proposals', 'days' => 20],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'UNSOLICITED_OFFER' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'preassessment_of_proposal', 'name' => 'Pre-assessment of Proposal', 'days' => 20],
+                        ['key' => 'submission_initial_offer', 'name' => 'Submission of Initial Offer', 'days' => 30],
+                        ['key' => 'detailed_offer_evaluation', 'name' => 'Detailed Offer Evaluation', 'days' => 60],
+                        ['key' => 'negotiation_of_terms', 'name' => 'Negotiation of Terms', 'days' => 1],
+                        ['key' => 'comparative_bid_matching', 'name' => 'Comparative Bid Matching', 'days' => 15],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'DIRECT_SALES' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'issuance_of_request_dsr', 'name' => 'Issuance of Request (DSR)', 'days' => 180],
+                        ['key' => 'supplier_written_acceptance', 'name' => 'Supplier Written Acceptance', 'days' => 5],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'LIMITED_SOURCE_BIDDING' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'direct_invitation_to_list', 'name' => 'Direct Invitation to List', 'days' => 7],
+                        ['key' => 'bid_evaluation_and_award', 'name' => 'Bid Evaluation and Award', 'days' => 23],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'DIRECT_CONTRACTING' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'request_for_quotation', 'name' => 'Request for Quotation', 'days' => 1],
+                        ['key' => 'evaluation_and_negotiation', 'name' => 'Evaluation and Negotiation', 'days' => 1],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'DIRECT_ACQUISITION' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'market_identification_p200k', 'name' => 'Market Identification (<= P200K)', 'days' => 1],
+                        ['key' => 'direct_purchase_and_recording', 'name' => 'Direct Purchase and Recording', 'days' => 1],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'REPEAT_ORDER' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'determination_of_need', 'name' => 'Determination of Need', 'days' => 180],
+                        ['key' => 'bac_recommendation', 'name' => 'BAC Recommendation', 'days' => 1],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'NEGOTIATED_PROCUREMENT' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'two_failed_biddings_review', 'name' => 'Two Failed Biddings / Review', 'days' => 1],
+                        ['key' => 'submission_best_offer', 'name' => 'Submission of Best Offer', 'days' => 1],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
+                'CONSULTING_SERVICES' => [
+                    'backward_timeline_stages' => [
+                        ['key' => 'shortlisting_phase', 'name' => 'Shortlisting Phase', 'days' => 20],
+                    ],
+                    'forward_execution_stages' => [
+                        ['key' => 'implementation', 'name' => 'Implementation', 'days' => 1],
+                        ['key' => 'delivery_inspection', 'name' => 'Delivery and Inspection', 'days' => 1],
+                        ['key' => 'payment_processing', 'name' => 'Payment Processing', 'days' => 1],
+                    ],
+                ],
             ],
 
             'enforced_actions' => [

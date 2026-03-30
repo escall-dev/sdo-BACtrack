@@ -41,6 +41,7 @@ define('PROCUREMENT_TYPES', [
     'COMPETITIVE_BIDDING'         => 'Competitive Bidding',
     'DIRECT_SALES'                => 'Direct Sales',
     'DIRECT_PROCUREMENT_STI'      => 'Direct Procurement for Science, Technology, and Innovation',
+    'CONSULTING_SERVICES'         => 'Consulting Services',
 ]);
 
 // Project activity statuses

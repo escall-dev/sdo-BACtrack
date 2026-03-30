@@ -372,6 +372,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
             overflow: hidden;
+            scroll-margin-top: 150px;
         }
         .card-header {
             background: var(--primary-gradient);
@@ -581,7 +582,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dark-modal-body { padding: 36px 30px 30px; }
         .dark-modal-header { text-align: center; margin-bottom: 26px; }
         .dark-modal-logo {
-            width: 72px; height: 72px;
+            width: 104px; height: 104px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(212,175,55,0.5);
@@ -670,7 +671,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             margin: 22px 0 18px;
             gap: 12px;
-            color: #374151;
+            color: #9ca3af;
             font-size: 0.78rem;
             font-weight: 600;
             letter-spacing: 0.05em;
@@ -705,10 +706,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
             margin-top: 22px;
             font-size: 0.82rem;
-            color: #4b5563;
+            color: #9ca3af;
         }
-        .dark-help-link a { color: #6b7280; font-weight: 600; text-decoration: none; }
-        .dark-help-link a:hover { color: #9ca3af; text-decoration: underline; }
+        .dark-help-link a { color: #d1d5db; font-weight: 700; text-decoration: none; }
+        .dark-help-link a:hover { color: #ffffff; text-decoration: underline; }
 
         /* modal alerts */
         .dark-alert {
@@ -809,8 +810,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="header-spacer"></div>
             <div class="navbar-links">
-                <a href="#" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-                <a href="#" class="nav-link">Contacts</a>
+                <a href="landing.php" class="nav-link active"><i class="fas fa-home"></i> Home</a>
+                <a href="#" class="nav-link" onclick="openContactModal(); return false;">Contacts</a>
             </div>
             <button class="btn-login" onclick="openLoginModal()">
                 <i class="fas fa-sign-in-alt"></i> LOGIN
@@ -954,6 +955,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </main>
 
+    <!-- ── Contact Modal ── -->
+    <div class="modal-overlay" id="contactModal" onclick="if(event.target===this) closeContactModal()">
+        <div class="dark-modal">
+            <button type="button" class="modal-close-dark" onclick="closeContactModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="dark-modal-body" style="text-align:center;">
+                <div class="dark-modal-header" style="margin-bottom:18px;">
+                    <i class="fas fa-headset" style="font-size:2.2rem;color:var(--accent-light);margin-bottom:10px;"></i>
+                    <h2 style="margin-bottom:4px;">ICT Helpdesk Support</h2>
+                    <p>Contact and Assistance</p>
+                </div>
+                <p style="margin:0 auto 20px;color:#cbd5e1;line-height:1.65;max-width:520px;">
+                    If you are experiencing technical difficulties or have questions about this system,
+                    you may reach out to our ICT Helpdesk portal.
+                </p>
+                <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" class="dark-btn-primary" style="text-decoration:none;">
+                    <i class="fas fa-external-link-alt"></i> Connect with Us
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Login Modal ── -->
     <div class="modal-overlay" id="loginModal" onclick="if(event.target===this) closeLoginModal()">
         <div class="dark-modal">
@@ -1007,12 +1031,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </button>
                 </form>
 
-                <div class="dark-divider"><span>Don't have an account?</span></div>
-
-                <a href="<?php echo APP_URL; ?>/admin/register.php" class="dark-btn-secondary">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </a>
-
                 <div class="dark-help-link">
                     Need help? Contact <a href="#"><strong>ICT Helpdesk</strong></a>
                 </div>
@@ -1047,6 +1065,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         function closeLoginModal() {
             document.getElementById('loginModal').style.display = 'none';
+        }
+        function openContactModal() {
+            document.getElementById('contactModal').style.display = 'flex';
+        }
+        function closeContactModal() {
+            document.getElementById('contactModal').style.display = 'none';
         }
 
         /* Clear stale session token */

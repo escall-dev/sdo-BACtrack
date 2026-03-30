@@ -7,7 +7,7 @@
 // Application settings
 define('APP_NAME', 'SDO-BACtrack');
 define('APP_TITLE', 'SDO-BACtrack');
-define('APP_SUBTITLE', 'BAC Timeline Tracker');
+define('APP_SUBTITLE', 'Procurement, Bids and Awards Committee Timeline Tracker');
 define('APP_VERSION', '1.0.0');
 define('APP_URL', '/SDO-BACtrack');
 

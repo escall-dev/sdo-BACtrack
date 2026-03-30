@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../config/app.php';
+require_once __DIR__ . '/../config/procurement.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../models/User.php';
 
@@ -825,56 +826,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="main-content">
         <div class="content-wrap">
 
-            <!-- Project Tracker -->
-            <!-- Procurement Timeline Estimator -->
-            <div class="data-card" style="margin-bottom:18px;">
-                <div class="card-header">
-                    <i class="fas fa-clock"></i> Procurement Timeline Estimator
-                </div>
-                <div class="card-body">
-                    <p style="margin-bottom:10px;color:var(--text-secondary);font-size:0.92rem;">Quickly estimate procurement timelines based on procurement type, method, and budget. These are approximate timelines to help planning only.</p>
-                    <form id="timelineForm" onsubmit="event.preventDefault(); calculateTimeline();">
-                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-                            <select id="procType" class="search-input" style="max-width:260px;">
-                                <option value="goods">Goods / Supplies</option>
-                                <option value="infra">Infrastructure / Works</option>
-                                <option value="consulting">Consulting / Services</option>
-                            </select>
-
-                            <select id="procMethod" class="search-input" style="max-width:320px;">
-                                <option value="public_bidding">Public Bidding</option>
-                                <option value="alternative">Alternative Methods</option>
-                                <option value="direct">Direct Contracting</option>
-                            </select>
-
-                            <input id="budget" class="search-input" type="number" min="0" step="0.01" placeholder="Estimated Budget (PHP)" style="max-width:240px;" />
-
-                            <input id="startDate" class="search-input" type="date" style="max-width:200px;" />
-                        </div>
-
-                        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
-                            <label style="font-weight:600;">Options:</label>
-                            <label style="font-size:0.9rem;color:var(--text-muted);"><input type="checkbox" id="expedite" /> Expedite (reduce times ~20%)</label>
-                            <button type="submit" class="btn-search" style="margin-left:auto;">Calculate</button>
-                        </div>
-                    </form>
-
-                    <div id="timelineResults"></div>
-                </div>
-            </div>
-
             <!-- Detailed Procurement Timeline Planner (table) -->
             <div class="data-card" style="margin-bottom:18px;">
                 <div class="card-header">
-                    <i class="fas fa-table"></i> Procurement Timeline Planner
+                    <i class="fas fa-table"></i> Procurement Timeline Estimator
                 </div>
                 <div class="card-body">
+                    <?php
+                        $procCfg = procurementConfig();
+                        $workflowKeys = array_keys($procCfg['workflows'] ?? []);
+                        $estimatorTypes = [];
+                        foreach (PROCUREMENT_TYPES as $key => $label) {
+                            if (in_array($key, $workflowKeys, true)) {
+                                $estimatorTypes[$key] = $label;
+                            }
+                        }
+                    ?>
                     <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-                        <label style="font-weight:700;margin-right:6px;">Select date to begin with:</label>
-                        <input type="date" id="plannerStart" class="search-input" style="max-width:160px;" />
-                        <button class="btn-search" onclick="computeEarliest()">Compute/Reset to Earliest Possible Time</button>
+                        <label style="font-weight:700;margin-right:6px;">Procurement Type / Mode of Procurement:</label>
+                        <select id="estProcurementType" class="search-input" style="max-width:360px;">
+                            <?php foreach ($estimatorTypes as $k => $lbl): ?>
+                                <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <input type="number" id="estBudget" class="search-input" min="0" step="0.01" placeholder="Estimated Budget (PHP)" style="max-width:220px;" />
+
+                        <label style="font-weight:700;margin-left:6px;">Implementation date:</label>
+                        <input type="date" id="plannerStart" class="search-input" style="max-width:170px;" />
+
+                        <button class="btn-search" onclick="computeEarliest()">Compute / Reset</button>
                         <button class="btn-search" style="background:#ddd;color:#333;box-shadow:none;" onclick="startOver()">Start Over</button>
                     </div>
+
+                    <div id="svpBudgetWarning" style="display:none;margin:10px 0;padding:10px 12px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.92rem;"></div>
 
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
@@ -894,6 +879,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
                         <button class="btn-search" onclick="computeLatest()">Compute for the Latest Allowable Time</button>
                         <div style="text-align:center;font-weight:700;color:var(--text-muted);">User's Guide | Found errors? Tell us.</div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:flex-end;">
+                        <label style="font-weight:800;color:var(--text-secondary);">Latest Allowable Date:</label>
+                        <input type="date" id="latestAllowableDate" class="search-input" style="max-width:170px;" readonly />
                     </div>
                 </div>
             </div>
@@ -1042,6 +1032,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </footer>
 
     <script>
+        const ESTIMATOR_BACKWARD_STAGES = <?php
+            $workflows = procurementConfig()['workflows'] ?? [];
+            $backwardOnly = [];
+            foreach ($workflows as $key => $wf) {
+                $backwardOnly[$key] = $wf['backward_timeline_stages'] ?? [];
+            }
+            echo json_encode($backwardOnly, JSON_UNESCAPED_SLASHES);
+        ?>;
+
         /* ── Modal ── */
         function openLoginModal() {
             document.getElementById('loginModal').style.display = 'flex';
@@ -1115,113 +1114,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             chev.style.transform = open ? '' : 'rotate(180deg)';
         }
 
-        /* ── Procurement Timeline Estimator ── */
-        function calculateTimeline() {
-            const type = document.getElementById('procType').value;
-            const method = document.getElementById('procMethod').value;
-            const budget = parseFloat(document.getElementById('budget').value || '0');
-            const startInput = document.getElementById('startDate').value;
-            const expedite = document.getElementById('expedite').checked;
-            const box = document.getElementById('timelineResults');
+        function parseMoney(val) {
+            const n = Number(val);
+            return Number.isFinite(n) ? n : NaN;
+        }
 
-            const startDate = startInput ? new Date(startInput) : new Date();
+        function showBudgetWarning(message) {
+            const box = document.getElementById('svpBudgetWarning');
+            if (!message) {
+                box.style.display = 'none';
+                box.textContent = '';
+                return;
+            }
+            box.style.display = 'block';
+            box.textContent = message;
+        }
 
-            // Base durations (days) by phase, simplified and original (not copied)
-            const base = {
-                preparation: { goods: 10, infra: 20, consulting: 15 },
-                advertisement: { public_bidding: 30, alternative: 15, direct: 5 },
-                evaluation: { goods: 14, infra: 30, consulting: 21 },
-                postqualification: { goods: 7, infra: 14, consulting: 10 },
-                contract: { all: 7 },
-                delivery: { goods: 30, infra: 180, consulting: 60 }
-            };
+        function validateBudgetRealtime() {
+            const type = (document.getElementById('estProcurementType')?.value || '').trim();
+            const budgetRaw = document.getElementById('estBudget')?.value ?? '';
+            const budget = parseMoney(budgetRaw);
 
-            // Adjust for large budgets (adds 20% time for very large contracts)
-            const largeBudgetThreshold = 5000000; // PHP
-            const largeBudgetMultiplier = budget > largeBudgetThreshold ? 1.20 : 1.0;
-
-            // Expedite reduces times by ~20%
-            const expediteMultiplier = expedite ? 0.8 : 1.0;
-
-            function adj(days) {
-                return Math.max(1, Math.round(days * largeBudgetMultiplier * expediteMultiplier));
+            // If empty, don't warn.
+            if (budgetRaw === '' || Number.isNaN(budget)) {
+                showBudgetWarning('');
+                return;
             }
 
-            const phases = [
-                { key: 'preparation', label: 'Preparation / Pre-procurement', days: adj(base.preparation[type]) },
-                { key: 'advertisement', label: 'Publication / Advertisement', days: adj(base.advertisement[method]) },
-                { key: 'evaluation', label: 'Bid Submission & Evaluation', days: adj(base.evaluation[type]) },
-                { key: 'postqualification', label: 'Post-qualification / Award', days: adj(base.postqualification[type]) },
-                { key: 'contract', label: 'Contract Signing', days: adj(base.contract.all) },
-                { key: 'delivery', label: 'Delivery / Completion', days: adj(base.delivery[type]) }
-            ];
-
-            // Compute dates
-            let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-            const totalDays = phases.reduce((s,p)=>s+p.days,0);
-            const items = phases.map(p => {
-                const phaseStart = new Date(cursor);
-                cursor.setDate(cursor.getDate() + p.days);
-                const phaseEnd = new Date(cursor);
-                return Object.assign({}, p, { start: phaseStart, end: new Date(phaseEnd) });
-            });
-
-            // Render results
-            function fmt(d) {
-                return d.toLocaleDateString();
+            if (type === 'SMALL_VALUE_PROCUREMENT') {
+                if (budget >= 200000.0) {
+                    showBudgetWarning('The budget for Small Value Procurement (200k and below) must not exceed 199,999.99.');
+                    return;
+                }
             }
 
-            let html = `<div style="margin-top:10px;">`;
-            html += `<div class="card-body" style="padding:12px;border:1px dashed var(--border-color);background:var(--bg-secondary);">`;
-            html += `<strong>Estimated overall timeline:</strong> ${fmt(items[0].start)} — ${fmt(items[items.length-1].end)} (${totalDays} days)`;
-            html += `<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">`;
+            if (type === 'SMALL_VALUE_PROCUREMENT_200K') {
+                if (budget < 200000.0) {
+                    showBudgetWarning('The minimum budget for this procurement type is 200,000.00.');
+                    return;
+                }
+                if (budget >= 2000000.0) {
+                    showBudgetWarning('The maximum budget for this procurement type is 1,999,999.99.');
+                    return;
+                }
+            }
 
-            items.forEach(it => {
-                const start = fmt(it.start);
-                const end = fmt(new Date(it.end.getFullYear(), it.end.getMonth(), it.end.getDate()-1));
-                const pct = Math.round((it.days / totalDays) * 100);
-                html += `<div style="display:flex;flex-direction:column;gap:4px;">
-                    <div style="display:flex;justify-content:space-between;font-weight:700;color:var(--primary);">${it.label}<span style="font-weight:600;color:var(--text-secondary);">${it.days}d</span></div>
-                    <div style="font-size:0.9rem;color:var(--text-muted);">${start} — ${end}</div>
-                    <div style="height:10px;background:#e6eef9;border-radius:6px;overflow:hidden;margin-top:6px;">
-                        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--primary) 0%,var(--primary-light) 100%);"></div>
-                    </div>
-                </div>`;
-            });
-
-            html += `</div></div></div>`;
-            box.innerHTML = html;
+            showBudgetWarning('');
         }
 
         /* ── Detailed Planner logic ── */
-        const PLANNER_STAGES = [
-            { id: 'advert', label: 'Advertisement', days: 30 },
-            { id: 'prebid', label: 'Pre-bid Conference', days: 7, optionalToggle: 'prebid' },
-            { id: 'submission', label: 'Submission of Bids', days: 14 },
-            { id: 'evaluation', label: 'Bid Evaluation', days: 14 },
-            { id: 'postqual', label: 'Post-qualification', days: 7 },
-            { id: 'noa', label: 'Issuance of Notice of Award', days: 5 },
-            { id: 'contract', label: 'Contract Preparation and Signing', days: 7 },
-            { id: 'approval', label: 'Approval by Higher Authority', days: 14, optionalToggle: 'approval' },
-            { id: 'ntp', label: 'Issuance of Notice to Proceed', days: 3 }
-        ];
+        function getSelectedBackwardStages() {
+            const type = (document.getElementById('estProcurementType')?.value || '').trim();
+            const stages = ESTIMATOR_BACKWARD_STAGES[type] || ESTIMATOR_BACKWARD_STAGES['PUBLIC_BIDDING'] || [];
+            return { type, stages };
+        }
 
         function renderPlannerRows() {
             const tbody = document.getElementById('plannerBody');
             tbody.innerHTML = '';
-            PLANNER_STAGES.forEach((s, idx) => {
+            const { stages } = getSelectedBackwardStages();
+            stages.forEach((s, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="padding:8px;border:1px solid var(--border-color);">
-                        ${s.label}
-                        ${s.optionalToggle ? '<div style="font-size:0.85rem;color:var(--text-muted);">' + (s.optionalToggle==='prebid'? 'Conduct? Yes/No' : 'Necessary? Yes/No') + '</div>' : ''}
+                        ${s.name}
+                        <div style="font-size:0.85rem;color:var(--text-muted);">Base: ${Number(s.days) || 0} day(s)</div>
                     </td>
-                    <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="start-${idx}" class="search-input" style="width:100%;max-width:140px;" /></td>
+                    <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="start-${idx}" class="search-input" style="width:100%;max-width:140px;" readonly /></td>
                     <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="end-${idx}" class="search-input" style="width:100%;max-width:140px;" readonly /></td>
                     <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="number" id="add-${idx}" class="search-input" style="width:100%;max-width:80px;" value="0" /></td>
                     <td style="padding:8px;border:1px solid var(--border-color);text-align:center;">
-                        ${s.optionalToggle ? (`<label style="font-size:0.9rem;margin-right:8px;">Yes <input type="radio" name="opt-${idx}" value="1" checked></label><label style="font-size:0.9rem;">No <input type="radio" name="opt-${idx}" value="0"></label>`) : ''}
-                        <button class="btn-search" style="margin-left:8px;" onclick="updateRow(${idx})">Update</button>
+                        <button class="btn-search" onclick="updateRow(${idx})">Update</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1238,81 +1201,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return d;
         }
 
-        function computeEarliest() {
-            // Compute sequentially from plannerStart
-            const startVal = document.getElementById('plannerStart').value;
-            let cursor = startVal ? parseDateInput(startVal) : new Date();
-            PLANNER_STAGES.forEach((s, idx) => {
-                // check optional toggles
-                const optEl = document.querySelector(`input[name="opt-${idx}"]:checked`);
-                if (s.optionalToggle && optEl && optEl.value==='0') {
-                    // skip this stage: clear fields
-                    document.getElementById(`start-${idx}`).value = '';
-                    document.getElementById(`end-${idx}`).value = '';
-                    return;
+        function setLatestAllowableDate(val) {
+            const el = document.getElementById('latestAllowableDate');
+            if (!el) return;
+            el.value = val || '';
+        }
+
+        function computeLatestAllowableSchedule() {
+            const implementationVal = document.getElementById('plannerStart')?.value || '';
+            if (!implementationVal) {
+                setLatestAllowableDate('');
+                const tbody = document.getElementById('plannerBody');
+                if (tbody) {
+                    const inputs = tbody.querySelectorAll('input[type="date"]');
+                    inputs.forEach(i => { i.value = ''; });
+                }
+                return;
+            }
+
+            const implementationDate = parseDateInput(implementationVal);
+            if (!implementationDate) return;
+
+            const { stages } = getSelectedBackwardStages();
+            const lastIndex = stages.length - 1;
+
+            // Cursor ends the day before implementation date.
+            let cursor = addDays(implementationDate, -1);
+
+            // We compute from last to first (same anchor behavior as backend engine).
+            for (let i = lastIndex; i >= 0; i--) {
+                const stage = stages[i];
+                const baseDays = Math.max(0, parseInt(stage.days ?? 0, 10) || 0);
+                const add = parseInt(document.getElementById(`add-${i}`)?.value || '0', 10) || 0;
+                const effectiveDays = Math.max(0, baseDays + add);
+
+                let plannedEnd;
+                let plannedStart;
+
+                if (effectiveDays === 0) {
+                    plannedStart = addDays(cursor, 1);
+                    plannedEnd = plannedStart;
+                } else {
+                    plannedEnd = new Date(cursor);
+                    plannedStart = addDays(plannedEnd, -(effectiveDays - 1));
+                    cursor = addDays(plannedStart, -1);
                 }
 
-                const add = parseInt(document.getElementById(`add-${idx}`).value || '0', 10);
-                const duration = Math.max(1, s.days + add);
-                const sDate = new Date(cursor);
-                const eDate = addDays(sDate, duration);
-                document.getElementById(`start-${idx}`).value = sDate.toISOString().slice(0,10);
-                // end date show last inclusive day (duration days -> end = start + duration - 1)
-                const endInclusive = addDays(sDate, duration - 1);
-                document.getElementById(`end-${idx}`).value = endInclusive.toISOString().slice(0,10);
-                // advance cursor to next day after end
-                cursor = addDays(endInclusive, 1);
-            });
+                const startEl = document.getElementById(`start-${i}`);
+                const endEl = document.getElementById(`end-${i}`);
+                if (startEl) startEl.value = plannedStart.toISOString().slice(0, 10);
+                if (endEl) endEl.value = plannedEnd.toISOString().slice(0, 10);
+            }
+
+            // Latest Allowable Date = END date of the first backward step.
+            const firstEnd = document.getElementById('end-0')?.value || '';
+            setLatestAllowableDate(firstEnd);
+        }
+
+        function computeEarliest() {
+            // In this estimator, “Compute/Reset” means compute the latest allowable schedule backward from implementation date.
+            computeLatestAllowableSchedule();
         }
 
         function startOver() {
             document.getElementById('plannerStart').value = '';
-            PLANNER_STAGES.forEach((s, idx) => {
-                document.getElementById(`start-${idx}`).value = '';
-                document.getElementById(`end-${idx}`).value = '';
-                document.getElementById(`add-${idx}`).value = '0';
-                const radios = document.getElementsByName(`opt-${idx}`);
-                if (radios && radios.length) { radios[0].checked = true; }
+            setLatestAllowableDate('');
+            const { stages } = getSelectedBackwardStages();
+            stages.forEach((_, idx) => {
+                const sEl = document.getElementById(`start-${idx}`);
+                const eEl = document.getElementById(`end-${idx}`);
+                const aEl = document.getElementById(`add-${idx}`);
+                if (sEl) sEl.value = '';
+                if (eEl) eEl.value = '';
+                if (aEl) aEl.value = '0';
             });
+            validateBudgetRealtime();
         }
 
         function updateRow(idx) {
-            // Recompute from this row forward using current start if present, otherwise from plannerStart
-            const startField = document.getElementById(`start-${idx}`);
-            let cursor = parseDateInput(startField.value) || parseDateInput(document.getElementById('plannerStart').value) || new Date();
-            for (let i = idx; i < PLANNER_STAGES.length; i++) {
-                const s = PLANNER_STAGES[i];
-                const optEl = document.querySelector(`input[name="opt-${i}"]:checked`);
-                if (s.optionalToggle && optEl && optEl.value==='0') {
-                    document.getElementById(`start-${i}`).value = '';
-                    document.getElementById(`end-${i}`).value = '';
-                    continue;
-                }
-                const add = parseInt(document.getElementById(`add-${i}`).value || '0', 10);
-                const duration = Math.max(1, s.days + add);
-                const sDate = new Date(cursor);
-                const endInclusive = addDays(sDate, duration - 1);
-                document.getElementById(`start-${i}`).value = sDate.toISOString().slice(0,10);
-                document.getElementById(`end-${i}`).value = endInclusive.toISOString().slice(0,10);
-                cursor = addDays(endInclusive, 1);
-            }
+            computeLatestAllowableSchedule();
         }
 
         function computeLatest() {
-            // Simple conservative approach: compute earliest, then add 20% buffer to each stage
-            computeEarliest();
-            PLANNER_STAGES.forEach((s, idx) => {
-                const addField = document.getElementById(`add-${idx}`);
-                const current = parseInt(addField.value || '0', 10);
-                const extra = Math.ceil(s.days * 0.2);
-                addField.value = current + extra;
-            });
-            // recompute with new add days
-            computeEarliest();
+            // Same estimator logic; this button now just recomputes.
+            computeLatestAllowableSchedule();
         }
 
         // initialize planner on load
-        document.addEventListener('DOMContentLoaded', function() { renderPlannerRows(); });
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPlannerRows();
+
+            const typeEl = document.getElementById('estProcurementType');
+            const budgetEl = document.getElementById('estBudget');
+            const implEl = document.getElementById('plannerStart');
+            const tbody = document.getElementById('plannerBody');
+
+            if (typeEl) {
+                typeEl.addEventListener('change', function() {
+                    renderPlannerRows();
+                    validateBudgetRealtime();
+                    computeLatestAllowableSchedule();
+                });
+            }
+            if (budgetEl) {
+                budgetEl.addEventListener('input', validateBudgetRealtime);
+                budgetEl.addEventListener('change', validateBudgetRealtime);
+            }
+            if (implEl) {
+                implEl.addEventListener('change', computeLatestAllowableSchedule);
+                implEl.addEventListener('input', computeLatestAllowableSchedule);
+            }
+            if (tbody) {
+                tbody.addEventListener('input', function(e) {
+                    const t = e.target;
+                    if (t && t.id && t.id.startsWith('add-')) {
+                        computeLatestAllowableSchedule();
+                    }
+                });
+            }
+
+            validateBudgetRealtime();
+        });
     </script>
 </body>
 </html>

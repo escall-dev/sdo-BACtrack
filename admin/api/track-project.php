@@ -12,14 +12,25 @@ if (empty($query)) {
     exit;
 }
 
+// Accept plain numeric IDs (e.g. 27) and formatted project numbers (e.g. PR-0027).
+$numericId = null;
 if (is_numeric($query)) {
+    $numericId = (int) $query;
+} elseif (preg_match('/^PR[-_\s]*([0-9]+)$/i', $query, $matches)) {
+    $numericId = (int) $matches[1];
+}
+
+if ($numericId !== null) {
     $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count 
             FROM projects p WHERE p.id = ?";
-    $params = [$query];
+    $params = [$numericId];
 } else {
     $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count 
-            FROM projects p WHERE p.title LIKE ? LIMIT 10";
-    $params = ['%' . $query . '%'];
+            FROM projects p
+            WHERE p.title LIKE ?
+               OR CONCAT('PR-', LPAD(p.id, 4, '0')) LIKE ?
+            LIMIT 10";
+    $params = ['%' . $query . '%', '%' . $query . '%'];
 }
 
 $projects = $db->fetchAll($sql, $params);
@@ -64,6 +75,7 @@ foreach ($projects as $project) {
     $results[] = [
         'id' => $project['id'],
         'title' => $project['title'],
+        'description' => $project['description'] ?? '',
         'status' => $project['approval_status'],
         'timeline_status' => $currentStatusStr,
         'activities' => array_map(function($a) {

@@ -66,6 +66,7 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
     <style>
         .admin-layout .top-bar{position:fixed!important;left:var(--sidebar-width)!important;right:0!important;top:0!important;z-index:9999!important;}
         .main-content{padding-top:calc(var(--topbar-height) + 16px)!important;margin-left:var(--sidebar-width)!important;}
+        .admin-layout.sidebar-collapsed .main-content{margin-left:var(--sidebar-collapsed)!important;}
         @media (max-width:992px){
             .admin-layout .top-bar{left:0!important;right:0!important}
             .main-content{margin-left:0!important;padding-top:calc(var(--topbar-height) + 12px)!important}

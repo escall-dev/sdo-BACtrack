@@ -235,6 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            margin-left: 90px;
             gap: 8px;
         }
         .btn-login {
@@ -518,11 +519,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
             border-bottom: 1px solid var(--border-color);
             gap: 10px;
         }
         .result-card-header:hover { background: var(--bg-primary); }
+        .result-toggle-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+        .result-toggle-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary-light);
+            background: var(--bg-secondary);
+        }
         .result-title {
             font-weight: 700;
             color: var(--primary);
@@ -739,6 +758,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--text-secondary);
             font-size: 0.84rem;
             font-weight: 600;
+        }
+
+        .bac-modal-description {
+            margin-top: 10px;
+            margin-bottom: 2px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: #f8fafc;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .bac-desc-label {
+            color: var(--primary-dark);
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        .bac-desc-value {
+            color: var(--text-secondary);
+            white-space: pre-line;
         }
 
         .bac-table-wrap {
@@ -1099,7 +1141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="header-spacer"></div>
             <div class="navbar-links">
                 <a href="landing.php" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-                <a href="#" class="nav-link" onclick="openContactModal(); return false;">Contacts</a>
+                <a href="#" class="nav-link" onclick="return false;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+                <a href="#" class="nav-link" onclick="openContactModal(); return false;"><i class="fas fa-phone"></i> Contacts</a>
             </div>
             <button class="btn-login" onclick="openLoginModal()">
                 <i class="fas fa-sign-in-alt"></i> LOGIN
@@ -1279,7 +1322,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <button
                                             type="button"
                                             class="project-open-link"
-                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>);"
+                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
                                             aria-label="Open BAC process for project <?php echo (int)$project['id']; ?>"
                                         >
                                             <?php printf('PR-%04d', $project['id']); ?>
@@ -1289,7 +1332,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <button
                                             type="button"
                                             class="project-open-link"
-                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>);"
+                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
                                         >
                                             <?php echo htmlspecialchars($project['title']); ?>
                                         </button>
@@ -1395,6 +1438,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="dark-modal-body">
                 <h2 class="bac-modal-title" id="bacModalProjectTitle">BAC Process</h2>
                 <p class="bac-modal-subtitle" id="bacModalProjectStatus">Loading status...</p>
+                <p class="bac-modal-description"><span class="bac-desc-label">Project Description:</span><span class="bac-desc-value" id="bacModalProjectDescription">Loading project description...</span></p>
                 <div id="bacModalContent" class="bac-loading">
                     <i class="fas fa-spinner fa-spin"></i>
                     <span>Loading BAC process...</span>
@@ -1524,10 +1568,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function renderBacProcess(project) {
             const titleEl = document.getElementById('bacModalProjectTitle');
             const statusEl = document.getElementById('bacModalProjectStatus');
+            const descEl = document.getElementById('bacModalProjectDescription');
             const contentEl = document.getElementById('bacModalContent');
 
             titleEl.textContent = `PR-${String(project.id).padStart(4, '0')} - ${project.title}`;
             statusEl.textContent = `Current Status: ${project.timeline_status || 'N/A'}`;
+            const description = String(project.description || '').trim();
+            descEl.textContent = description !== ''
+                ? description
+                : 'No project description provided.';
 
             if (!project.activities || project.activities.length === 0) {
                 contentEl.className = 'bac-empty';
@@ -1573,14 +1622,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             `;
         }
 
-        function openBacProcessModal(projectId, projectTitle) {
+        function openBacProcessModal(projectId, projectTitle, projectDescription) {
             const modal = document.getElementById('bacProcessModal');
             const titleEl = document.getElementById('bacModalProjectTitle');
             const statusEl = document.getElementById('bacModalProjectStatus');
+            const descEl = document.getElementById('bacModalProjectDescription');
             const contentEl = document.getElementById('bacModalContent');
 
             titleEl.textContent = `Loading project #${projectId}...`;
             statusEl.textContent = 'Fetching BAC process...';
+            const preloadDescription = String(projectDescription || '').trim();
+            descEl.textContent = preloadDescription !== ''
+                ? preloadDescription
+                : 'Loading project description...';
             contentEl.className = 'bac-loading';
             contentEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading BAC process...</span>';
             modal.style.display = 'flex';
@@ -1591,6 +1645,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!res.success || !res.data || res.data.length === 0) {
                         titleEl.textContent = projectTitle ? String(projectTitle) : `Project #${projectId}`;
                         statusEl.textContent = 'Unable to load BAC process';
+                        descEl.textContent = preloadDescription !== ''
+                            ? preloadDescription
+                            : 'No project description available.';
                         contentEl.className = 'bac-empty';
                         contentEl.textContent = 'No BAC process data found for this project.';
                         return;
@@ -1600,6 +1657,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 .catch(() => {
                     titleEl.textContent = projectTitle ? String(projectTitle) : `Project #${projectId}`;
                     statusEl.textContent = 'Unable to load BAC process';
+                    descEl.textContent = preloadDescription !== ''
+                        ? preloadDescription
+                        : 'No project description available.';
                     contentEl.className = 'bac-empty';
                     contentEl.textContent = 'Error fetching BAC process. Please try again.';
                 });
@@ -1628,6 +1688,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     let html = '';
                     res.data.forEach((project, idx) => {
+                        const projectId = Number(project.id) || 0;
+                        const projectNo = `PR-${String(project.id).padStart(4, '0')}`;
                         let rows = '';
                         if (project.activities && project.activities.length > 0) {
                             project.activities.forEach(act => {
@@ -1643,12 +1705,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         html += `
                         <div class="result-card">
-                            <div class="result-card-header" onclick="toggleResult(${idx})">
+                            <div class="result-card-header">
                                 <div>
-                                    <div class="result-title">#${project.id} — ${project.title}</div>
+                                    <button
+                                        type="button"
+                                        class="project-open-link result-title"
+                                        onclick="openBacProcessModal(${projectId})"
+                                        aria-label="Open BAC process for project ${projectId}"
+                                    >${escapeHtml(projectNo)} - ${escapeHtml(project.title)}</button>
                                     <div class="result-status">Status: <strong>${project.timeline_status}</strong></div>
                                 </div>
-                                <i class="fas fa-chevron-down" id="chev-${idx}" style="color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;"></i>
+                                <button
+                                    type="button"
+                                    id="toggle-${idx}"
+                                    class="result-toggle-btn"
+                                    onclick="toggleResult(${idx})"
+                                    aria-label="Toggle timeline details"
+                                    aria-expanded="false"
+                                    aria-controls="result-body-${idx}"
+                                >
+                                    <i class="fas fa-chevron-down" id="chev-${idx}" style="font-size:0.8rem;transition:transform 0.2s;"></i>
+                                </button>
                             </div>
                             <div class="result-body" id="result-body-${idx}">
                                 <table class="activity-table">${rows}</table>
@@ -1665,9 +1742,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function toggleResult(idx) {
             const body = document.getElementById('result-body-' + idx);
             const chev = document.getElementById('chev-' + idx);
+            const toggle = document.getElementById('toggle-' + idx);
             const open = body.style.display === 'block';
             body.style.display = open ? 'none' : 'block';
             chev.style.transform = open ? '' : 'rotate(180deg)';
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+            }
         }
 
         function parseMoney(val) {

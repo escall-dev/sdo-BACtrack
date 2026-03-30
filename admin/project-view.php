@@ -475,9 +475,6 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <?php endif; ?>
                 <h3 style="font-size: 1.5rem; margin-bottom: 8px;"><?php echo htmlspecialchars($project['title']); ?></h3>
-                <?php if ($project['description']): ?>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;"><?php echo nl2br(htmlspecialchars($project['description'])); ?></p>
-                <?php endif; ?>
                 
                 <div class="pv-info-grid grid-3-col">
                     <div class="pv-info-tile">
@@ -500,6 +497,10 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="pv-info-tile">
                         <span class="pv-info-label">Implementation Date</span>
                         <p class="pv-info-value"><?php echo date('F j, Y', strtotime($implementationDateValue)); ?></p>
+                    </div>
+                    <div class="pv-info-tile" style="grid-column: 1 / -1;">
+                        <span class="pv-info-label">Project Description</span>
+                        <p class="pv-info-value" style="white-space: pre-line;"><?php echo !empty(trim((string)($project['description'] ?? ''))) ? htmlspecialchars($project['description']) : 'No project description provided.'; ?></p>
                     </div>
                 </div>
             </div>

@@ -40,6 +40,16 @@ function initSidebar() {
     const adminLayout = document.querySelector('.admin-layout');
     const mobileToggle = document.getElementById('mobileMenuToggle');
     const sidebarToggle = document.getElementById('sidebarToggle');
+    const body = document.body;
+
+    if (!sidebar || !adminLayout) {
+        return;
+    }
+
+    function setMobileSidebarOpen(isOpen) {
+        sidebar.classList.toggle('open', isOpen);
+        body.classList.toggle('sidebar-open', isOpen);
+    }
     
     // Restore sidebar state from localStorage
     const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -50,7 +60,7 @@ function initSidebar() {
     
     if (mobileToggle) {
         mobileToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('open');
+            setMobileSidebarOpen(!sidebar.classList.contains('open'));
         });
     }
     
@@ -59,7 +69,11 @@ function initSidebar() {
             const isCollapsed = sidebar.classList.toggle('collapsed');
             adminLayout.classList.toggle('sidebar-collapsed', isCollapsed);
             localStorage.setItem('sidebarCollapsed', isCollapsed);
-            window.dispatchEvent(new Event('resize'));
+
+            // Delay resize dispatch until the width transition settles.
+            setTimeout(function() {
+                window.dispatchEvent(new Event('resize'));
+            }, 220);
         });
     }
     
@@ -67,8 +81,15 @@ function initSidebar() {
     document.addEventListener('click', function(e) {
         if (window.innerWidth < 992) {
             if (mobileToggle && !sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
-                sidebar.classList.remove('open');
+                setMobileSidebarOpen(false);
             }
+        }
+    });
+
+    // Keep mobile sidebar state clean when switching breakpoints.
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            setMobileSidebarOpen(false);
         }
     });
 }

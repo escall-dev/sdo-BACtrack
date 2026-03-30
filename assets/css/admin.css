@@ -2249,10 +2249,16 @@ input[type="file"].form-control::file-selector-button:hover {
     .sidebar {
         transform: translateX(-100%);
         width: var(--sidebar-width) !important;
+        visibility: hidden;
+        pointer-events: none;
+        transition: transform var(--transition-slow), visibility 0s linear var(--transition-slow);
     }
 
     .sidebar.open {
         transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
+        transition: transform var(--transition-slow);
     }
 
     .main-content {

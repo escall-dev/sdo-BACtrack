@@ -354,7 +354,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 160px 20px 32px;
         }
         .content-wrap {
-            max-width: 800px;
+            max-width: 1120px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -388,6 +388,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .card-header i { font-size: 0.95rem; opacity: 0.85; }
         .card-body { padding: 20px; }
+
+        .estimator-card {
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto 18px;
+        }
+
+        .content-wrap > .data-card:not(.estimator-card) {
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .estimator-card .card-body {
+            padding: 10px 12px;
+        }
+
+        .estimator-card .card-header {
+            padding: 10px 14px;
+            font-size: 0.82rem;
+        }
+
+        .estimator-card .search-input {
+            padding: 6px 8px;
+            font-size: 0.82rem;
+        }
+
+        .estimator-card .btn-search {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            gap: 5px;
+        }
+
+        .estimator-card table th,
+        .estimator-card table td {
+            font-size: 0.82rem;
+            line-height: 1.2;
+        }
 
         /* ─── Search / Tracker ─── */
         .search-row {
@@ -828,7 +867,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="content-wrap">
 
             <!-- Detailed Procurement Timeline Planner (table) -->
-            <div class="data-card" style="margin-bottom:18px;">
+            <div class="data-card estimator-card">
                 <div class="card-header">
                     <i class="fas fa-table"></i> Procurement Timeline Estimator
                 </div>
@@ -843,9 +882,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             }
                         }
                     ?>
-                    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
                         <label style="font-weight:700;margin-right:6px;">Procurement Type / Mode of Procurement:</label>
                         <select id="estProcurementType" class="search-input" style="max-width:360px;">
+                            <option value="" selected>Select procurement type / mode</option>
                             <?php foreach ($estimatorTypes as $k => $lbl): ?>
                                 <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
                             <?php endforeach; ?>
@@ -860,16 +900,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn-search" style="background:#ddd;color:#333;box-shadow:none;" onclick="startOver()">Start Over</button>
                     </div>
 
-                    <div id="svpBudgetWarning" style="display:none;margin:10px 0;padding:10px 12px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.92rem;"></div>
+                    <div id="svpBudgetWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
 
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
                             <tr style="background:var(--bg-secondary);">
-                                <th style="padding:8px;border:1px solid var(--border-color);width:36%;text-align:left;">Procurement Stage</th>
-                                <th style="padding:8px;border:1px solid var(--border-color);width:16%;">Start Date</th>
-                                <th style="padding:8px;border:1px solid var(--border-color);width:16%;">End Date</th>
-                                <th style="padding:8px;border:1px solid var(--border-color);width:14%;">Add days</th>
-                                <th style="padding:8px;border:1px solid var(--border-color);width:18%;">Action</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:38%;text-align:left;">Procurement Stage</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:16%;">Start Date</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:16%;">End Date</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:12%;">Add days</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:18%;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="plannerBody">
@@ -877,13 +917,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </tbody>
                     </table>
 
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">
                         <button class="btn-search" onclick="computeLatest()">Compute for the Latest Allowable Time</button>
-                        <div style="text-align:center;font-weight:700;color:var(--text-muted);">User's Guide | Found errors? Tell us.</div>
+                        <div style="text-align:center;font-weight:700;font-size:0.82rem;">
+                            <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
+                                User's Guide | Found errors? Tell us.
+                            </a>
+                        </div>
                     </div>
 
-                    <div style="display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:flex-end;">
-                        <label style="font-weight:800;color:var(--text-secondary);">Latest Allowable Date:</label>
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;justify-content:flex-end;">
+                        <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Date:</label>
                         <input type="date" id="latestAllowableDate" class="search-input" style="max-width:170px;" readonly />
                     </div>
                 </div>
@@ -1189,26 +1233,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ── Detailed Planner logic ── */
         function getSelectedBackwardStages() {
             const type = (document.getElementById('estProcurementType')?.value || '').trim();
-            const stages = ESTIMATOR_BACKWARD_STAGES[type] || ESTIMATOR_BACKWARD_STAGES['PUBLIC_BIDDING'] || [];
+            const stages = type ? (ESTIMATOR_BACKWARD_STAGES[type] || []) : [];
             return { type, stages };
         }
 
         function renderPlannerRows() {
             const tbody = document.getElementById('plannerBody');
             tbody.innerHTML = '';
-            const { stages } = getSelectedBackwardStages();
+            const { type, stages } = getSelectedBackwardStages();
+            if (!type) {
+                return;
+            }
             stages.forEach((s, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding:8px;border:1px solid var(--border-color);">
+                    <td style="padding:4px 6px;border:1px solid var(--border-color);">
                         ${s.name}
-                        <div style="font-size:0.85rem;color:var(--text-muted);">Base: ${Number(s.days) || 0} day(s)</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);">Base: ${Number(s.days) || 0} day(s)</div>
                     </td>
-                    <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="start-${idx}" class="search-input" style="width:100%;max-width:140px;" readonly /></td>
-                    <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="end-${idx}" class="search-input" style="width:100%;max-width:140px;" readonly /></td>
-                    <td style="padding:8px;border:1px solid var(--border-color);text-align:center;"><input type="number" id="add-${idx}" class="search-input" style="width:100%;max-width:80px;" value="0" /></td>
-                    <td style="padding:8px;border:1px solid var(--border-color);text-align:center;">
-                        <button class="btn-search" onclick="updateRow(${idx})">Update</button>
+                    <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="start-${idx}" class="search-input" style="width:100%;max-width:120px;" readonly /></td>
+                    <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="end-${idx}" class="search-input" style="width:100%;max-width:120px;" readonly /></td>
+                    <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;"><input type="number" id="add-${idx}" class="search-input" style="width:100%;max-width:64px;" value="0" /></td>
+                    <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;">
+                        <button class="btn-search" onclick="updateRow(${idx})" style="padding:4px 8px;font-size:0.76rem;">Update</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1232,6 +1279,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         function computeLatestAllowableSchedule() {
+            const { type, stages } = getSelectedBackwardStages();
+            if (!type || stages.length === 0) {
+                setLatestAllowableDate('');
+                return;
+            }
+
             const implementationVal = document.getElementById('plannerStart')?.value || '';
             if (!implementationVal) {
                 setLatestAllowableDate('');
@@ -1246,7 +1299,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const implementationDate = parseDateInput(implementationVal);
             if (!implementationDate) return;
 
-            const { stages } = getSelectedBackwardStages();
             const lastIndex = stages.length - 1;
 
             // Cursor ends the day before implementation date.
@@ -1288,17 +1340,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         function startOver() {
+            const typeEl = document.getElementById('estProcurementType');
+            if (typeEl) {
+                typeEl.value = '';
+            }
             document.getElementById('plannerStart').value = '';
             setLatestAllowableDate('');
-            const { stages } = getSelectedBackwardStages();
-            stages.forEach((_, idx) => {
-                const sEl = document.getElementById(`start-${idx}`);
-                const eEl = document.getElementById(`end-${idx}`);
-                const aEl = document.getElementById(`add-${idx}`);
-                if (sEl) sEl.value = '';
-                if (eEl) eEl.value = '';
-                if (aEl) aEl.value = '0';
-            });
+            renderPlannerRows();
             validateBudgetRealtime();
         }
 

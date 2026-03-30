@@ -38,7 +38,15 @@ if ($auth->isProcurement()) {
 }
 
 // Get activities - Project Owners only from their projects
-$sql = "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title, u.name as project_owner_name
+$hasProjectOwnerNameColumn = false;
+try {
+    $hasProjectOwnerNameColumn = !empty(db()->fetchAll("SHOW COLUMNS FROM projects LIKE 'project_owner_name'"));
+} catch (Exception $e) {
+    $hasProjectOwnerNameColumn = false;
+}
+$projectOwnerSql = $hasProjectOwnerNameColumn ? "COALESCE(NULLIF(p.project_owner_name, ''), u.name)" : "u.name";
+
+$sql = "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title, {$projectOwnerSql} as project_owner_name
         FROM project_activities pa
         LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
         LEFT JOIN projects p ON bc.project_id = p.id

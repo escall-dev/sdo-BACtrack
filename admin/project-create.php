@@ -24,6 +24,44 @@ if (!array_key_exists($defaultProcurementType, PROCUREMENT_TYPES)) {
     $defaultProcurementType = $allTypes[0] ?? 'PUBLIC_BIDDING';
 }
 
+$isBacSecretary = $auth->isBacSecretary();
+$projectOwners = [];
+$projectOwnersById = [];
+$supportsProjectOwnerName = false;
+
+$tableHasColumn = function ($tableName, $columnName) {
+    try {
+        $row = db()->fetch(
+            "SELECT COUNT(*) AS cnt
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+            [$tableName, $columnName]
+        );
+        return !empty($row) && (int)($row['cnt'] ?? 0) > 0;
+    } catch (Exception $e) {
+        return false;
+    }
+};
+
+$supportsProjectOwnerName = $tableHasColumn('projects', 'project_owner_name');
+
+if ($isBacSecretary) {
+    $where = ["role IN ('ADMIN', 'PROJECT_OWNER')"];
+    if ($tableHasColumn('users', 'status')) {
+        $where[] = "status = 'APPROVED'";
+    }
+    if ($tableHasColumn('users', 'is_active')) {
+        $where[] = "is_active = 1";
+    }
+
+    $projectOwners = db()->fetchAll(
+        'SELECT id, name FROM users WHERE ' . implode(' AND ', $where) . ' ORDER BY name ASC'
+    );
+    foreach ($projectOwners as $owner) {
+        $projectOwnersById[(int)$owner['id']] = true;
+    }
+}
+
 
 
 $error = '';
@@ -33,9 +71,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description'] ?? '');
     $procurementType = $_POST['procurement_type'] ?? $defaultProcurementType;
     $startDate = $_POST['start_date'] ?? '';
+    $projectOwnerId = isset($_POST['project_owner_id']) ? (int)$_POST['project_owner_id'] : 0;
+    $typedProjectOwnerName = trim($_POST['project_owner_name'] ?? '');
+
+    if ($isBacSecretary && $typedProjectOwnerName !== '' && !$supportsProjectOwnerName) {
+        try {
+            db()->query("ALTER TABLE projects ADD COLUMN project_owner_name VARCHAR(255) NULL AFTER project_start_date");
+            try {
+                db()->query("CREATE INDEX idx_project_owner_name ON projects (project_owner_name)");
+            } catch (Exception $e) {
+                // Index may already exist; ignore and continue.
+            }
+            $supportsProjectOwnerName = true;
+        } catch (Exception $e) {
+            $msg = strtolower($e->getMessage());
+            if (strpos($msg, 'duplicate column') !== false || strpos($msg, 'already exists') !== false) {
+                $supportsProjectOwnerName = true;
+            } else {
+                $error = 'Custom project owner/company names require database update 017_add_project_owner_name.sql.';
+            }
+        }
+    }
+
+    $selectedOwnerName = '';
+    if ($projectOwnerId > 0) {
+        foreach ($projectOwners as $owner) {
+            if ((int)$owner['id'] === $projectOwnerId) {
+                $selectedOwnerName = trim((string)$owner['name']);
+                break;
+            }
+        }
+    }
 
     if (empty($title)) {
         $error = 'Project title is required.';
+    } elseif ($isBacSecretary && $projectOwnerId <= 0 && $typedProjectOwnerName === '') {
+        $error = 'Project owner / company is required.';
+    } elseif ($isBacSecretary && $projectOwnerId > 0 && !isset($projectOwnersById[$projectOwnerId])) {
+        $error = 'Invalid project owner selected.';
+    } elseif ($isBacSecretary && $projectOwnerId <= 0 && $typedProjectOwnerName !== '' && !$supportsProjectOwnerName) {
+        $error = 'Custom project owner/company names require database update 017_add_project_owner_name.sql.';
     } elseif (empty($startDate)) {
         $error = 'Implementation date is required.';
     } elseif (!array_key_exists($procurementType, PROCUREMENT_TYPES)) {
@@ -48,13 +123,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->beginTransaction();
 
             $projectModel = new Project();
+            $projectOwnerNameToStore = $typedProjectOwnerName !== '' ? $typedProjectOwnerName : $selectedOwnerName;
             // All roles now create APPROVED projects with timeline immediately
             $projectId = $projectModel->create([
                 'title' => $title,
                 'description' => $description,
                 'procurement_type' => $procurementType,
                 'project_start_date' => $startDate,
-                'created_by' => $auth->getUserId(),
+                'project_owner_name' => $isBacSecretary ? $projectOwnerNameToStore : '',
+                'created_by' => ($isBacSecretary && $projectOwnerId > 0) ? $projectOwnerId : $auth->getUserId(),
                 'approval_status' => 'APPROVED'
             ]);
             
@@ -358,6 +435,34 @@ require_once __DIR__ . '/../includes/header.php';
                     <textarea id="description" name="description" class="form-control" rows="4"
                               placeholder="Enter project description"><?php echo htmlspecialchars($_POST['description'] ?? ''); ?></textarea>
                 </div>
+
+                <?php if ($isBacSecretary): ?>
+                <div class="form-group">
+                    <label class="form-label" for="project_owner_id">Project Owner / Company *</label>
+                    <select id="project_owner_id" name="project_owner_id" class="form-control">
+                        <option value="">Select existing account (optional)</option>
+                        <?php foreach ($projectOwners as $owner): ?>
+                        <option value="<?php echo (int)$owner['id']; ?>" <?php echo ((int)($_POST['project_owner_id'] ?? 0) === (int)$owner['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($owner['name']); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small style="color: var(--text-muted); display:block; margin-top:6px;">Select an existing account, or type a custom owner/company name below.</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="project_owner_name">Type Project Owner / Company Name</label>
+                    <input type="text" id="project_owner_name" name="project_owner_name" class="form-control"
+                           placeholder="Enter owner or company name"
+                           value="<?php echo htmlspecialchars($_POST['project_owner_name'] ?? ''); ?>">
+                    <?php if (!$supportsProjectOwnerName): ?>
+                    <small style="color: #b45309;">Custom typed names will work after applying database update 017_add_project_owner_name.sql.</small>
+                    <?php endif; ?>
+                    <?php if (empty($projectOwners)): ?>
+                    <small style="color: #b91c1c;">No approved Project Owner accounts available. Add one first before creating a project.</small>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label class="form-label" for="procurement_type">Procurement Type *</label>

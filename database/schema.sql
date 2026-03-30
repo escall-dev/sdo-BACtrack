@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS projects (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     procurement_type VARCHAR(50) NOT NULL DEFAULT 'PUBLIC_BIDDING',
+    project_owner_name VARCHAR(255) NULL,
     created_by INT NOT NULL,
     approval_status ENUM('PENDING_APPROVAL', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'APPROVED',
     rejection_remarks TEXT NULL,
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS projects (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
     FOREIGN KEY (rejected_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_procurement_type (procurement_type),
+    INDEX idx_project_owner_name (project_owner_name),
     INDEX idx_created_by (created_by),
     INDEX idx_approval_status (approval_status)
 ) ENGINE=InnoDB;

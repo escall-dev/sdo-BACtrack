@@ -365,6 +365,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 32px 32px;
         }
 
+        .top-panels {
+            display: grid;
+            grid-template-columns: minmax(640px, 1.8fr) minmax(360px, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .top-panels .data-card {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+        }
+
         /* ─── Cards ─── */
         .data-card {
             background: var(--card-bg);
@@ -391,15 +404,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .estimator-card {
             width: 100%;
-            max-width: 860px;
-            margin: 0 auto 18px;
+            max-width: none;
+            margin: 0;
         }
 
-        .content-wrap > .data-card:not(.estimator-card) {
+        .tracker-card .card-body {
+            padding: 14px;
+        }
+
+        .tracker-card .search-row {
+            align-items: stretch;
+        }
+
+        .tracker-card .search-input {
+            min-width: 0;
+        }
+
+        .tracker-card .btn-search {
+            padding: 10px 14px;
+        }
+
+        .projects-card {
             width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+            max-width: none;
+            margin: 0;
         }
 
         .estimator-card .card-body {
@@ -580,6 +608,219 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert-error  { background: var(--danger-bg);  color: #991b1b; border: 1px solid #fca5a5; }
         .alert-success{ background: var(--success-bg); color: #065f46; border: 1px solid #6ee7b7; }
         .alert i { margin-top: 1px; flex-shrink: 0; }
+
+        .projects-pager {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .projects-count {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .pager-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pager-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 9px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.83rem;
+            font-weight: 700;
+            transition: all var(--transition-base);
+        }
+
+        .pager-link:hover {
+            border-color: var(--primary-light);
+            background: var(--bg-secondary);
+        }
+
+        .pager-link.active {
+            background: var(--primary-gradient);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(15,76,117,0.24);
+            pointer-events: none;
+        }
+
+        .pager-link.disabled {
+            color: var(--text-muted);
+            background: #f8fafc;
+            pointer-events: none;
+        }
+
+        .project-open-link {
+            color: #0f4c75;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font: inherit;
+            padding: 0;
+        }
+
+        .project-open-link:hover {
+            color: #1b6ca8;
+            text-decoration: underline;
+        }
+
+        .project-row {
+            transition: background var(--transition-base);
+        }
+
+        .project-row:hover {
+            background: #f8fafc;
+        }
+
+        #bacProcessModal {
+            padding: 20px 12px;
+            overflow-y: auto;
+        }
+
+        .dark-modal.bac-modal {
+            max-width: 1140px;
+            width: min(98vw, 1140px);
+            max-height: calc(100vh - 40px);
+            background: #ffffff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dark-modal.bac-modal .modal-close-dark {
+            background: rgba(15, 76, 117, 0.08);
+            color: #334155;
+        }
+
+        .dark-modal.bac-modal .modal-close-dark:hover {
+            background: rgba(15, 76, 117, 0.16);
+            color: #0f172a;
+        }
+
+        .dark-modal.bac-modal .dark-modal-body {
+            padding: 20px 22px 18px;
+            overflow: auto;
+        }
+
+        .bac-modal-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            line-height: 1.3;
+            color: var(--primary-dark);
+        }
+
+        .bac-modal-subtitle {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .bac-table-wrap {
+            margin-top: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow-y: auto;
+            overflow-x: hidden;
+            max-height: 62vh;
+            background: #fff;
+        }
+
+        .bac-process-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            table-layout: fixed;
+        }
+
+        .bac-process-table th,
+        .bac-process-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 9px;
+            text-align: left;
+            vertical-align: top;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .bac-process-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .bac-process-table tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .bac-empty {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            font-size: 0.86rem;
+        }
+
+        .bac-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .bac-status.completed { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+        .bac-status.in_progress { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+        .bac-status.pending { background: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+        .bac-status.delayed { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+        .bac-loading {
+            margin-top: 16px;
+            color: #475569;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
         /* ─── Login Modal (dark, premium) ─── */
         .modal-overlay {
@@ -809,6 +1050,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .header-flag { display: none; }
             .footer-right { text-align: left; }
             .dark-modal-body { padding: 28px 20px 22px; }
+            .dark-modal.bac-modal .dark-modal-body { padding: 18px 14px 14px; }
+            .bac-process-table { font-size: 0.8rem; }
         }
 
         @media (max-width: 800px) {
@@ -831,6 +1074,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 margin-left: 0;
             }
             .header-inner { height: auto; padding: 16px 18px; flex-wrap: wrap; }
+        }
+
+        @media (max-width: 1100px) {
+            .top-panels {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -865,6 +1114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- ── Main Content ── -->
     <main class="main-content">
         <div class="content-wrap">
+
+            <div class="top-panels">
 
             <!-- Detailed Procurement Timeline Planner (table) -->
             <div class="data-card estimator-card">
@@ -932,7 +1183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
-            <div class="data-card">
+            <div class="data-card tracker-card">
                 <div class="card-header">
                     <i class="fas fa-search"></i> Project Tracker
                 </div>
@@ -950,13 +1201,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
+            </div>
+
             <!-- Projects List -->
             <?php
             require_once __DIR__ . '/../models/Project.php';
             $projectModel = new Project();
-            $projects = $projectModel->getAll([]);
+            $allProjects = $projectModel->getAll([]);
+
+            $projectsPerPage = 10;
+            $totalProjects = count($allProjects);
+            $totalPages = max(1, (int) ceil($totalProjects / $projectsPerPage));
+
+            $currentPage = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            if ($currentPage < 1) {
+                $currentPage = 1;
+            }
+            if ($currentPage > $totalPages) {
+                $currentPage = $totalPages;
+            }
+
+            $offset = ($currentPage - 1) * $projectsPerPage;
+            $projects = array_slice($allProjects, $offset, $projectsPerPage);
+
+            $queryParams = $_GET;
+            unset($queryParams['page']);
+
+            $makePageUrl = function($page) use ($queryParams) {
+                $params = $queryParams;
+                if ($page > 1) {
+                    $params['page'] = $page;
+                }
+                $query = http_build_query($params);
+                return 'landing.php' . ($query !== '' ? ('?' . $query) : '');
+            };
+
+            $startRow = $totalProjects === 0 ? 0 : ($offset + 1);
+            $endRow = $totalProjects === 0 ? 0 : min($offset + $projectsPerPage, $totalProjects);
             ?>
-            <div class="data-card">
+            <div class="data-card projects-card">
                 <div class="card-header">
                     <i class="fas fa-folder-open"></i> Projects List
                 </div>
@@ -972,26 +1255,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <table class="data-table" style="width:100%;font-size:0.97rem;border-collapse:collapse;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
                             <thead style="background: #f1f5f9;">
                                 <tr>
-                                    <th style="text-align:center; width: 180px; border:1px solid #e2e8f0; padding:12px 0;">Project Number</th>
-                                    <th style="text-align:center; border:1px solid #e2e8f0; padding:12px 0;">Project Title</th>
+                                    <th style="text-align:center; width: 150px; border:1px solid #e2e8f0; padding:12px 8px;">Project Number</th>
+                                    <th style="text-align:center; border:1px solid #e2e8f0; padding:12px 8px;">Project Title</th>
+                                    <th style="text-align:center; width: 220px; border:1px solid #e2e8f0; padding:12px 8px;">Procurement Type</th>
+                                    <th style="text-align:center; width: 170px; border:1px solid #e2e8f0; padding:12px 8px;">Implementation Date</th>
+                                    <th style="text-align:center; width: 190px; border:1px solid #e2e8f0; padding:12px 8px;">Project Owner</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($projects as $project): ?>
-                                <tr style="background:#fff;">
-                                    <td style="text-align:center;font-weight:600;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 0;">
-                                        <?php printf('PR-%04d', $project['id']); ?>
+                                <?php
+                                    $procTypeKey = $project['procurement_type'] ?? '';
+                                    $procTypeLabel = PROCUREMENT_TYPES[$procTypeKey] ?? $procTypeKey;
+                                    $implementationDate = !empty($project['project_start_date'])
+                                        ? date('M d, Y', strtotime($project['project_start_date']))
+                                        : 'Not set';
+                                    $projectOwner = !empty($project['creator_name'])
+                                        ? $project['creator_name']
+                                        : 'Unassigned';
+                                ?>
+                                <tr class="project-row" style="background:#fff;">
+                                    <td style="text-align:center;font-weight:600;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                        <button
+                                            type="button"
+                                            class="project-open-link"
+                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>);"
+                                            aria-label="Open BAC process for project <?php echo (int)$project['id']; ?>"
+                                        >
+                                            <?php printf('PR-%04d', $project['id']); ?>
+                                        </button>
                                     </td>
-                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 0;">
-                                        <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $project['id']; ?>" style="color: #0f4c75; font-weight: 600; text-decoration: none; display:inline-block;">
+                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                        <button
+                                            type="button"
+                                            class="project-open-link"
+                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>);"
+                                        >
                                             <?php echo htmlspecialchars($project['title']); ?>
-                                        </a>
+                                        </button>
+                                    </td>
+                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                        <?php echo htmlspecialchars($procTypeLabel); ?>
+                                    </td>
+                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                        <?php echo htmlspecialchars($implementationDate); ?>
+                                    </td>
+                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                        <?php echo htmlspecialchars($projectOwner); ?>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
+
+                    <?php if ($totalPages > 1): ?>
+                    <div class="projects-pager">
+                        <div class="projects-count">
+                            Showing <?php echo $startRow; ?>-<?php echo $endRow; ?> of <?php echo $totalProjects; ?> projects
+                        </div>
+                        <div class="pager-links">
+                            <?php if ($currentPage > 1): ?>
+                                <a class="pager-link" href="<?php echo htmlspecialchars($makePageUrl($currentPage - 1)); ?>">Prev</a>
+                            <?php else: ?>
+                                <span class="pager-link disabled">Prev</span>
+                            <?php endif; ?>
+
+                            <?php
+                            $windowStart = max(1, $currentPage - 2);
+                            $windowEnd = min($totalPages, $currentPage + 2);
+
+                            if ($windowStart > 1) {
+                                echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl(1)) . '">1</a>';
+                                if ($windowStart > 2) {
+                                    echo '<span class="pager-link disabled">...</span>';
+                                }
+                            }
+
+                            for ($i = $windowStart; $i <= $windowEnd; $i++) {
+                                if ($i === $currentPage) {
+                                    echo '<span class="pager-link active">' . $i . '</span>';
+                                } else {
+                                    echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl($i)) . '">' . $i . '</a>';
+                                }
+                            }
+
+                            if ($windowEnd < $totalPages) {
+                                if ($windowEnd < $totalPages - 1) {
+                                    echo '<span class="pager-link disabled">...</span>';
+                                }
+                                echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl($totalPages)) . '">' . $totalPages . '</a>';
+                            }
+                            ?>
+
+                            <?php if ($currentPage < $totalPages): ?>
+                                <a class="pager-link" href="<?php echo htmlspecialchars($makePageUrl($currentPage + 1)); ?>">Next</a>
+                            <?php else: ?>
+                                <span class="pager-link disabled">Next</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
                 </div>
             </div>
@@ -1018,6 +1382,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" class="dark-btn-primary" style="text-decoration:none;">
                     <i class="fas fa-external-link-alt"></i> Connect with Us
                 </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── BAC Process Modal ── -->
+    <div class="modal-overlay" id="bacProcessModal" onclick="if(event.target===this) closeBacProcessModal()">
+        <div class="dark-modal bac-modal">
+            <button type="button" class="modal-close-dark" onclick="closeBacProcessModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="dark-modal-body">
+                <h2 class="bac-modal-title" id="bacModalProjectTitle">BAC Process</h2>
+                <p class="bac-modal-subtitle" id="bacModalProjectStatus">Loading status...</p>
+                <div id="bacModalContent" class="bac-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading BAC process...</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1115,6 +1496,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         function closeContactModal() {
             document.getElementById('contactModal').style.display = 'none';
+        }
+
+        function closeBacProcessModal() {
+            document.getElementById('bacProcessModal').style.display = 'none';
+        }
+
+        function statusClass(status) {
+            const key = String(status || '').toLowerCase();
+            if (key === 'completed') return 'completed';
+            if (key === 'in_progress') return 'in_progress';
+            if (key === 'delayed') return 'delayed';
+            return 'pending';
+        }
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : String(value);
+            return div.innerHTML;
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return value;
+        }
+
+        function renderBacProcess(project) {
+            const titleEl = document.getElementById('bacModalProjectTitle');
+            const statusEl = document.getElementById('bacModalProjectStatus');
+            const contentEl = document.getElementById('bacModalContent');
+
+            titleEl.textContent = `PR-${String(project.id).padStart(4, '0')} - ${project.title}`;
+            statusEl.textContent = `Current Status: ${project.timeline_status || 'N/A'}`;
+
+            if (!project.activities || project.activities.length === 0) {
+                contentEl.className = 'bac-empty';
+                contentEl.innerHTML = 'No BAC process activities are available for this project yet.';
+                return;
+            }
+
+            const rows = project.activities.map((act) => {
+                const cls = statusClass(act.status);
+                const statusLabel = String(act.status || '').replace(/_/g, ' ');
+                return `
+                    <tr>
+                        <td>${escapeHtml(act.step)}</td>
+                        <td>${escapeHtml(act.name)}</td>
+                        <td>${escapeHtml(formatDate(act.planned_start))}</td>
+                        <td>${escapeHtml(formatDate(act.planned_end))}</td>
+                        <td><span class="bac-status ${cls}">${escapeHtml(statusLabel)}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            contentEl.className = 'bac-table-wrap';
+            contentEl.innerHTML = `
+                <table class="bac-process-table">
+                    <colgroup>
+                        <col style="width:8%;">
+                        <col style="width:40%;">
+                        <col style="width:17%;">
+                        <col style="width:17%;">
+                        <col style="width:18%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Activity</th>
+                            <th>Planned Start</th>
+                            <th>Planned End</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        function openBacProcessModal(projectId, projectTitle) {
+            const modal = document.getElementById('bacProcessModal');
+            const titleEl = document.getElementById('bacModalProjectTitle');
+            const statusEl = document.getElementById('bacModalProjectStatus');
+            const contentEl = document.getElementById('bacModalContent');
+
+            titleEl.textContent = `Loading project #${projectId}...`;
+            statusEl.textContent = 'Fetching BAC process...';
+            contentEl.className = 'bac-loading';
+            contentEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading BAC process...</span>';
+            modal.style.display = 'flex';
+
+            fetch('api/track-project.php?q=' + encodeURIComponent(projectId))
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success || !res.data || res.data.length === 0) {
+                        titleEl.textContent = projectTitle ? String(projectTitle) : `Project #${projectId}`;
+                        statusEl.textContent = 'Unable to load BAC process';
+                        contentEl.className = 'bac-empty';
+                        contentEl.textContent = 'No BAC process data found for this project.';
+                        return;
+                    }
+                    renderBacProcess(res.data[0]);
+                })
+                .catch(() => {
+                    titleEl.textContent = projectTitle ? String(projectTitle) : `Project #${projectId}`;
+                    statusEl.textContent = 'Unable to load BAC process';
+                    contentEl.className = 'bac-empty';
+                    contentEl.textContent = 'Error fetching BAC process. Please try again.';
+                });
         }
 
         /* Clear stale session token */

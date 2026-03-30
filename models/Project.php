@@ -8,14 +8,34 @@ require_once __DIR__ . '/../config/database.php';
 
 class Project {
     private $db;
+    private $hasProjectOwnerNameColumn = null;
 
     public function __construct() {
         $this->db = db();
     }
 
+    private function projectsTableHasProjectOwnerNameColumn() {
+        if ($this->hasProjectOwnerNameColumn !== null) {
+            return $this->hasProjectOwnerNameColumn;
+        }
+
+        try {
+            $rows = $this->db->fetchAll("SHOW COLUMNS FROM projects LIKE 'project_owner_name'");
+            $this->hasProjectOwnerNameColumn = !empty($rows);
+        } catch (Exception $e) {
+            $this->hasProjectOwnerNameColumn = false;
+        }
+
+        return $this->hasProjectOwnerNameColumn;
+    }
+
     public function findById($id) {
+        $ownerNameSql = $this->projectsTableHasProjectOwnerNameColumn()
+            ? "COALESCE(NULLIF(p.project_owner_name, ''), u.name)"
+            : "u.name";
+
         return $this->db->fetch(
-            "SELECT p.*, u.name as creator_name, u.avatar_url as creator_avatar,
+            "SELECT p.*, {$ownerNameSql} as creator_name, u.avatar_url as creator_avatar,
                     rej.name as rejected_by_name
              FROM projects p 
              LEFT JOIN users u ON p.created_by = u.id 
@@ -68,7 +88,11 @@ class Project {
     }
 
     public function getAll($filters = []) {
-        $sql = "SELECT p.*, u.name as creator_name, u.avatar_url as creator_avatar,
+        $ownerNameSql = $this->projectsTableHasProjectOwnerNameColumn()
+            ? "COALESCE(NULLIF(p.project_owner_name, ''), u.name)"
+            : "u.name";
+
+        $sql = "SELECT p.*, {$ownerNameSql} as creator_name, u.avatar_url as creator_avatar,
                 (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count
                 FROM projects p 
                 LEFT JOIN users u ON p.created_by = u.id 
@@ -104,18 +128,34 @@ class Project {
     public function create($data) {
         $approvalStatus = $data['approval_status'] ?? 'APPROVED';
         $startDate = !empty($data['project_start_date']) ? $data['project_start_date'] : null;
-        $this->db->query(
-            "INSERT INTO projects (title, description, procurement_type, project_start_date, created_by, approval_status) 
-             VALUES (?, ?, ?, ?, ?, ?)",
-            [
-                $data['title'],
-                $data['description'] ?? '',
-                $data['procurement_type'] ?? 'PUBLIC_BIDDING',
-                $startDate,
-                $data['created_by'],
-                $approvalStatus
-            ]
-        );
+        if ($this->projectsTableHasProjectOwnerNameColumn()) {
+            $this->db->query(
+                "INSERT INTO projects (title, description, procurement_type, project_start_date, project_owner_name, created_by, approval_status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [
+                    $data['title'],
+                    $data['description'] ?? '',
+                    $data['procurement_type'] ?? 'PUBLIC_BIDDING',
+                    $startDate,
+                    trim((string)($data['project_owner_name'] ?? '')),
+                    $data['created_by'],
+                    $approvalStatus
+                ]
+            );
+        } else {
+            $this->db->query(
+                "INSERT INTO projects (title, description, procurement_type, project_start_date, created_by, approval_status) 
+                 VALUES (?, ?, ?, ?, ?, ?)",
+                [
+                    $data['title'],
+                    $data['description'] ?? '',
+                    $data['procurement_type'] ?? 'PUBLIC_BIDDING',
+                    $startDate,
+                    $data['created_by'],
+                    $approvalStatus
+                ]
+            );
+        }
         return $this->db->lastInsertId();
     }
 
@@ -163,6 +203,10 @@ class Project {
         if (array_key_exists('project_start_date', $data)) {
             $fields[] = 'project_start_date = ?';
             $params[] = $data['project_start_date'] ?: null;
+        }
+        if (array_key_exists('project_owner_name', $data) && $this->projectsTableHasProjectOwnerNameColumn()) {
+            $fields[] = 'project_owner_name = ?';
+            $params[] = trim((string)$data['project_owner_name']);
         }
 
         if (empty($fields)) return false;

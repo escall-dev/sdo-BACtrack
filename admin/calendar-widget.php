@@ -41,10 +41,26 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
 
 #landing-calendar-container .calendar-widget-filter {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 10px;
     flex-wrap: nowrap;
     margin-bottom: 10px;
+}
+
+#landing-calendar-container .calendar-widget-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#landing-calendar-container .calendar-widget-field.search {
+    flex: 1 1 210px;
+    min-width: 170px;
+}
+
+#landing-calendar-container .calendar-widget-field.project {
+    flex: 0 1 340px;
+    min-width: 220px;
 }
 
 #landing-calendar-container .calendar-widget-filter label {
@@ -53,6 +69,7 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
     font-size: 0.84rem;
 }
 
+#landing-calendar-container .calendar-widget-filter input,
 #landing-calendar-container .calendar-widget-filter select {
     min-width: 0;
     width: 100%;
@@ -63,6 +80,67 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
     background: #fff;
     color: var(--text-primary);
     font-family: inherit;
+}
+
+#landing-calendar-container .calendar-widget-filter input:focus,
+#landing-calendar-container .calendar-widget-filter select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+#landing-calendar-container .calendar-widget-search-empty {
+    margin: -2px 0 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+#landing-calendar-container .calendar-widget-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin: 4px 0 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: #f8fafc;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+}
+
+#landing-calendar-container .calendar-widget-legend-title {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+#landing-calendar-container .calendar-widget-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#landing-calendar-container .calendar-widget-legend-swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+#landing-calendar-container .calendar-widget-legend-swatch.pending {
+    background: #f59e0b;
+}
+
+#landing-calendar-container .calendar-widget-legend-swatch.in-progress {
+    background: #3b82f6;
+}
+
+#landing-calendar-container .calendar-widget-legend-swatch.completed {
+    background: #10b981;
+}
+
+#landing-calendar-container .calendar-widget-legend-swatch.delayed {
+    background: #ef4444;
 }
 
 #landing-calendar-container .calendar-widget-prompt {
@@ -174,6 +252,11 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
         flex-wrap: wrap;
     }
 
+    #landing-calendar-container .calendar-widget-field.project,
+    #landing-calendar-container .calendar-widget-field.search {
+        min-width: 100%;
+    }
+
     #landing-calendar-container .calendar-widget-filter select {
         min-width: 100%;
     }
@@ -188,13 +271,49 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
 
     <div class="calendar-widget-body">
         <div class="calendar-widget-filter">
-            <label for="landingCalendarProjectFilter">Project</label>
-            <select id="landingCalendarProjectFilter" <?php echo empty($projects) ? 'disabled' : ''; ?>>
-                <option value="">Select a project first</option>
-                <?php foreach ($projects as $project): ?>
-                    <option value="<?php echo (int) $project['id']; ?>"><?php echo htmlspecialchars($project['title']); ?></option>
-                <?php endforeach; ?>
-            </select>
+            <div class="calendar-widget-field search">
+                <label for="landingCalendarTrackingSearch">Search BACTrack No.</label>
+                <input
+                    id="landingCalendarTrackingSearch"
+                    type="search"
+                    placeholder="Type tracking no. (e.g., BTQ2M-202504-001)"
+                    <?php echo empty($projects) ? 'disabled' : ''; ?>
+                >
+            </div>
+            <div class="calendar-widget-field project">
+                <label for="landingCalendarProjectFilter">Project</label>
+                <select id="landingCalendarProjectFilter" <?php echo empty($projects) ? 'disabled' : ''; ?>>
+                    <option value="">Select a project first</option>
+                    <?php foreach ($projects as $project): ?>
+                        <?php
+                            $trackingId = trim((string)($project['bactrack_id'] ?? ''));
+                            if ($trackingId === '') {
+                                $trackingId = 'PR-' . str_pad((string)$project['id'], 4, '0', STR_PAD_LEFT);
+                            }
+                            $projectTitle = (string)($project['title'] ?? '');
+                            $optionLabel = $trackingId . ' - ' . $projectTitle;
+                        ?>
+                        <option
+                            value="<?php echo (int)$project['id']; ?>"
+                            data-bactrack-id="<?php echo htmlspecialchars($trackingId, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-project-title="<?php echo htmlspecialchars($projectTitle, ENT_QUOTES, 'UTF-8'); ?>"
+                        >
+                            <?php echo htmlspecialchars($optionLabel); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div id="landingCalendarSearchEmpty" class="calendar-widget-search-empty" style="display:none;">
+            No project matched that BACTrack number.
+        </div>
+
+        <div class="calendar-widget-legend" aria-label="Calendar status color legend">
+            <span class="calendar-widget-legend-title">Legend:</span>
+            <span class="calendar-widget-legend-item"><span class="calendar-widget-legend-swatch pending"></span>Pending</span>
+            <span class="calendar-widget-legend-item"><span class="calendar-widget-legend-swatch in-progress"></span>In Progress</span>
+            <span class="calendar-widget-legend-item"><span class="calendar-widget-legend-swatch completed"></span>Completed</span>
+            <span class="calendar-widget-legend-item"><span class="calendar-widget-legend-swatch delayed"></span>Delayed</span>
         </div>
 
         <?php if (empty($projects)): ?>

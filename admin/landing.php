@@ -1585,6 +1585,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         let landingCalendarLoading = false;
         let landingCalendarInstance = null;
         let landingCalendarSelectedProject = '';
+        let landingCalendarFocusedProject = '';
+        let landingCalendarFocusRequestId = 0;
         const LANDING_CALENDAR_WIDGET_URL = 'calendar-widget.php';
         const LANDING_CALENDAR_VIEW_KEY = 'landing_calendar_view';
 
@@ -1652,6 +1654,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function initLandingCalendarWidget() {
             const projectSelect = document.getElementById('landingCalendarProjectFilter');
+            const trackingSearch = document.getElementById('landingCalendarTrackingSearch');
+            const searchEmpty = document.getElementById('landingCalendarSearchEmpty');
             const prompt = document.getElementById('landingCalendarPrompt');
             const shell = document.getElementById('landingCalendarShell');
             const calendarEl = document.getElementById('landingCalendar');
@@ -1659,6 +1663,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!projectSelect || !prompt || !shell || !calendarEl) {
                 return;
             }
+
+            const defaultOptionText = projectSelect.options.length > 0
+                ? String(projectSelect.options[0].textContent || 'Select a project first')
+                : 'Select a project first';
+
+            const normalizeTrackingTerm = (value) => String(value || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '');
+
+            const projectOptionRecords = Array.from(projectSelect.options)
+                .filter((option) => String(option.value || '').trim() !== '')
+                .map((option) => {
+                    const value = String(option.value || '').trim();
+                    const bactrackId = String(option.dataset.bactrackId || '').trim();
+                    const projectTitle = String(option.dataset.projectTitle || option.textContent || '').trim();
+                    return {
+                        value,
+                        text: String(option.textContent || '').trim(),
+                        bactrackId,
+                        projectTitle,
+                        bactrackIdNormalized: normalizeTrackingTerm(bactrackId)
+                    };
+                });
 
             function ensureCalendarInstance() {
                 if (landingCalendarInstance || typeof FullCalendar === 'undefined') {
@@ -1734,6 +1761,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!landingCalendarSelectedProject) {
                     prompt.style.display = '';
                     shell.style.display = 'none';
+                    landingCalendarFocusedProject = '';
+                    landingCalendarFocusRequestId += 1;
                     return;
                 }
 
@@ -1741,13 +1770,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 shell.style.display = '';
                 ensureCalendarInstance();
 
-                if (landingCalendarInstance) {
-                    landingCalendarInstance.refetchEvents();
+                if (!landingCalendarInstance) {
+                    return;
                 }
+
+                const selectedProjectId = landingCalendarSelectedProject;
+                const searchQuery = trackingSearch ? normalizeTrackingTerm(trackingSearch.value) : '';
+                const forceRefocus = searchQuery !== '';
+
+                if (!forceRefocus && landingCalendarFocusedProject === selectedProjectId) {
+                    landingCalendarInstance.refetchEvents();
+                    return;
+                }
+
+                landingCalendarFocusedProject = selectedProjectId;
+                const requestId = ++landingCalendarFocusRequestId;
+
+                fetch('api/calendar-events.php?project=' + encodeURIComponent(selectedProjectId))
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (!landingCalendarInstance) {
+                            return;
+                        }
+                        if (requestId !== landingCalendarFocusRequestId) {
+                            return;
+                        }
+                        if (landingCalendarSelectedProject !== selectedProjectId) {
+                            return;
+                        }
+
+                        const events = Array.isArray(data)
+                            ? data
+                            : (data && data.success && Array.isArray(data.events) ? data.events : []);
+
+                        if (events.length > 0) {
+                            const firstValidEvent = events.find((eventItem) => {
+                                const rawDate = String((eventItem && eventItem.start) || '').trim();
+                                if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+                                    return false;
+                                }
+                                return rawDate !== '0000-00-00';
+                            });
+
+                            if (firstValidEvent) {
+                                const firstEventDate = String(firstValidEvent.start || '').trim();
+                                landingCalendarInstance.gotoDate(firstEventDate);
+                                landingCalendarInstance.refetchEvents();
+                                return;
+                            }
+                        }
+
+                        landingCalendarInstance.refetchEvents();
+                    })
+                    .catch(() => {
+                        if (!landingCalendarInstance) {
+                            return;
+                        }
+                        if (requestId !== landingCalendarFocusRequestId) {
+                            return;
+                        }
+                        if (landingCalendarSelectedProject !== selectedProjectId) {
+                            return;
+                        }
+                        landingCalendarInstance.refetchEvents();
+                    });
+            }
+
+            function rebuildProjectOptions() {
+                const currentValue = String(projectSelect.value || '').trim();
+                const query = trackingSearch ? normalizeTrackingTerm(trackingSearch.value) : '';
+
+                projectSelect.innerHTML = '';
+
+                const placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.textContent = defaultOptionText;
+                projectSelect.appendChild(placeholderOption);
+
+                let matchCount = 0;
+                let hasCurrent = false;
+                let singleMatchValue = '';
+                let exactMatchValue = '';
+
+                projectOptionRecords.forEach((record) => {
+                    const matches = query === '' || record.bactrackIdNormalized.indexOf(query) !== -1;
+                    if (!matches) {
+                        return;
+                    }
+
+                    const option = document.createElement('option');
+                    option.value = record.value;
+                    option.textContent = record.text;
+                    option.dataset.bactrackId = record.bactrackId;
+                    option.dataset.projectTitle = record.projectTitle;
+                    projectSelect.appendChild(option);
+                    matchCount += 1;
+                    singleMatchValue = record.value;
+
+                    if (query !== '' && record.bactrackIdNormalized === query) {
+                        exactMatchValue = record.value;
+                    }
+
+                    if (record.value === currentValue) {
+                        hasCurrent = true;
+                    }
+                });
+
+                projectSelect.disabled = matchCount === 0;
+
+                if (exactMatchValue !== '') {
+                    projectSelect.value = exactMatchValue;
+                } else if (query !== '' && matchCount === 1 && singleMatchValue !== '') {
+                    projectSelect.value = singleMatchValue;
+                } else if (hasCurrent) {
+                    projectSelect.value = currentValue;
+                } else {
+                    projectSelect.value = '';
+                }
+
+                if (searchEmpty) {
+                    searchEmpty.style.display = query !== '' && matchCount === 0 ? '' : 'none';
+                }
+
+                applyProjectSelection();
             }
 
             projectSelect.addEventListener('change', applyProjectSelection);
-            applyProjectSelection();
+
+            if (trackingSearch) {
+                trackingSearch.addEventListener('input', rebuildProjectOptions);
+                trackingSearch.addEventListener('search', rebuildProjectOptions);
+            }
+
+            rebuildProjectOptions();
         }
 
         /* ── Modal ── */

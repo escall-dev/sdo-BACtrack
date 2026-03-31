@@ -12,26 +12,25 @@ require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/auth.php';
 
+// Get filter parameters early so access control can account for project-scoped lookups.
+$start = $_GET['start'] ?? null;
+$end = $_GET['end'] ?? null;
+$projectId = isset($_GET['project']) ? (int)$_GET['project'] : null;
+
 $auth = auth();
-if (!$auth->isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
-if (!$auth->isProcurement()) {
+$isProcurementUser = $auth->isLoggedIn() && $auth->isProcurement();
+
+// Allow landing widget calls that are scoped to a specific approved project.
+// Keep broad calendar queries restricted to procurement roles.
+if (!$isProcurementUser && $projectId <= 0) {
     http_response_code(403);
-    echo json_encode(['error' => 'Access denied. Calendar is for BAC Members only.']);
+    echo json_encode(['error' => 'Access denied. Project-specific calendar lookup is required.']);
     exit;
 }
 
 require_once __DIR__ . '/../../models/ProjectActivity.php';
 
 $activityModel = new ProjectActivity();
-
-// Get filter parameters
-$start = $_GET['start'] ?? null;
-$end = $_GET['end'] ?? null;
-$projectId = isset($_GET['project']) ? (int)$_GET['project'] : null;
 
 // Build query - only include activities from APPROVED projects (exclude declined/pending)
 $sql = "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title

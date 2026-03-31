@@ -1445,6 +1445,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <th style="text-align:center; width: 220px; border:1px solid #e2e8f0; padding:12px 8px;">Procurement Type</th>
                                     <th style="text-align:center; width: 170px; border:1px solid #e2e8f0; padding:12px 8px;">Implementation Date</th>
                                     <th style="text-align:center; width: 190px; border:1px solid #e2e8f0; padding:12px 8px;">Project Owner</th>
+                                    <th style="text-align:center; width: 260px; border:1px solid #e2e8f0; padding:12px 8px;">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1452,6 +1453,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php
                                     $procTypeKey = $project['procurement_type'] ?? '';
                                     $procTypeLabel = PROCUREMENT_TYPES[$procTypeKey] ?? $procTypeKey;
+                                    $rawStatus = !empty($project['timeline_status'])
+                                        ? $project['timeline_status']
+                                        : ($project['approval_status'] ?? 'APPROVED');
+                                    $statusText = (string)$rawStatus;
+                                    if (preg_match('/^Step\s+\d+\s*:\s*(.+?)(?:\s*\([A-Z_]+\))?$/i', $statusText, $matches)) {
+                                        $statusText = trim($matches[1]);
+                                    } elseif (preg_match('/^[A-Z_]+$/', $statusText)) {
+                                        $statusText = ucwords(strtolower(str_replace('_', ' ', $statusText)));
+                                    }
                                     $implementationDate = !empty($project['project_start_date'])
                                         ? date('M d, Y', strtotime($project['project_start_date']))
                                         : 'Not set';
@@ -1487,6 +1497,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </td>
                                     <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
                                         <?php echo htmlspecialchars($projectOwner); ?>
+                                    </td>
+                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                        <?php echo htmlspecialchars($statusText); ?>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>

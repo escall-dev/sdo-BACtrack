@@ -839,6 +839,200 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #fff;
         }
 
+        #calendarActivityModal {
+            padding: 20px 12px;
+            overflow-y: auto;
+        }
+
+        .dark-modal.calendar-activity-modal {
+            max-width: 780px;
+            width: min(95vw, 780px);
+            max-height: calc(100vh - 40px);
+            background: #ffffff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dark-modal.calendar-activity-modal .modal-close-dark {
+            background: rgba(15, 76, 117, 0.08);
+            color: #334155;
+        }
+
+        .dark-modal.calendar-activity-modal .modal-close-dark:hover {
+            background: rgba(15, 76, 117, 0.16);
+            color: #0f172a;
+        }
+
+        .calendar-activity-body {
+            padding: 20px 22px 18px;
+            overflow: auto;
+        }
+
+        .calendar-activity-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            line-height: 1.3;
+            color: var(--primary-dark);
+        }
+
+        .calendar-activity-subtitle {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .calendar-activity-card {
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: #f8fafc;
+        }
+
+        .calendar-activity-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .calendar-activity-step {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .calendar-activity-project {
+            margin-top: 4px;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .calendar-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .calendar-status-pill.pending { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .calendar-status-pill.in-progress { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+        .calendar-status-pill.completed { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+        .calendar-status-pill.delayed { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+        .calendar-activity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .calendar-activity-cell {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            background: #ffffff;
+        }
+
+        .calendar-activity-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .calendar-activity-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+
+        .calendar-activity-meta {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .calendar-activity-meta-item {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .calendar-activity-meta-item strong {
+            color: #0f172a;
+        }
+
+        .calendar-activity-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .calendar-activity-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+        }
+
+        .calendar-activity-link.secondary {
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            background: #ffffff;
+        }
+
+        .calendar-activity-link.secondary:hover {
+            border-color: #cbd5e1;
+            color: #0f172a;
+            background: #f8fafc;
+        }
+
+        .calendar-activity-link.primary {
+            border: 1px solid transparent;
+            color: #ffffff;
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 14px rgba(15, 76, 117, 0.3);
+        }
+
+        .calendar-activity-link.primary:hover {
+            background: linear-gradient(135deg, #1b6ca8 0%, #2578ba 100%);
+            color: #ffffff;
+        }
+
+        @media (max-width: 720px) {
+            .calendar-activity-grid,
+            .calendar-activity-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .bac-process-table {
             width: 100%;
             border-collapse: collapse;
@@ -1500,6 +1694,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+    <!-- ── Calendar Activity Modal ── -->
+    <div class="modal-overlay" id="calendarActivityModal" onclick="if(event.target===this) closeLandingCalendarActivityModal()">
+        <div class="dark-modal calendar-activity-modal">
+            <button type="button" class="modal-close-dark" onclick="closeLandingCalendarActivityModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="calendar-activity-body">
+                <h2 class="calendar-activity-title" id="calendarActivityTitle">Process Details</h2>
+                <p class="calendar-activity-subtitle" id="calendarActivitySubtitle">Select a calendar event to view details.</p>
+                <div id="calendarActivityContent" class="bac-loading">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Process details will appear here.</span>
+                </div>
+                <div class="calendar-activity-actions">
+                    <button type="button" class="calendar-activity-link secondary" onclick="closeLandingCalendarActivityModal()">
+                        <i class="fas fa-xmark"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Login Modal ── -->
     <div class="modal-overlay" id="loginModal" onclick="if(event.target===this) closeLoginModal()">
         <div class="dark-modal">
@@ -1714,11 +1930,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             .then((response) => response.json())
                             .then((data) => {
                                 if (Array.isArray(data)) {
-                                    successCallback(data);
+                                    successCallback(data.map(function(eventItem) {
+                                        if (!eventItem || typeof eventItem !== 'object') {
+                                            return eventItem;
+                                        }
+                                        var normalizedEvent = Object.assign({}, eventItem);
+                                        delete normalizedEvent.url;
+                                        return normalizedEvent;
+                                    }));
                                     return;
                                 }
                                 if (data && data.success && Array.isArray(data.events)) {
-                                    successCallback(data.events);
+                                    successCallback(data.events.map(function(eventItem) {
+                                        if (!eventItem || typeof eventItem !== 'object') {
+                                            return eventItem;
+                                        }
+                                        var normalizedEvent = Object.assign({}, eventItem);
+                                        delete normalizedEvent.url;
+                                        return normalizedEvent;
+                                    }));
                                     return;
                                 }
                                 failureCallback(data && data.error ? data.error : 'Unable to load events');
@@ -1732,13 +1962,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (status !== '') {
                             info.el.classList.add('status-' + status);
                         }
+                        if (info.el && info.el.hasAttribute('href')) {
+                            info.el.removeAttribute('href');
+                        }
                     },
                     eventClick: function(info) {
-                        if (!info.event.url) {
+                        info.jsEvent.preventDefault();
+                        if (!info.event || !info.event.id) {
                             return;
                         }
-                        info.jsEvent.preventDefault();
-                        window.location.href = info.event.url;
+                        openLandingCalendarActivityModal(info.event.id, info.event);
                     },
                     datesSet: function(info) {
                         localStorage.setItem(LANDING_CALENDAR_VIEW_KEY, info.view.type);
@@ -1921,6 +2154,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function closeBacProcessModal() {
             document.getElementById('bacProcessModal').style.display = 'none';
+        }
+
+        function toReadableStatus(status) {
+            return String(status || '')
+                .replace(/_/g, ' ')
+                .trim()
+                .toLowerCase()
+                .replace(/\b\w/g, function(char) { return char.toUpperCase(); });
+        }
+
+        function toStatusClass(status) {
+            const key = String(status || '').toLowerCase().replace(/_/g, '-');
+            if (key === 'in-progress') return 'in-progress';
+            if (key === 'completed') return 'completed';
+            if (key === 'delayed') return 'delayed';
+            return 'pending';
+        }
+
+        function formatLongDate(value) {
+            const raw = String(value || '').trim();
+            if (!raw || raw === '0000-00-00') {
+                return 'N/A';
+            }
+
+            const parsed = new Date(raw + 'T00:00:00');
+            if (Number.isNaN(parsed.getTime())) {
+                return raw;
+            }
+
+            return parsed.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function buildCalendarActivityFallback(activityId, calendarEvent) {
+            const props = (calendarEvent && calendarEvent.extendedProps) ? calendarEvent.extendedProps : {};
+            return {
+                id: Number(activityId) || 0,
+                step_name: String((calendarEvent && calendarEvent.title) || 'Process Details'),
+                project_title: String(props.project_title || 'Unknown project'),
+                step_order: props.step_order != null ? props.step_order : '-',
+                cycle_number: props.cycle_number != null ? props.cycle_number : '-',
+                status: String(props.status || 'PENDING'),
+                status_label: toReadableStatus(props.status || 'PENDING'),
+                planned_start_date: String(props.planned_start_date || ''),
+                planned_end_date: String(props.planned_end_date || ''),
+                planned_start_date_formatted: formatLongDate(props.planned_start_date || ''),
+                planned_end_date_formatted: formatLongDate(props.planned_end_date || ''),
+                timing_label: 'Pending validation',
+                compliance_label: null
+            };
+        }
+
+        function renderLandingCalendarActivity(activity) {
+            const titleEl = document.getElementById('calendarActivityTitle');
+            const subtitleEl = document.getElementById('calendarActivitySubtitle');
+            const contentEl = document.getElementById('calendarActivityContent');
+
+            if (!titleEl || !subtitleEl || !contentEl) {
+                return;
+            }
+
+            const stepName = String(activity.step_name || 'Process Details');
+            const projectTitle = String(activity.project_title || 'Unknown project');
+            const stepOrder = activity.step_order != null ? String(activity.step_order) : '-';
+            const cycleNumber = activity.cycle_number != null ? String(activity.cycle_number) : '-';
+            const statusLabel = String(activity.status_label || toReadableStatus(activity.status || 'PENDING') || 'Pending');
+            const statusClass = toStatusClass(activity.status || 'PENDING');
+            const plannedStart = String(activity.planned_start_date_formatted || formatLongDate(activity.planned_start_date || ''));
+            const plannedEnd = String(activity.planned_end_date_formatted || formatLongDate(activity.planned_end_date || ''));
+            const timelineLabel = String(activity.timing_label || 'N/A');
+            const complianceLabel = String(activity.compliance_label || 'Not set');
+
+            titleEl.textContent = stepName;
+            subtitleEl.textContent = projectTitle + ' | Process ' + stepOrder;
+
+            contentEl.className = '';
+            contentEl.innerHTML = `
+                <div class="calendar-activity-card">
+                    <div class="calendar-activity-top">
+                        <div>
+                            <h3 class="calendar-activity-step">${escapeHtml(stepName)}</h3>
+                            <p class="calendar-activity-project">${escapeHtml(projectTitle)} | Process ${escapeHtml(stepOrder)}</p>
+                        </div>
+                        <span class="calendar-status-pill ${escapeHtml(statusClass)}">${escapeHtml(statusLabel)}</span>
+                    </div>
+
+                    <div class="calendar-activity-grid">
+                        <div class="calendar-activity-cell">
+                            <span class="calendar-activity-label">Planned Start</span>
+                            <div class="calendar-activity-value">${escapeHtml(plannedStart)}</div>
+                        </div>
+                        <div class="calendar-activity-cell">
+                            <span class="calendar-activity-label">Planned End</span>
+                            <div class="calendar-activity-value">${escapeHtml(plannedEnd)}</div>
+                        </div>
+                        <div class="calendar-activity-cell">
+                            <span class="calendar-activity-label">Timeline Status</span>
+                            <div class="calendar-activity-value">${escapeHtml(timelineLabel)}</div>
+                        </div>
+                    </div>
+
+                    <div class="calendar-activity-meta">
+                        <div class="calendar-activity-meta-item">Cycle: <strong>${escapeHtml(cycleNumber)}</strong></div>
+                        <div class="calendar-activity-meta-item">Compliance: <strong>${escapeHtml(complianceLabel)}</strong></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openLandingCalendarActivityModal(activityId, calendarEvent) {
+            const modalEl = document.getElementById('calendarActivityModal');
+            const titleEl = document.getElementById('calendarActivityTitle');
+            const subtitleEl = document.getElementById('calendarActivitySubtitle');
+            const contentEl = document.getElementById('calendarActivityContent');
+            const fallbackData = buildCalendarActivityFallback(activityId, calendarEvent);
+
+            if (!modalEl || !titleEl || !subtitleEl || !contentEl) {
+                return;
+            }
+
+            titleEl.textContent = fallbackData.step_name;
+            subtitleEl.textContent = 'Loading process details...';
+            contentEl.className = 'bac-loading';
+            contentEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading process details...</span>';
+            modalEl.style.display = 'flex';
+
+            fetch('api/activity-detail.php?id=' + encodeURIComponent(String(activityId)))
+                .then(function(response) {
+                    return response.json().then(function(payload) {
+                        return {
+                            ok: response.ok,
+                            payload: payload
+                        };
+                    });
+                })
+                .then(function(result) {
+                    if (result.ok && result.payload && result.payload.id) {
+                        renderLandingCalendarActivity(result.payload);
+                        return;
+                    }
+                    renderLandingCalendarActivity(fallbackData);
+                })
+                .catch(function() {
+                    renderLandingCalendarActivity(fallbackData);
+                });
+        }
+
+        function closeLandingCalendarActivityModal() {
+            const modalEl = document.getElementById('calendarActivityModal');
+            if (modalEl) {
+                modalEl.style.display = 'none';
+            }
         }
 
         function statusClass(status) {
@@ -2309,6 +2697,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.addEventListener('DOMContentLoaded', function() {
             switchLandingTab('home');
             renderPlannerRows();
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeLandingCalendarActivityModal();
+                }
+            });
 
             const typeEl = document.getElementById('estProcurementType');
             const budgetEl = document.getElementById('estBudget');

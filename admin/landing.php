@@ -1618,7 +1618,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <th title="Project Title">Project Title</th>
                                     <th title="Procurement Type">Procurement</th>
                                     <th title="Implementation Date">Impl. Date</th>
-                                    <th title="Project Owner">Owner</th>
+                                    <th title="Project Proponent">Project Proponent</th>
                                     <th title="Status">Status</th>
                                 </tr>
                             </thead>

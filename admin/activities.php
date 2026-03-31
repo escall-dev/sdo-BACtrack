@@ -152,9 +152,9 @@ $activities = db()->fetchAll($sql, $params);
             <form class="filter-form calendar-filter-form" method="GET" onkeydown="if(event.key==='Enter'){event.preventDefault();this.submit();}">
                 <?php if ($auth->isProcurement() && !empty($projectOwners)): ?>
                 <div class="filter-group">
-                    <label>Project Owner / Bidder</label>
+                    <label>Project Proponent</label>
                     <select name="owner" class="filter-select" onchange="this.form.submit()">
-                        <option value="">All Owners</option>
+                        <option value="">All Proponents</option>
                         <?php foreach ($projectOwners as $owner): ?>
                         <option value="<?php echo (int)$owner['id']; ?>" <?php echo ($filters['owner'] ?? '') === (string)$owner['id'] ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($owner['name']); ?>
@@ -210,7 +210,7 @@ $activities = db()->fetchAll($sql, $params);
                 <th style="text-align: center;">Process</th>
                 <th style="text-align: center;">Project</th>
                 <?php if ($auth->isProcurement()): ?>
-                <th>Project Owner</th>
+                <th>Project Proponent</th>
                 <?php endif; ?>
                 <th>Planned Start</th>
                 <th>Planned End</th>

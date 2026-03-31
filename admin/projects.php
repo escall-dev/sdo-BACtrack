@@ -75,9 +75,9 @@ $projects = $projectModel->getAll($filters);
                 <?php if ($auth->isProcurement()): ?>
                 <?php if (!empty($projectOwners)): ?>
                 <div class="filter-group">
-                    <label>Project Owner / Bidder</label>
+                    <label>Project Proponent</label>
                     <select name="owner" class="filter-select" onchange="this.form.submit()">
-                        <option value="">All Owners</option>
+                        <option value="">All Proponents</option>
                         <?php foreach ($projectOwners as $owner): ?>
                         <option value="<?php echo (int)$owner['id']; ?>" <?php echo $filters['created_by'] === (string)$owner['id'] ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($owner['name']); ?>
@@ -114,7 +114,7 @@ $projects = $projectModel->getAll($filters);
                     <th style="text-align: center;">BACTrack ID</th>
                     <th>Project Title</th>
                     <th style="text-align: center;">Procurement Type</th>
-                    <th style="text-align: center;">Project Owner / Bidder</th>
+                    <th style="text-align: center;">Project Proponent</th>
                     <th style="text-align: center;">Status</th>
                     <th style="text-align: center;">Implementation Date</th>
                     <th style="text-align: center;">Actions</th>

@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (strpos($msg, 'duplicate column') !== false || strpos($msg, 'already exists') !== false) {
                 $supportsProjectOwnerName = true;
             } else {
-                $error = 'Custom project owner/company names require database update 017_add_project_owner_name.sql.';
+                $error = 'Custom project proponent names require database update 017_add_project_owner_name.sql.';
             }
         }
     }
@@ -106,11 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($title)) {
         $error = 'Project title is required.';
     } elseif ($isBacSecretary && $projectOwnerId <= 0 && $typedProjectOwnerName === '') {
-        $error = 'Project owner / company is required.';
+        $error = 'Project proponent is required.';
     } elseif ($isBacSecretary && $projectOwnerId > 0 && !isset($projectOwnersById[$projectOwnerId])) {
-        $error = 'Invalid project owner selected.';
+        $error = 'Invalid project proponent selected.';
     } elseif ($isBacSecretary && $projectOwnerId <= 0 && $typedProjectOwnerName !== '' && !$supportsProjectOwnerName) {
-        $error = 'Custom project owner/company names require database update 017_add_project_owner_name.sql.';
+        $error = 'Custom project proponent names require database update 017_add_project_owner_name.sql.';
     } elseif (empty($startDate)) {
         $error = 'Implementation date is required.';
     } elseif (!array_key_exists($procurementType, PROCUREMENT_TYPES)) {
@@ -439,19 +439,19 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php if ($isBacSecretary): ?>
                 <div class="form-group">
                   
-                    <small style="color: var(--text-muted); display:block; margin-top:6px;">Select an existing account, or type a custom owner/company name below.</small>
+                    <small style="color: var(--text-muted); display:block; margin-top:6px;">Select an existing account, or type a custom project proponent name below.</small>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="project_owner_name">Type Project Owner / Company Name</label>
+                    <label class="form-label" for="project_owner_name">Type Project Proponent Name</label>
                     <input type="text" id="project_owner_name" name="project_owner_name" class="form-control"
-                           placeholder="Enter owner or company name"
+                           placeholder="Enter project proponent name"
                            value="<?php echo htmlspecialchars($_POST['project_owner_name'] ?? ''); ?>">
                     <?php if (!$supportsProjectOwnerName): ?>
                     <small style="color: #b45309;">Custom typed names will work after applying database update 017_add_project_owner_name.sql.</small>
                     <?php endif; ?>
                     <?php if (empty($projectOwners)): ?>
-                    <small style="color: #b91c1c;">No approved Project Owner accounts available. Add one first before creating a project.</small>
+                    <small style="color: #b91c1c;">No approved Project Proponent accounts available. Add one first before creating a project.</small>
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>

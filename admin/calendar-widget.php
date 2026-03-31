@@ -271,15 +271,6 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
 
     <div class="calendar-widget-body">
         <div class="calendar-widget-filter">
-            <div class="calendar-widget-field search">
-                <label for="landingCalendarTrackingSearch">Search BACTrack No.</label>
-                <input
-                    id="landingCalendarTrackingSearch"
-                    type="search"
-                    placeholder="Type tracking no. (e.g., BTQ2M-202504-001)"
-                    <?php echo empty($projects) ? 'disabled' : ''; ?>
-                >
-            </div>
             <div class="calendar-widget-field project">
                 <label for="landingCalendarProjectFilter">Project</label>
                 <select id="landingCalendarProjectFilter" <?php echo empty($projects) ? 'disabled' : ''; ?>>

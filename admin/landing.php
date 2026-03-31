@@ -456,22 +456,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0;
         }
 
-        .tracker-card .card-body {
-            padding: 14px;
-        }
-
-        .tracker-card .search-row {
-            align-items: stretch;
-        }
-
-        .tracker-card .search-input {
-            min-width: 0;
-        }
-
-        .tracker-card .btn-search {
-            padding: 10px 14px;
-        }
-
         .projects-card {
             width: 100%;
             max-width: none;
@@ -497,6 +481,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .estimator-card table td {
             font-size: 0.82rem;
             line-height: 1.2;
+        }
+
+        .planner-highlight td {
+            background: #fff7ed;
+        }
+
+        .planner-highlight td:first-child {
+            font-weight: 800;
+            color: #9a3412;
         }
 
         /* ─── Search / Tracker ─── */
@@ -542,84 +535,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, #1b6ca8 0%, #2578ba 100%);
             transform: translateY(-1px);
         }
-        #trackerResults { margin-top: 16px; }
-
-        /* tracker result cards */
-        .result-card {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 12px;
-            overflow: hidden;
-            background: var(--card-bg);
-            box-shadow: var(--shadow-sm);
-            transition: box-shadow var(--transition-base), border-color var(--transition-base);
-        }
-        .result-card:hover { box-shadow: var(--shadow-md); border-color: var(--primary-light); }
-        .result-card-header {
-            padding: 12px 16px;
-            background: var(--bg-secondary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            gap: 10px;
-        }
-        .result-card-header:hover { background: var(--bg-primary); }
-        .result-toggle-btn {
-            width: 30px;
-            height: 30px;
-            border: 1px solid var(--border-color);
-            border-radius: 999px;
-            background: #fff;
-            color: var(--text-muted);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--transition-base);
-            flex-shrink: 0;
-        }
-        .result-toggle-btn:hover {
-            color: var(--primary);
-            border-color: var(--primary-light);
-            background: var(--bg-secondary);
-        }
-        .result-title {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 0.92rem;
-        }
-        .result-status {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 3px;
-        }
-        .result-status strong { color: var(--primary-dark); }
-        .result-body {
-            padding: 12px 16px;
-            display: none;
-            animation: fadeIn 0.25s ease;
-        }
-        .activity-table {
-            width: 100%;
-            font-size: 0.83rem;
-            border-collapse: collapse;
-        }
-        .activity-table td {
-            padding: 6px 8px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-        .activity-table tr:last-child td { border-bottom: none; }
-        .activity-table td:last-child {
-            text-align: right;
-            font-weight: 700;
-        }
-        .act-completed { color: #10b981; }
-        .act-in_progress { color: #3b82f6; }
-        .act-delayed { color: #ef4444; }
-        .act-pending { color: #94a3b8; }
-
         /* ─── Announcements ─── */
         .announcement-item {
             padding: 16px 0;
@@ -1410,17 +1325,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php
                         $procCfg = procurementConfig();
                         $workflowKeys = array_keys($procCfg['workflows'] ?? []);
+                        $estimatorWhitelist = [
+                            'COMPETITIVE_BIDDING' => 'Competitive Bidding',
+                            'SMALL_VALUE_PROCUREMENT' => 'Small Value Procurement (200k and below)',
+                            'SMALL_VALUE_PROCUREMENT_200K' => 'Small Value Procurement (200k and above)',
+                            'DIRECT_ACQUISITION' => 'Direct Acquisition',
+                        ];
+
                         $estimatorTypes = [];
-                        foreach (PROCUREMENT_TYPES as $key => $label) {
+                        foreach ($estimatorWhitelist as $key => $label) {
                             if (in_array($key, $workflowKeys, true)) {
                                 $estimatorTypes[$key] = $label;
                             }
                         }
                     ?>
                     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
-                        <label style="font-weight:700;margin-right:6px;">Procurement Type / Mode of Procurement:</label>
+                        <label style="font-weight:700;margin-right:6px;">Mode of Procurement:</label>
                         <select id="estProcurementType" class="search-input" style="max-width:360px;">
-                            <option value="" selected>Select procurement type / mode</option>
+                            <option value="" selected>Select Mode of Procurement</option>
                             <?php foreach ($estimatorTypes as $k => $lbl): ?>
                                 <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
                             <?php endforeach; ?>
@@ -1440,11 +1362,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
                             <tr style="background:var(--bg-secondary);">
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:38%;text-align:left;">Procurement Stage</th>
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:16%;">Start Date</th>
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:16%;">End Date</th>
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:12%;">Add days</th>
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:18%;">Action</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:46%;text-align:left;">Procurement Stage</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:27%;">Start Date</th>
+                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:27%;">End Date</th>
                             </tr>
                         </thead>
                         <tbody id="plannerBody">
@@ -1452,39 +1372,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </tbody>
                     </table>
 
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-search" onclick="computeLatest()">Compute for the Latest Allowable Time</button>
-                        <div style="text-align:center;font-weight:700;font-size:0.82rem;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;justify-content:flex-end;">
+                        <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Date:</label>
+                        <input type="date" id="latestAllowableDate" class="search-input" style="max-width:160px;" readonly />
+                    </div>
+
+                    <div style="text-align:center;font-weight:700;font-size:0.82rem;margin-top:10px;">
                             <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
                                 User's Guide | Found errors? Tell us.
                             </a>
-                        </div>
                     </div>
 
-                    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;justify-content:flex-end;">
-                        <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Date:</label>
-                        <input type="date" id="latestAllowableDate" class="search-input" style="max-width:170px;" readonly />
-                    </div>
+             
                 </div>
             </div>
-            <div class="data-card tracker-card">
-                <div class="card-header">
-                    <i class="fas fa-search"></i> Project Tracker
-                </div>
-                <div class="card-body">
-                    <form id="trackerForm" onsubmit="event.preventDefault(); searchContent();">
-                        <div class="search-row">
-                            <input type="text" id="trackInput" class="search-input"
-                                   placeholder="Enter Project Number or Title…" required>
-                            <button type="submit" class="btn-search">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </div>
-                    </form>
-                    <div id="trackerResults"></div>
-                </div>
-            </div>
-
             </div>
 
             <!-- Projects List -->
@@ -2430,89 +2331,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Clear stale session token */
         try { sessionStorage.removeItem('auth_token'); } catch (e) {}
 
-        /* ── Project Tracker ── */
-        function searchContent() {
-            const query = document.getElementById('trackInput').value;
-            const box   = document.getElementById('trackerResults');
-            box.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:14px;font-size:0.88rem;"><i class="fas fa-spinner fa-spin"></i> Searching…</div>';
-
-            fetch('api/track-project.php?q=' + encodeURIComponent(query))
-                .then(r => r.json())
-                .then(res => {
-                    if (!res.success) {
-                        box.innerHTML = `<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i><div>${res.error}</div></div>`;
-                        return;
-                    }
-                    if (res.data.length === 0) {
-                        box.innerHTML = `<div class="alert alert-error"><i class="fas fa-info-circle"></i><div>No projects found matching your query.</div></div>`;
-                        return;
-                    }
-
-                    let html = '';
-                    res.data.forEach((project, idx) => {
-                        const projectId = Number(project.id) || 0;
-                        const projectNo = project.bactrack_id ? String(project.bactrack_id) : `PR-${String(project.id).padStart(4, '0')}`;
-                        let rows = '';
-                        if (project.activities && project.activities.length > 0) {
-                            project.activities.forEach(act => {
-                                const cls = 'act-' + act.status.toLowerCase();
-                                rows += `<tr>
-                                    <td>Step ${act.step}: ${act.name}</td>
-                                    <td class="${cls}">${act.status.replace(/_/g,' ')}</td>
-                                </tr>`;
-                            });
-                        } else {
-                            rows = '<tr><td colspan="2" style="color:var(--text-muted)">No timeline activities available.</td></tr>';
-                        }
-
-                        html += `
-                        <div class="result-card">
-                            <div class="result-card-header">
-                                <div>
-                                    <button
-                                        type="button"
-                                        class="project-open-link result-title"
-                                        onclick="openBacProcessModal(${projectId})"
-                                        aria-label="Open BAC process for project ${projectId}"
-                                    >${escapeHtml(projectNo)} - ${escapeHtml(project.title)}</button>
-                                    <div class="result-status">Status: <strong>${project.timeline_status}</strong></div>
-                                </div>
-                                <button
-                                    type="button"
-                                    id="toggle-${idx}"
-                                    class="result-toggle-btn"
-                                    onclick="toggleResult(${idx})"
-                                    aria-label="Toggle timeline details"
-                                    aria-expanded="false"
-                                    aria-controls="result-body-${idx}"
-                                >
-                                    <i class="fas fa-chevron-down" id="chev-${idx}" style="font-size:0.8rem;transition:transform 0.2s;"></i>
-                                </button>
-                            </div>
-                            <div class="result-body" id="result-body-${idx}">
-                                <table class="activity-table">${rows}</table>
-                            </div>
-                        </div>`;
-                    });
-                    box.innerHTML = html;
-                })
-                .catch(() => {
-                    box.innerHTML = `<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i><div>Error fetching data. Please try again.</div></div>`;
-                });
-        }
-
-        function toggleResult(idx) {
-            const body = document.getElementById('result-body-' + idx);
-            const chev = document.getElementById('chev-' + idx);
-            const toggle = document.getElementById('toggle-' + idx);
-            const open = body.style.display === 'block';
-            body.style.display = open ? 'none' : 'block';
-            chev.style.transform = open ? '' : 'rotate(180deg)';
-            if (toggle) {
-                toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-            }
-        }
-
         function parseMoney(val) {
             const n = Number(val);
             return Number.isFinite(n) ? n : NaN;
@@ -2577,6 +2395,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             stages.forEach((s, idx) => {
                 const tr = document.createElement('tr');
+                if (type === 'COMPETITIVE_BIDDING' && String(s.key || '') === 'eligibility_submission_opening') {
+                    tr.classList.add('planner-highlight');
+                }
                 tr.innerHTML = `
                     <td style="padding:4px 6px;border:1px solid var(--border-color);">
                         ${s.name}
@@ -2584,10 +2405,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </td>
                     <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="start-${idx}" class="search-input" style="width:100%;max-width:120px;" readonly /></td>
                     <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;"><input type="date" id="end-${idx}" class="search-input" style="width:100%;max-width:120px;" readonly /></td>
-                    <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;"><input type="number" id="add-${idx}" class="search-input" style="width:100%;max-width:64px;" value="0" /></td>
-                    <td style="padding:4px 6px;border:1px solid var(--border-color);text-align:center;">
-                        <button class="btn-search" onclick="updateRow(${idx})" style="padding:4px 8px;font-size:0.76rem;">Update</button>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2639,8 +2456,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             for (let i = lastIndex; i >= 0; i--) {
                 const stage = stages[i];
                 const baseDays = Math.max(0, parseInt(stage.days ?? 0, 10) || 0);
-                const add = parseInt(document.getElementById(`add-${i}`)?.value || '0', 10) || 0;
-                const effectiveDays = Math.max(0, baseDays + add);
+                const effectiveDays = baseDays;
 
                 let plannedEnd;
                 let plannedStart;
@@ -2681,10 +2497,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             validateBudgetRealtime();
         }
 
-        function updateRow(idx) {
-            computeLatestAllowableSchedule();
-        }
-
         function computeLatest() {
             // Same estimator logic; this button now just recomputes.
             computeLatestAllowableSchedule();
@@ -2722,12 +2534,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 implEl.addEventListener('input', computeLatestAllowableSchedule);
             }
             if (tbody) {
-                tbody.addEventListener('input', function(e) {
-                    const t = e.target;
-                    if (t && t.id && t.id.startsWith('add-')) {
-                        computeLatestAllowableSchedule();
-                    }
-                });
+                // no-op: removed "Add days" controls
             }
 
             validateBudgetRealtime();

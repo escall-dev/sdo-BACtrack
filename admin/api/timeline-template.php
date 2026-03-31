@@ -3,7 +3,7 @@
  * Timeline Template API
  * SDO-BACtrack
  * 
- * Returns timeline template steps for a given procurement type
+ * Returns timeline template steps for a given mode of procurement
  */
 
 header('Content-Type: application/json');
@@ -25,7 +25,7 @@ $procurementType = $_GET['type'] ?? '';
 
 if (empty($procurementType) || !array_key_exists($procurementType, PROCUREMENT_TYPES)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid procurement type']);
+    echo json_encode(['error' => 'Invalid mode of procurement']);
     exit;
 }
 

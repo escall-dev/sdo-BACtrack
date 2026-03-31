@@ -51,7 +51,7 @@ $projects = $projectModel->getAll($filters);
                            value="<?php echo htmlspecialchars($filters['search']); ?>">
                 </div>
                 <div class="filter-group">
-                    <label>Procurement Type</label>
+                    <label>Mode of Procurement</label>
                     <select name="type" class="filter-select">
                         <option value="">All Types</option>
                         <?php foreach (PROCUREMENT_TYPES as $key => $value): ?>
@@ -113,7 +113,7 @@ $projects = $projectModel->getAll($filters);
                 <tr>
                     <th style="text-align: center;">BACTrack ID</th>
                     <th>Project Title</th>
-                    <th style="text-align: center;">Procurement Type</th>
+                    <th style="text-align: center;">Mode of Procurement</th>
                     <th style="text-align: center;">Project Proponent</th>
                     <th style="text-align: center;">Status</th>
                     <th style="text-align: center;">Implementation Date</th>

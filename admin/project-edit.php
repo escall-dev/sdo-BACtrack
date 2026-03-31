@@ -89,7 +89,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="procurement_type">Procurement Type *</label>
+                <label class="form-label" for="procurement_type">Mode of Procurement *</label>
                 <select id="procurement_type" name="procurement_type" class="form-control" required>
                     <?php foreach (PROCUREMENT_TYPES as $key => $value): ?>
                     <option value="<?php echo $key; ?>" <?php echo ($project['procurement_type'] ?? '') === $key ? 'selected' : ''; ?>><?php echo $value; ?></option>

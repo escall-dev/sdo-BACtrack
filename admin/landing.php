@@ -1616,7 +1616,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <tr>
                                     <th title="Tracking Number">Tracking #</th>
                                     <th title="Project Title">Project Title</th>
-                                    <th title="Procurement Type">Procurement</th>
+                                    <th title="Mode of Procurement">Procurement</th>
                                     <th title="Implementation Date">Impl. Date</th>
                                     <th title="Project Proponent">Project Proponent</th>
                                     <th title="Status">Status</th>
@@ -2549,11 +2549,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (type === 'SMALL_VALUE_PROCUREMENT_200K') {
                 if (budget < 200000.0) {
-                    showBudgetWarning('The minimum budget for this procurement type is 200,000.00.');
+                    showBudgetWarning('The minimum budget for this mode of procurement is 200,000.00.');
                     return;
                 }
                 if (budget >= 2000000.0) {
-                    showBudgetWarning('The maximum budget for this procurement type is 1,999,999.99.');
+                    showBudgetWarning('The maximum budget for this mode of procurement is 1,999,999.99.');
                     return;
                 }
             }

@@ -69,6 +69,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $approvedBudget = isset($_POST['approved_budget']) && $_POST['approved_budget'] !== '' ? (float)$_POST['approved_budget'] : null;
     $procurementType = $_POST['procurement_type'] ?? $defaultProcurementType;
     $startDate = $_POST['start_date'] ?? '';
     $projectOwnerId = isset($_POST['project_owner_id']) ? (int)$_POST['project_owner_id'] : 0;
@@ -114,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($startDate)) {
         $error = 'Implementation date is required.';
     } elseif (!array_key_exists($procurementType, PROCUREMENT_TYPES)) {
-        $error = 'Invalid procurement type selected.';
+        $error = 'Invalid mode of procurement selected.';
     }
 
     if (empty($error)) {
@@ -128,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $projectId = $projectModel->create([
                 'title' => $title,
                 'description' => $description,
+                'approved_budget' => $approvedBudget,
                 'procurement_type' => $procurementType,
                 'project_start_date' => $startDate,
                 'project_owner_name' => $isBacSecretary ? $projectOwnerNameToStore : '',
@@ -431,9 +433,15 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="description">Description</label>
+                    <label class="form-label" for="description">Description / Purpose</label>
                     <textarea id="description" name="description" class="form-control" rows="4"
                               placeholder="Enter project description"><?php echo htmlspecialchars($_POST['description'] ?? ''); ?></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="approved_budget">Approved Budget for Contract</label>
+                    <input type="number" id="approved_budget" name="approved_budget" class="form-control" step="0.01" min="0"
+                           placeholder="Enter approved budget amount" value="<?php echo htmlspecialchars($_POST['approved_budget'] ?? ''); ?>">
                 </div>
 
                 <?php if ($isBacSecretary): ?>
@@ -457,7 +465,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
 
                 <div class="form-group">
-                    <label class="form-label" for="procurement_type">Procurement Type *</label>
+                    <label class="form-label" for="procurement_type">Mode of Procurement *</label>
                     <select id="procurement_type" name="procurement_type" class="form-control" required>
                         <?php foreach (PROCUREMENT_TYPES as $key => $value): ?>
                         <option value="<?php echo $key; ?>" <?php echo $selectedProcurementType === $key ? 'selected' : ''; ?>>
@@ -507,7 +515,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <tbody>
                             <?php if (empty($templates)): ?>
                             <tr>
-                                <td colspan="3" style="text-align:center; color: var(--text-muted);">No template available for this procurement type.</td>
+                                <td colspan="3" style="text-align:center; color: var(--text-muted);">No template available for this mode of procurement.</td>
                             </tr>
                             <?php endif; ?>
                             <?php foreach ($templates as $template): ?>
@@ -544,7 +552,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     const renderRows = function (steps) {
         if (!Array.isArray(steps) || steps.length === 0) {
-            templateBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">No template available for this procurement type.</td></tr>';
+            templateBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">No template available for this mode of procurement.</td></tr>';
             return;
         }
 

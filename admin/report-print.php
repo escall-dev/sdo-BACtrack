@@ -293,7 +293,7 @@ $activityTiming = $timelineSummary['meta_by_id'];
             <span><?php echo htmlspecialchars($project['title']); ?></span>
         </div>
         <div class="print-info-item">
-            <label>Procurement Type</label>
+            <label>Mode of Procurement</label>
             <span><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></span>
         </div>
         <div class="print-info-item">

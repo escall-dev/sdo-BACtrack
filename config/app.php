@@ -26,7 +26,7 @@ define('AUTH_TOKEN_PARAM', 'auth_token');
 // Notification settings
 define('DEADLINE_WARNING_DAYS', 2);
 
-// Procurement types
+// Modes of Procurement
 define('PROCUREMENT_TYPES', [
     'PUBLIC_BIDDING'              => 'Public Bidding',
     'LIMITED_SOURCE_BIDDING'      => 'Limited Source Bidding (Selective Bidding)',

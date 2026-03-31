@@ -478,7 +478,7 @@ require_once __DIR__ . '/../includes/header.php';
                 
                 <div class="pv-info-grid grid-3-col">
                     <div class="pv-info-tile">
-                        <span class="pv-info-label">Procurement Type</span>
+                        <span class="pv-info-label">Mode of Procurement</span>
                         <p class="pv-info-value"><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></p>
                     </div>
                     <div class="pv-info-tile">

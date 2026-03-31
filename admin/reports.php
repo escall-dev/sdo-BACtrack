@@ -30,7 +30,7 @@ if ($selectedProject) {
 <div class="page-header" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
     <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
         <i class="fas fa-info-circle" style="margin-right: 6px; color: var(--primary);"></i>
-        Select a project and cycle to generate a printable timeline report
+        Select a project to generate a printable timeline report
     </p>
     <?php if ($selectedProject): ?>
     <a href="<?php echo APP_URL; ?>/admin/report-print.php?project=<?php echo $selectedProject; ?><?php echo $selectedCycle ? '&cycle=' . $selectedCycle : ''; ?>" 
@@ -130,7 +130,7 @@ if ($selectedProject) {
         <div class="empty-state">
             <div class="empty-icon"><i class="fas fa-calendar-times"></i></div>
             <h3>No activities found</h3>
-            <p>This project or cycle has no activities.</p>
+            <p>This project has no activities.</p>
         </div>
         <?php else: ?>
         <div class="table-responsive">

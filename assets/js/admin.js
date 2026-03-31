@@ -314,10 +314,6 @@ function renderActivityModal(activity) {
                 <span class="detail-value">${activity.project_title}</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">Cycle</span>
-                <span class="detail-value">Cycle ${activity.cycle_number}</span>
-            </div>
-            <div class="detail-row">
                 <span class="detail-label">Step Order</span>
                 <span class="detail-value">${activity.step_order}</span>
             </div>

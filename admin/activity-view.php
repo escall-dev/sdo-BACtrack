@@ -198,8 +198,8 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="stat-value stat-value-danger"><?php echo $timelineSummary['overdue_steps']; ?></div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Current Cycle</div>
-        <div class="stat-value"><?php echo $activity['cycle_number']; ?></div>
+        <div class="stat-label">Current Phase</div>
+        <div class="stat-value"><?php echo 'Process ' . $activity['step_order']; ?></div>
     </div>
 </div>
 

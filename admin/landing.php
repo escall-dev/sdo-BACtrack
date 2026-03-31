@@ -2197,7 +2197,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 step_name: String((calendarEvent && calendarEvent.title) || 'Process Details'),
                 project_title: String(props.project_title || 'Unknown project'),
                 step_order: props.step_order != null ? props.step_order : '-',
-                cycle_number: props.cycle_number != null ? props.cycle_number : '-',
                 status: String(props.status || 'PENDING'),
                 status_label: toReadableStatus(props.status || 'PENDING'),
                 planned_start_date: String(props.planned_start_date || ''),
@@ -2221,7 +2220,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const stepName = String(activity.step_name || 'Process Details');
             const projectTitle = String(activity.project_title || 'Unknown project');
             const stepOrder = activity.step_order != null ? String(activity.step_order) : '-';
-            const cycleNumber = activity.cycle_number != null ? String(activity.cycle_number) : '-';
             const statusLabel = String(activity.status_label || toReadableStatus(activity.status || 'PENDING') || 'Pending');
             const statusClass = toStatusClass(activity.status || 'PENDING');
             const plannedStart = String(activity.planned_start_date_formatted || formatLongDate(activity.planned_start_date || ''));
@@ -2259,7 +2257,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <div class="calendar-activity-meta">
-                        <div class="calendar-activity-meta-item">Cycle: <strong>${escapeHtml(cycleNumber)}</strong></div>
                         <div class="calendar-activity-meta-item">Compliance: <strong>${escapeHtml(complianceLabel)}</strong></div>
                     </div>
                 </div>

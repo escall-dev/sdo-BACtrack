@@ -297,14 +297,6 @@ $activityTiming = $timelineSummary['meta_by_id'];
             <span><?php echo PROCUREMENT_TYPES[$project['procurement_type']] ?? $project['procurement_type']; ?></span>
         </div>
         <div class="print-info-item">
-            <label>Cycle Number</label>
-            <span><?php echo $cycle ? 'Cycle ' . $cycle['cycle_number'] : 'N/A'; ?></span>
-        </div>
-        <div class="print-info-item">
-            <label>Cycle Status</label>
-            <span><?php echo $cycle ? $cycle['status'] : 'N/A'; ?></span>
-        </div>
-        <div class="print-info-item">
             <label>Report Generated</label>
             <span><?php echo date('F j, Y g:i A'); ?></span>
         </div>

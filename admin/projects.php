@@ -115,7 +115,6 @@ $projects = $projectModel->getAll($filters);
                     <th>Project Title</th>
                     <th style="text-align: center;">Procurement Type</th>
                     <th style="text-align: center;">Project Owner / Bidder</th>
-                    <th style="text-align: center;">Cycles</th>
                     <th style="text-align: center;">Status</th>
                     <th style="text-align: center;">Implementation Date</th>
                     <th style="text-align: center;">Actions</th>
@@ -139,7 +138,6 @@ $projects = $projectModel->getAll($filters);
                     <td style="text-align: center;">
                         <span><?php echo htmlspecialchars($project['creator_name'] ?? '-'); ?></span>
                     </td>
-                    <td style="text-align: center;"><?php echo $project['cycle_count']; ?></td>
                     <td style="text-align: center;">
                         <?php $approval = $project['approval_status'] ?? 'APPROVED'; ?>
                         <span class="status-badge status-<?php echo strtolower(str_replace('_', '-', $approval)); ?>">

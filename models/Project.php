@@ -212,7 +212,59 @@ class Project {
 
         $sql .= " ORDER BY p.created_at DESC";
 
-        return $this->db->fetchAll($sql, $params);
+        $projects = $this->db->fetchAll($sql, $params);
+
+        foreach ($projects as &$project) {
+            $project['timeline_status'] = $this->getCurrentTimelineStatus(
+                (int) $project['id'],
+                $project['approval_status'] ?? 'APPROVED'
+            );
+        }
+        unset($project);
+
+        return $projects;
+    }
+
+    private function getCurrentTimelineStatus($projectId, $fallbackStatus = 'APPROVED') {
+        $cycle = $this->db->fetch(
+            "SELECT id FROM bac_cycles WHERE project_id = ? ORDER BY id DESC LIMIT 1",
+            [$projectId]
+        );
+
+        if (!$cycle) {
+            return $fallbackStatus;
+        }
+
+        $currentStep = $this->db->fetch(
+            "SELECT step_order, step_name, status
+             FROM project_activities
+             WHERE bac_cycle_id = ?
+               AND status IN ('PENDING', 'IN_PROGRESS', 'DELAYED')
+             ORDER BY step_order ASC
+             LIMIT 1",
+            [$cycle['id']]
+        );
+
+        if ($currentStep) {
+            return 'Step ' . $currentStep['step_order'] . ': ' . $currentStep['step_name'] . ' (' . $currentStep['status'] . ')';
+        }
+
+        $counts = $this->db->fetch(
+            "SELECT COUNT(*) AS total_steps,
+                    SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_steps
+             FROM project_activities
+             WHERE bac_cycle_id = ?",
+            [$cycle['id']]
+        );
+
+        $totalSteps = (int) ($counts['total_steps'] ?? 0);
+        $completedSteps = (int) ($counts['completed_steps'] ?? 0);
+
+        if ($totalSteps > 0 && $totalSteps === $completedSteps) {
+            return 'COMPLETED';
+        }
+
+        return $fallbackStatus;
     }
 
     public function create($data) {

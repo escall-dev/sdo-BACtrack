@@ -407,11 +407,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #fee2e2;
         }
 
+        /* Full-bleed row: only the estimator + projects strip escapes .content-wrap max-width */
+        .top-panels-fullwidth {
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            margin-right: calc(50% - 50vw);
+            padding: 0 12px;
+            box-sizing: border-box;
+        }
+
         .top-panels {
             display: grid;
-            grid-template-columns: minmax(640px, 1.8fr) minmax(360px, 1fr);
+            grid-template-columns: 640px minmax(0, 1fr);
             gap: 20px;
             align-items: start;
+        }
+
+        .top-panels .estimator-card {
+            min-width: 0;
+        }
+
+        .top-panels .projects-card {
+            min-width: 0;
         }
 
         .top-panels .data-card {
@@ -459,7 +476,152 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .projects-card {
             width: 100%;
             max-width: none;
-            margin: 24px 0 0;
+            margin: 0;
+        }
+
+        .projects-card .card-body {
+            display: flex;
+            flex-direction: column;
+            height: 560px;
+            min-height: 0;
+            padding: 10px 12px;
+        }
+
+        .projects-card .card-body > .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .projects-card .card-body > .table-responsive {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .projects-card .projects-pager {
+            flex-shrink: 0;
+            margin-top: 8px;
+            gap: 8px;
+        }
+
+        .projects-card .data-table th,
+        .projects-card .data-table td,
+        .projects-card .projects-table th,
+        .projects-card .projects-table td {
+            white-space: normal;
+            word-break: normal;
+        }
+
+        .projects-card .data-table th:nth-child(2),
+        .projects-card .data-table td:nth-child(2),
+        .projects-card .projects-table th:nth-child(2),
+        .projects-card .projects-table td:nth-child(2) {
+            min-width: 150px;
+        }
+
+        .projects-card .data-table .project-open-link,
+        .projects-card .projects-table .project-open-link {
+            white-space: normal;
+        }
+
+        /* Projects List: compact density — more rows visible, still readable */
+        .top-panels .projects-card .card-header {
+            min-height: 38px;
+            padding: 8px 12px;
+            font-size: 0.76rem;
+            gap: 8px;
+            letter-spacing: 0.03em;
+        }
+
+        .top-panels .projects-card .card-header i {
+            font-size: 0.82rem;
+        }
+
+        .projects-card .projects-count {
+            font-size: 0.74rem;
+        }
+
+        .projects-card .pager-link {
+            min-width: 28px;
+            height: 28px;
+            padding: 0 7px;
+            font-size: 0.76rem;
+            border-radius: 6px;
+        }
+
+        .projects-card .projects-table {
+            width: 100%;
+            font-size: 0.8125rem;
+            line-height: 1.3;
+            border-collapse: collapse;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            table-layout: fixed;
+        }
+
+        .projects-card .projects-table thead {
+            background: #f1f5f9;
+        }
+
+        .projects-card .projects-table th,
+        .projects-card .projects-table td {
+            padding: 5px 6px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .projects-card .projects-table th {
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .projects-card .projects-table tbody td {
+            font-size: 0.8rem;
+        }
+
+        .projects-card .projects-table .project-open-link {
+            font-size: inherit;
+            line-height: 1.3;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .projects-card .projects-table .tracking-number-link {
+            display: inline-block;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .projects-card .projects-table tbody tr {
+            background: #fff;
+        }
+
+        .projects-card .projects-table .projects-td-tracking {
+            font-weight: 600;
+        }
+
+        .projects-card .empty-state.compact-empty {
+            padding: 20px 12px;
+        }
+
+        .projects-card .empty-state.compact-empty .empty-icon {
+            font-size: 2rem;
+        }
+
+        .projects-card .empty-state.compact-empty h3 {
+            margin: 8px 0 4px;
+            font-size: 1rem;
+        }
+
+        .projects-card .empty-state.compact-empty p {
+            font-size: 0.82rem;
         }
 
         .estimator-card .card-body {
@@ -663,7 +825,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .tracking-number-link {
-            white-space: nowrap;
+            display: inline-block;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .project-row {
@@ -1314,6 +1480,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="content-wrap">
             <section id="landing-home-panel" class="landing-tab-panel active" role="tabpanel" aria-labelledby="landing-home-tab">
 
+            <div class="top-panels-fullwidth">
             <div class="top-panels">
 
             <!-- Detailed Procurement Timeline Planner (table) -->
@@ -1386,7 +1553,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              
                 </div>
             </div>
-            </div>
 
             <!-- Projects List -->
             <?php
@@ -1430,22 +1596,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="card-body">
                 <?php if (empty($projects)): ?>
-                    <div class="empty-state" style="text-align:center;padding:32px 0;">
-                        <div class="empty-icon" style="font-size:2.5rem;color:var(--text-muted);"><i class="fas fa-folder-plus"></i></div>
-                        <h3 style="margin:12px 0 6px;">No projects found</h3>
+                    <div class="empty-state compact-empty" style="text-align:center;">
+                        <div class="empty-icon" style="color:var(--text-muted);"><i class="fas fa-folder-plus"></i></div>
+                        <h3>No projects found</h3>
                         <p style="color:var(--text-muted);">No BAC projects have been created yet.</p>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="data-table" style="width:100%;font-size:0.97rem;border-collapse:collapse;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-                            <thead style="background: #f1f5f9;">
+                        <table class="data-table projects-table">
+                            <colgroup>
+                                <col style="width:12%">
+                                <col style="width:25%">
+                                <col style="width:20%">
+                                <col style="width:15%">
+                                <col style="width:18%">
+                                <col style="width:10%">
+                            </colgroup>
+                            <thead>
                                 <tr>
-                                    <th style="text-align:center; width: 150px; border:1px solid #e2e8f0; padding:12px 8px;">Tracking Number</th>
-                                    <th style="text-align:center; border:1px solid #e2e8f0; padding:12px 8px;">Project Title</th>
-                                    <th style="text-align:center; width: 220px; border:1px solid #e2e8f0; padding:12px 8px;">Procurement Type</th>
-                                    <th style="text-align:center; width: 170px; border:1px solid #e2e8f0; padding:12px 8px;">Implementation Date</th>
-                                    <th style="text-align:center; width: 190px; border:1px solid #e2e8f0; padding:12px 8px;">Project Owner</th>
-                                    <th style="text-align:center; width: 260px; border:1px solid #e2e8f0; padding:12px 8px;">Status</th>
+                                    <th title="Tracking Number">Tracking #</th>
+                                    <th title="Project Title">Project Title</th>
+                                    <th title="Procurement Type">Procurement</th>
+                                    <th title="Implementation Date">Impl. Date</th>
+                                    <th title="Project Owner">Owner</th>
+                                    <th title="Status">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1469,8 +1643,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         ? $project['creator_name']
                                         : 'Unassigned';
                                 ?>
-                                <tr class="project-row" style="background:#fff;">
-                                    <td style="text-align:center;font-weight:600;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                <tr class="project-row">
+                                    <td class="projects-td-tracking">
                                         <button
                                             type="button"
                                             class="project-open-link tracking-number-link"
@@ -1480,7 +1654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <?php echo htmlspecialchars($project['bactrack_id'] ?? sprintf('PR-%04d', $project['id'])); ?>
                                         </button>
                                     </td>
-                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
+                                    <td>
                                         <button
                                             type="button"
                                             class="project-open-link"
@@ -1489,18 +1663,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <?php echo htmlspecialchars($project['title']); ?>
                                         </button>
                                     </td>
-                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
-                                        <?php echo htmlspecialchars($procTypeLabel); ?>
-                                    </td>
-                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
-                                        <?php echo htmlspecialchars($implementationDate); ?>
-                                    </td>
-                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
-                                        <?php echo htmlspecialchars($projectOwner); ?>
-                                    </td>
-                                    <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
-                                        <?php echo htmlspecialchars($statusText); ?>
-                                    </td>
+                                    <td><?php echo htmlspecialchars($procTypeLabel); ?></td>
+                                    <td><?php echo htmlspecialchars($implementationDate); ?></td>
+                                    <td><?php echo htmlspecialchars($projectOwner); ?></td>
+                                    <td><?php echo htmlspecialchars($statusText); ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -1556,6 +1722,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
                 <?php endif; ?>
                 </div>
+            </div>
+
+            </div>
             </div>
 
             </section>

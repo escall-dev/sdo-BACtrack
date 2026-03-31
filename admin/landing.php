@@ -62,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
         /* ─── Design Tokens (mirrors admin.css) ─── */
         :root {
@@ -282,6 +284,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .nav-link:hover {
             color: var(--accent-light);
         }
+        .nav-tab-btn {
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .nav-tab-btn:focus-visible {
+            outline: 2px solid var(--accent-light);
+            outline-offset: -2px;
+        }
         .btn-login {
             display: inline-flex;
             align-items: center;
@@ -366,6 +376,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 32px 32px;
         }
 
+        .landing-tab-panel {
+            display: none;
+        }
+
+        .landing-tab-panel.active {
+            display: block;
+        }
+
+        #landing-calendar-container {
+            min-height: 260px;
+        }
+
+        .landing-calendar-loading,
+        .landing-calendar-error {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--card-bg);
+            font-size: 0.9rem;
+        }
+
+        .landing-calendar-error {
+            color: #991b1b;
+            border-color: #fca5a5;
+            background: #fee2e2;
+        }
+
         .top-panels {
             display: grid;
             grid-template-columns: minmax(640px, 1.8fr) minmax(360px, 1fr);
@@ -377,6 +418,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             max-width: none;
             margin: 0;
+        }
+
+        .top-panels .card-header {
+            min-height: 50px;
+            padding: 14px 20px;
+            font-size: 0.9rem;
         }
 
         /* ─── Cards ─── */
@@ -428,16 +475,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .projects-card {
             width: 100%;
             max-width: none;
-            margin: 0;
+            margin: 24px 0 0;
         }
 
         .estimator-card .card-body {
             padding: 10px 12px;
-        }
-
-        .estimator-card .card-header {
-            padding: 10px 14px;
-            font-size: 0.82rem;
         }
 
         .estimator-card .search-input {
@@ -703,6 +745,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .project-open-link:hover {
             color: #1b6ca8;
             text-decoration: underline;
+        }
+
+        .tracking-number-link {
+            white-space: nowrap;
         }
 
         .project-row {
@@ -1140,8 +1186,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="header-spacer"></div>
             <div class="navbar-links">
-                <a href="landing.php" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-                <a href="#" class="nav-link" onclick="return false;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+                <button type="button" id="landing-home-tab" class="nav-link nav-tab-btn active" onclick="switchLandingTab('home')" role="tab" aria-selected="true" aria-controls="landing-home-panel"><i class="fas fa-home"></i> Home</button>
+                <button type="button" id="landing-calendar-tab" class="nav-link nav-tab-btn" onclick="switchLandingTab('calendar')" role="tab" aria-selected="false" aria-controls="landing-calendar-panel"><i class="fas fa-calendar-alt"></i> Calendar</button>
                 <a href="#" class="nav-link" onclick="openContactModal(); return false;"><i class="fas fa-phone"></i> Contacts</a>
             </div>
             <button class="btn-login" onclick="openLoginModal()">
@@ -1157,6 +1203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- ── Main Content ── -->
     <main class="main-content">
         <div class="content-wrap">
+            <section id="landing-home-panel" class="landing-tab-panel active" role="tabpanel" aria-labelledby="landing-home-tab">
 
             <div class="top-panels">
 
@@ -1298,7 +1345,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <table class="data-table" style="width:100%;font-size:0.97rem;border-collapse:collapse;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
                             <thead style="background: #f1f5f9;">
                                 <tr>
-                                    <th style="text-align:center; width: 150px; border:1px solid #e2e8f0; padding:12px 8px;">Project Number</th>
+                                    <th style="text-align:center; width: 150px; border:1px solid #e2e8f0; padding:12px 8px;">Tracking Number</th>
                                     <th style="text-align:center; border:1px solid #e2e8f0; padding:12px 8px;">Project Title</th>
                                     <th style="text-align:center; width: 220px; border:1px solid #e2e8f0; padding:12px 8px;">Procurement Type</th>
                                     <th style="text-align:center; width: 170px; border:1px solid #e2e8f0; padding:12px 8px;">Implementation Date</th>
@@ -1321,11 +1368,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <td style="text-align:center;font-weight:600;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
                                         <button
                                             type="button"
-                                            class="project-open-link"
+                                            class="project-open-link tracking-number-link"
                                             onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
                                             aria-label="Open BAC process for project <?php echo (int)$project['id']; ?>"
                                         >
-                                            <?php printf('PR-%04d', $project['id']); ?>
+                                            <?php echo htmlspecialchars($project['bactrack_id'] ?? sprintf('PR-%04d', $project['id'])); ?>
                                         </button>
                                     </td>
                                     <td style="text-align:center;vertical-align:middle;border:1px solid #e2e8f0; padding:12px 8px;">
@@ -1402,6 +1449,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
                 </div>
             </div>
+
+            </section>
+
+            <section id="landing-calendar-panel" class="landing-tab-panel" role="tabpanel" aria-labelledby="landing-calendar-tab" aria-hidden="true">
+                <div id="landing-calendar-container" aria-live="polite"></div>
+            </section>
 
         </div>
     </main>
@@ -1527,6 +1580,175 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             echo json_encode($backwardOnly, JSON_UNESCAPED_SLASHES);
         ?>;
+
+        let landingCalendarLoaded = false;
+        let landingCalendarLoading = false;
+        let landingCalendarInstance = null;
+        let landingCalendarSelectedProject = '';
+        const LANDING_CALENDAR_WIDGET_URL = 'calendar-widget.php';
+        const LANDING_CALENDAR_VIEW_KEY = 'landing_calendar_view';
+
+        function switchLandingTab(tab) {
+            const showCalendar = tab === 'calendar';
+            const homeTab = document.getElementById('landing-home-tab');
+            const calendarTab = document.getElementById('landing-calendar-tab');
+            const homePanel = document.getElementById('landing-home-panel');
+            const calendarPanel = document.getElementById('landing-calendar-panel');
+
+            if (homeTab) {
+                homeTab.classList.toggle('active', !showCalendar);
+                homeTab.setAttribute('aria-selected', showCalendar ? 'false' : 'true');
+            }
+            if (calendarTab) {
+                calendarTab.classList.toggle('active', showCalendar);
+                calendarTab.setAttribute('aria-selected', showCalendar ? 'true' : 'false');
+            }
+            if (homePanel) {
+                homePanel.classList.toggle('active', !showCalendar);
+                homePanel.setAttribute('aria-hidden', showCalendar ? 'true' : 'false');
+            }
+            if (calendarPanel) {
+                calendarPanel.classList.toggle('active', showCalendar);
+                calendarPanel.setAttribute('aria-hidden', showCalendar ? 'false' : 'true');
+            }
+
+            if (showCalendar && !landingCalendarLoaded && !landingCalendarLoading) {
+                loadLandingCalendarWidget();
+            }
+        }
+
+        function loadLandingCalendarWidget() {
+            const container = document.getElementById('landing-calendar-container');
+            if (!container) {
+                return;
+            }
+
+            landingCalendarLoading = true;
+            container.innerHTML = '<div class="landing-calendar-loading"><i class="fas fa-spinner fa-spin"></i><span>Loading calendar...</span></div>';
+
+            fetch(LANDING_CALENDAR_WIDGET_URL, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load calendar widget');
+                    }
+                    return response.text();
+                })
+                .then((html) => {
+                    container.innerHTML = html;
+                    landingCalendarLoaded = true;
+                    initLandingCalendarWidget();
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="landing-calendar-error"><i class="fas fa-exclamation-circle"></i><span>Unable to load the calendar panel right now.</span></div>';
+                })
+                .finally(() => {
+                    landingCalendarLoading = false;
+                });
+        }
+
+        function initLandingCalendarWidget() {
+            const projectSelect = document.getElementById('landingCalendarProjectFilter');
+            const prompt = document.getElementById('landingCalendarPrompt');
+            const shell = document.getElementById('landingCalendarShell');
+            const calendarEl = document.getElementById('landingCalendar');
+
+            if (!projectSelect || !prompt || !shell || !calendarEl) {
+                return;
+            }
+
+            function ensureCalendarInstance() {
+                if (landingCalendarInstance || typeof FullCalendar === 'undefined') {
+                    return;
+                }
+
+                const savedView = localStorage.getItem(LANDING_CALENDAR_VIEW_KEY) || 'dayGridMonth';
+                landingCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+                    initialView: savedView,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth'
+                    },
+                    events: function(info, successCallback, failureCallback) {
+                        if (!landingCalendarSelectedProject) {
+                            successCallback([]);
+                            return;
+                        }
+
+                        const url = 'api/calendar-events.php?start=' + encodeURIComponent(info.startStr)
+                            + '&end=' + encodeURIComponent(info.endStr)
+                            + '&project=' + encodeURIComponent(landingCalendarSelectedProject);
+
+                        fetch(url)
+                            .then((response) => response.json())
+                            .then((data) => {
+                                if (Array.isArray(data)) {
+                                    successCallback(data);
+                                    return;
+                                }
+                                if (data && data.success && Array.isArray(data.events)) {
+                                    successCallback(data.events);
+                                    return;
+                                }
+                                failureCallback(data && data.error ? data.error : 'Unable to load events');
+                            })
+                            .catch((error) => {
+                                failureCallback(error);
+                            });
+                    },
+                    eventDidMount: function(info) {
+                        const status = String(info.event.extendedProps.status || '').toLowerCase();
+                        if (status !== '') {
+                            info.el.classList.add('status-' + status);
+                        }
+                    },
+                    eventClick: function(info) {
+                        if (!info.event.url) {
+                            return;
+                        }
+                        info.jsEvent.preventDefault();
+                        window.location.href = info.event.url;
+                    },
+                    datesSet: function(info) {
+                        localStorage.setItem(LANDING_CALENDAR_VIEW_KEY, info.view.type);
+                    },
+                    height: 'auto',
+                    contentHeight: 'auto',
+                    expandRows: false,
+                    fixedWeekCount: false,
+                    showNonCurrentDates: true,
+                    dayMaxEvents: 1,
+                    dayMaxEventRows: 1
+                });
+
+                landingCalendarInstance.render();
+            }
+
+            function applyProjectSelection() {
+                landingCalendarSelectedProject = String(projectSelect.value || '').trim();
+
+                if (!landingCalendarSelectedProject) {
+                    prompt.style.display = '';
+                    shell.style.display = 'none';
+                    return;
+                }
+
+                prompt.style.display = 'none';
+                shell.style.display = '';
+                ensureCalendarInstance();
+
+                if (landingCalendarInstance) {
+                    landingCalendarInstance.refetchEvents();
+                }
+            }
+
+            projectSelect.addEventListener('change', applyProjectSelection);
+            applyProjectSelection();
+        }
 
         /* ── Modal ── */
         function openLoginModal() {
@@ -1689,7 +1911,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     let html = '';
                     res.data.forEach((project, idx) => {
                         const projectId = Number(project.id) || 0;
-                        const projectNo = `PR-${String(project.id).padStart(4, '0')}`;
+                        const projectNo = project.bactrack_id ? String(project.bactrack_id) : `PR-${String(project.id).padStart(4, '0')}`;
                         let rows = '';
                         if (project.activities && project.activities.length > 0) {
                             project.activities.forEach(act => {
@@ -1930,6 +2152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // initialize planner on load
         document.addEventListener('DOMContentLoaded', function() {
+            switchLandingTab('home');
             renderPlannerRows();
 
             const typeEl = document.getElementById('estProcurementType');

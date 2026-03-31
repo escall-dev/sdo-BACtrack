@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
+    bactrack_id VARCHAR(32) NULL,
     description TEXT,
     procurement_type VARCHAR(50) NOT NULL DEFAULT 'PUBLIC_BIDDING',
     project_owner_name VARCHAR(255) NULL,
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS projects (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
     FOREIGN KEY (rejected_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_procurement_type (procurement_type),
+    UNIQUE KEY uq_projects_bactrack_id (bactrack_id),
     INDEX idx_project_owner_name (project_owner_name),
     INDEX idx_created_by (created_by),
     INDEX idx_approval_status (approval_status)

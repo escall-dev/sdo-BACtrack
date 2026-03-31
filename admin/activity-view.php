@@ -12,8 +12,6 @@ require_once __DIR__ . '/../includes/timeline.php';
 
 // Require models used on this page
 require_once __DIR__ . '/../models/ProjectActivity.php';
-require_once __DIR__ . '/../models/ActivityDocument.php';
-require_once __DIR__ . '/../models/ProjectDocument.php';
 require_once __DIR__ . '/../models/ActivityHistoryLog.php';
 require_once __DIR__ . '/../models/AdjustmentRequest.php';
 require_once __DIR__ . '/../models/Notification.php';
@@ -51,13 +49,6 @@ $timelineSummary = timelineProjectSummary($projectActivities);
 $activityTiming = timelineActivityMeta($activity);
 $currentActivity = $timelineSummary['current_activity'];
 $nextActivity = $timelineSummary['next_activity'];
-
-$documentModel = new ActivityDocument();
-$documents = $documentModel->getByActivity($activityId);
-
-// Project documents uploaded by project owner for this activity's step (category matches step_name)
-$projectDocModel = new ProjectDocument();
-$projectDocuments = $projectDocModel->getByProjectAndCategory($activity['project_id'] ?? 0, $activity['step_name'] ?? '');
 
 $historyModel = new ActivityHistoryLog();
 $history = $historyModel->getByActivity($activityId);
@@ -147,26 +138,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $auth->redirect(APP_URL . '/admin/activity-view.php?id=' . $activityId);
     }
 
-    // Upload Document (Project Owner only) - blocked if project not approved
-    if ($action === 'upload_document' && $auth->canUploadDocuments() && $projectApproved) {
-        if (isset($_FILES['document']) && $_FILES['document']['error'] !== UPLOAD_ERR_NO_FILE) {
-            try {
-                $documentModel->upload($_FILES['document'], $activityId, $auth->getUserId());
-
-                // Notify about document upload
-                $notificationModel = new Notification();
-                $notificationModel->notifyDocumentUploaded($activityId, $activity['step_name'], $activity['project_title'], $auth->getUserName());
-
-                setFlashMessage('success', 'Document uploaded successfully.');
-            } catch (Exception $e) {
-                setFlashMessage('error', 'Failed to upload document: ' . $e->getMessage());
-            }
-        } else {
-            setFlashMessage('error', 'Please select a file to upload.');
-        }
-        $auth->redirect(APP_URL . '/admin/activity-view.php?id=' . $activityId);
-    }
-
     // Request Timeline Adjustment (All users)
     if ($action === 'request_adjustment' && $auth->canRequestAdjustment()) {
         $newStartDate = $_POST['new_start_date'] ?? '';
@@ -196,18 +167,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Refresh data
 $activity = $activityModel->findById($activityId);
-$documents = $documentModel->getByActivity($activityId);
-$projectDocuments = $projectDocModel->getByProjectAndCategory($activity['project_id'] ?? 0, $activity['step_name'] ?? '');
 
 // Only include the header (which outputs HTML) after all
 // redirects and header() calls above are done.
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
+<div class="activity-view-page">
+
 <div class="page-header">
     <div>
         <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $activity['project_id']; ?>" class="back-link">
-            Back to Project
+            <i class="fas fa-arrow-left"></i> Back to Project
         </a>
     </div>
 </div>
@@ -220,11 +191,11 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
     <div class="stat-card">
         <div class="stat-label">Due Today</div>
-        <div class="stat-value" style="color: var(--info);"><?php echo $timelineSummary['due_today_steps']; ?></div>
+        <div class="stat-value stat-value-info"><?php echo $timelineSummary['due_today_steps']; ?></div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Overdue Process</div>
-        <div class="stat-value" style="color: var(--danger);"><?php echo $timelineSummary['overdue_steps']; ?></div>
+        <div class="stat-value stat-value-danger"><?php echo $timelineSummary['overdue_steps']; ?></div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Current Cycle</div>
@@ -266,79 +237,113 @@ require_once __DIR__ . '/../includes/header.php';
                     <div style="font-size: 1rem; font-weight: 600;"><?php echo htmlspecialchars($activityTiming['timing_label']); ?></div>
                 </div>
             </div>
+
+            <div class="process-context-row">
+                <div class="process-context-chip">
+                    <span class="context-label">Current Process</span>
+                    <strong><?php echo htmlspecialchars($currentActivity['step_name'] ?? 'N/A'); ?></strong>
+                </div>
+                <div class="process-context-chip">
+                    <span class="context-label">Next Process</span>
+                    <strong><?php echo htmlspecialchars($nextActivity['step_name'] ?? 'Final Stage'); ?></strong>
+                </div>
+            </div>
         </div>
 
-        <!-- Documents Section -->
         <div class="data-card">
             <div class="card-header">
-                <h2>Repository Documents</h2>
-                <span style="font-size: 0.85rem; background: #f3f4f6; padding: 4px 10px; border-radius: 6px; font-weight: 600;"><?php echo count($documents) + count($projectDocuments); ?> Total</span>
+                <h2>Activity Trail</h2>
+                <span style="font-size: 0.85rem; background: #f3f4f6; padding: 4px 10px; border-radius: 6px; font-weight: 600;"><?php echo count($history); ?> Entries</span>
             </div>
             <div class="card-body">
-                <?php if ($auth->canUploadDocuments() && $projectApproved): ?>
-                <form method="POST" enctype="multipart/form-data" 
-                      style="margin-bottom: 24px; padding: 20px; background: #f9fafb; border-radius: 12px; border: 1px dashed #d1d5db; position: relative; transition: all 0.3s ease;"
-                      onmouseover="this.style.borderColor='var(--primary)'; this.style.background='#f0f7ff';"
-                      onmouseout="this.style.borderColor='#d1d5db'; this.style.background='#f9fafb';">
-                    <input type="hidden" name="action" value="upload_document">
-                    <div style="display: flex; gap: 16px; align-items: center;">
-                        <input type="file" name="document" class="form-control" style="flex: 1; border-style: none; background: transparent;" required>
-                        <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
-                            Upload Document
-                        </button>
-                    </div>
-                </form>
-                <?php endif; ?>
-
-                <?php if (empty($documents) && empty($projectDocuments)): ?>
+                <?php if (empty($history)): ?>
                 <div class="empty-state small" style="padding: 40px; text-align: center;">
-                    <p style="color: #9ca3af;">No documents in this repository folder yet.</p>
+                    <p style="color: #9ca3af;">No updates recorded for this process yet.</p>
                 </div>
                 <?php else: ?>
-                <div class="docs-grid">
-                    <?php foreach ($projectDocuments as $doc): ?>
-                    <div class="doc-card">
-                        <div class="doc-icon" style="color: var(--primary);"></div>
-                        <div class="doc-main">
-                            <div class="doc-title"><?php echo htmlspecialchars($doc['original_name']); ?></div>
-                            <div class="doc-meta">
-                                <span style="color: var(--primary); font-weight: 600;">Project Level</span> &bull;
-                                <?php echo htmlspecialchars($doc['uploader_name']); ?> &bull; 
-                                <?php echo date('M j, Y', strtotime($doc['uploaded_at'])); ?>
+                <div class="timeline">
+                    <?php foreach ($history as $log): ?>
+                    <?php
+                        $actionType = (string)($log['action_type'] ?? 'UPDATE');
+                        $actionLabel = ucwords(strtolower(str_replace('_', ' ', $actionType)));
+                        $actionIcon = 'fas fa-pen';
+                        if ($actionType === 'STATUS_CHANGE') {
+                            $actionIcon = 'fas fa-flag-checkered';
+                        } elseif ($actionType === 'COMPLIANCE_TAG') {
+                            $actionIcon = 'fas fa-shield-check';
+                        } elseif ($actionType === 'DATE_CHANGE') {
+                            $actionIcon = 'fas fa-calendar-days';
+                        }
+
+                        $summary = 'Record updated.';
+                        if ($actionType === 'STATUS_CHANGE') {
+                            $summary = 'Status changed from ' . ($log['old_value'] ?: 'N/A') . ' to ' . ($log['new_value'] ?: 'N/A') . '.';
+                        } elseif ($actionType === 'DATE_CHANGE') {
+                            $oldDates = json_decode((string)($log['old_value'] ?? ''), true) ?: [];
+                            $newDates = json_decode((string)($log['new_value'] ?? ''), true) ?: [];
+                            $summary = 'Dates moved from ' .
+                                (!empty($oldDates['start']) ? date('M j, Y', strtotime($oldDates['start'])) : 'N/A') . ' - ' .
+                                (!empty($oldDates['end']) ? date('M j, Y', strtotime($oldDates['end'])) : 'N/A') .
+                                ' to ' .
+                                (!empty($newDates['start']) ? date('M j, Y', strtotime($newDates['start'])) : 'N/A') . ' - ' .
+                                (!empty($newDates['end']) ? date('M j, Y', strtotime($newDates['end'])) : 'N/A') . '.';
+                        } elseif ($actionType === 'COMPLIANCE_TAG') {
+                            $compliance = json_decode((string)($log['new_value'] ?? ''), true) ?: [];
+                            $summary = 'Compliance marked as ' . (!empty($compliance['status']) ? $compliance['status'] : 'N/A') . '.';
+                            if (!empty($compliance['remarks'])) {
+                                $summary .= ' Notes: ' . $compliance['remarks'];
+                            }
+                        }
+                    ?>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"><i class="<?php echo $actionIcon; ?>"></i></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title"><?php echo htmlspecialchars($actionLabel); ?></div>
+                            <div class="timeline-desc"><?php echo htmlspecialchars($summary); ?></div>
+                            <div class="timeline-meta">
+                                <span class="timeline-user">
+                                    <?php if (!empty($log['changed_by_avatar'])): ?>
+                                    <img src="<?php echo htmlspecialchars($log['changed_by_avatar']); ?>" alt="" class="timeline-avatar">
+                                    <?php endif; ?>
+                                    <?php echo htmlspecialchars($log['changed_by_name'] ?: 'System'); ?>
+                                </span>
+                                <span class="timeline-date">
+                                    <i class="fas fa-clock"></i>
+                                    <?php echo date('M j, Y g:i A', strtotime($log['changed_at'])); ?>
+                                </span>
                             </div>
-                        </div>
-                        <div class="doc-actions">
-                            <button type="button" class="btn btn-sm btn-secondary document-preview-btn" 
-                                    data-url="<?php echo htmlspecialchars(APP_URL . '/uploads/' . $doc['file_path']); ?>"
-                                    data-name="<?php echo htmlspecialchars($doc['original_name']); ?>">
-                                View
-                            </button>
-                            <a href="<?php echo APP_URL; ?>/uploads/<?php echo htmlspecialchars($doc['file_path']); ?>" class="btn btn-sm btn-secondary" target="_blank">
-                                Download
-                            </a>
                         </div>
                     </div>
                     <?php endforeach; ?>
-                    <?php foreach ($documents as $doc): ?>
-                    <div class="doc-card">
-                        <div class="doc-icon" style="color: var(--danger);"></div>
-                        <div class="doc-main">
-                            <div class="doc-title"><?php echo htmlspecialchars($doc['original_name']); ?></div>
-                            <div class="doc-meta">
-                                <?php echo htmlspecialchars($doc['uploader_name']); ?> &bull; 
-                                <?php echo date('M j, Y', strtotime($doc['uploaded_at'])); ?>
-                            </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="data-card">
+            <div class="card-header">
+                <h2>Adjustment Requests</h2>
+                <span style="font-size: 0.85rem; background: #f3f4f6; padding: 4px 10px; border-radius: 6px; font-weight: 600;"><?php echo count($adjustments); ?> Total</span>
+            </div>
+            <div class="card-body">
+                <?php if (empty($adjustments)): ?>
+                <div class="empty-state small" style="padding: 24px; text-align: center;">
+                    <p style="color: #9ca3af;">No date adjustment requests for this process.</p>
+                </div>
+                <?php else: ?>
+                <div class="adjustment-list">
+                    <?php foreach ($adjustments as $request): ?>
+                    <div class="adjustment-item">
+                        <div class="adjustment-head">
+                            <span class="status-pill status-pill-<?php echo strtolower((string)($request['status'] ?? 'PENDING')); ?>"><?php echo htmlspecialchars((string)($request['status'] ?? 'PENDING')); ?></span>
+                            <small><?php echo date('M j, Y g:i A', strtotime($request['created_at'])); ?></small>
                         </div>
-                        <div class="doc-actions">
-                            <button type="button" class="btn btn-sm btn-secondary document-preview-btn" 
-                                    data-url="<?php echo htmlspecialchars(APP_URL . '/uploads/' . $doc['file_path']); ?>"
-                                    data-name="<?php echo htmlspecialchars($doc['original_name']); ?>">
-                                View
-                            </button>
-                            <a href="<?php echo APP_URL; ?>/uploads/<?php echo htmlspecialchars($doc['file_path']); ?>" class="btn btn-sm btn-secondary" target="_blank">
-                                Download
-                            </a>
+                        <div class="adjustment-dates">
+                            <strong><?php echo date('M j, Y', strtotime($request['new_start_date'])); ?></strong>
+                            <span>to</span>
+                            <strong><?php echo date('M j, Y', strtotime($request['new_end_date'])); ?></strong>
                         </div>
+                        <p class="adjustment-reason"><?php echo nl2br(htmlspecialchars($request['reason'])); ?></p>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -429,7 +434,7 @@ require_once __DIR__ . '/../includes/header.php';
                         Pending review...
                     </div>
                     <?php elseif ($auth->canRequestAdjustment()): ?>
-                    <button type="button" class="btn btn-secondary" style="width: 100%; border-style: dashed;" onclick="this.style.display='none'; document.getElementById('adjForm').style.display='block';">
+                    <button type="button" class="btn btn-secondary" id="showAdjFormBtn" style="width: 100%; border-style: dashed;">
                         Request New Dates
                     </button>
                     <div id="adjForm" style="display: none;">
@@ -442,7 +447,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <textarea name="reason" class="form-control" rows="2" placeholder="Why is this change needed?" required></textarea>
                                 <button type="submit" class="btn btn-warning" style="width: 100%;">Submit Request</button>
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('adjForm').style.display='none'; document.querySelector('.btn-secondary[style*=\'dashed\']').style.display='block';">Cancel</button>
+                                <button type="button" class="btn btn-sm btn-secondary" id="hideAdjFormBtn">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -458,477 +463,268 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f3f4f6;
+.activity-view-page {
+    --av-border: #e5e7eb;
+    --av-muted: #6b7280;
 }
 
-/* Shared page-header moved to admin.css */
-.page-header {
-    animation: slideDown 0.4s ease-out;
+.activity-view-page .page-header,
+.activity-view-page .dash-stats,
+.activity-view-page .data-card {
+    animation: av-slide-up 0.45s ease-out both;
 }
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+.activity-view-page .dash-stats {
+    margin-bottom: 32px;
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+.activity-view-page .data-card {
+    border: 1px solid var(--av-border);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 76, 117, 0.05);
 }
 
-.data-card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: none;
-    margin-bottom: 24px;
-    padding: 24px;
-    border: 1px solid #e5e7eb;
-    position: relative;
-    overflow: hidden;
-    animation: slideUp 0.6s ease-out both;
+.activity-view-page .stat-card {
+    border: 1px solid #e8eef4;
+    border-radius: 14px;
+    padding: 22px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
 }
 
-.stat-card {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    text-align: left;
-}
-
-.stat-icon {
-    display: none;
-}
-
-.data-card:nth-child(1) { animation-delay: 0.1s; }
-.data-card:nth-child(2) { animation-delay: 0.2s; }
-.data-card:nth-child(3) { animation-delay: 0.3s; }
-
-
-
-.card-header {
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-
-
-.card-header h2 {
-    font-size: 1.4rem;
+.activity-view-page .stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
     font-weight: 700;
-    margin: 0;
-    color: #111827;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    letter-spacing: 0.04em;
+    color: var(--av-muted);
 }
 
-.card-header h2 i {
-    display: none;
+.activity-view-page .stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
 }
 
-.card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.activity-view-page .stat-value-info {
+    color: #2563eb;
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.activity-view-page .stat-value-danger {
+    color: #dc2626;
 }
 
-.form-label {
-    font-size: 0.95rem;
-    color: #374151;
-    font-weight: 600;
+.activity-view-page .process-context-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
 }
 
-.form-control {
-    border: 1px solid #d1d5db;
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 1rem;
-    background: #f9fafb;
-    transition: all 0.2s ease;
-    color: #111827;
-}
-
-.form-control:focus {
-    border-color: #154c79;
-    background: #ffffff;
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(21, 76, 121, 0.1);
-}
-
-.form-control:disabled {
-    background: #f3f4f6;
-    color: #6b7280;
-    cursor: not-allowed;
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: 10px;
-    padding: 12px 24px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-}
-
-.btn-primary {
-    background: #154c79;
-    color: #ffffff;
-    box-shadow: 0 4px 6px -1px rgba(21, 76, 121, 0.2), 0 2px 4px -1px rgba(21, 76, 121, 0.1);
-}
-
-.btn-primary:hover {
-    background: #0f3a5e;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(21, 76, 121, 0.3), 0 4px 6px -1px rgba(21, 76, 121, 0.2);
-}
-
-.btn-success {
-    background: #059669;
-    color: #ffffff;
-    box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2), 0 2px 4px -1px rgba(5, 150, 105, 0.1);
-}
-
-.btn-success:hover {
-    background: #047857;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(5, 150, 105, 0.3), 0 4px 6px -1px rgba(5, 150, 105, 0.2);
-}
-
-.btn-warning {
-    background: #d97706;
-    color: #ffffff;
-    box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.2), 0 2px 4px -1px rgba(217, 119, 6, 0.1);
-}
-
-.btn-warning:hover {
-    background: #b45309;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(217, 119, 6, 0.3), 0 4px 6px -1px rgba(217, 119, 6, 0.2);
-}
-
-.btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
-}
-
-.btn-secondary:hover {
-    background: #e5e7eb;
-    color: #111827;
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    border-radius: 6px;
-}
-
-.document-item {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
+.activity-view-page .process-context-chip {
+    border: 1px solid #dbe5ef;
+    background: #f8fbff;
     border-radius: 12px;
-    margin-bottom: 12px;
-    transition: all 0.2s ease;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.document-item:hover {
+.activity-view-page .process-context-chip .context-label {
+    color: var(--av-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.activity-view-page .process-context-chip strong {
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.activity-view-page .card-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.activity-view-page .card-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 750;
+}
+
+.activity-view-page .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.activity-view-page .form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 11px 14px;
     background: #f9fafb;
-    border-color: #d1d5db;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transform: translateY(-1px);
 }
 
-.document-info {
-    flex: 1;
-    margin-left: 16px;
-    margin-right: 16px;
-}
-
-.document-name {
-    font-weight: 600;
-    color: #111827;
-    font-size: 1rem;
-    margin-bottom: 4px;
-}
-
-.document-meta {
-    font-size: 0.85rem;
-    color: #6b7280;
-}
-
-.timeline {
+.activity-view-page .timeline {
     position: relative;
-    margin-top: 10px;
+    padding-left: 0;
 }
 
-.timeline::before {
+.activity-view-page .timeline::before {
     content: '';
     position: absolute;
-    left: 17px;
-    top: 8px;
-    bottom: 8px;
+    left: 16px;
+    top: 10px;
+    bottom: 10px;
     width: 2px;
-    background: #e5e7eb;
+    background: #dbe5ef;
 }
 
-.timeline-item {
+.activity-view-page .timeline-item {
     position: relative;
-    padding-bottom: 28px;
-    padding-left: 48px;
-    transition: all 0.3s ease;
+    padding-left: 46px;
+    padding-bottom: 20px;
 }
 
-.timeline-item:hover {
-    transform: translateX(4px);
-}
-
-.timeline-item:last-child {
+.activity-view-page .timeline-item:last-child {
     padding-bottom: 0;
 }
 
-.timeline-marker {
+.activity-view-page .timeline-marker {
     position: absolute;
     left: 0;
     top: 0;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: #ffffff;
-    border: 2px solid #e5e7eb;
+    background: #fff;
+    border: 2px solid #c8d8e7;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #154c79;
-    z-index: 1;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
+    color: var(--primary);
 }
 
-.timeline-item:hover .timeline-marker {
-    border-color: #154c79;
-    background: #154c79;
-    color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(21, 76, 121, 0.1);
-}
-
-.timeline-content {
-    background: #ffffff;
-    padding: 2px 0;
-}
-
-.timeline-title {
+.activity-view-page .timeline-title {
     font-weight: 700;
-    color: #111827;
-    font-size: 1rem;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #0f172a;
 }
 
-.timeline-desc {
+.activity-view-page .timeline-desc {
+    margin: 3px 0 8px;
+    color: #374151;
     font-size: 0.9rem;
-    color: #4b5563;
-    margin-bottom: 8px;
 }
 
-.timeline-meta {
+.activity-view-page .timeline-meta {
     display: flex;
-    align-items: center;
     gap: 12px;
-    color: #6b7280;
+    flex-wrap: wrap;
+    color: var(--av-muted);
     font-size: 0.8rem;
 }
 
-.timeline-user {
-    display: flex;
+.activity-view-page .timeline-user {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #374151;
-    font-weight: 500;
 }
 
-.timeline-avatar {
+.activity-view-page .timeline-avatar {
     width: 20px;
     height: 20px;
     border-radius: 50%;
     object-fit: cover;
 }
 
-.timeline-date {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: capitalize;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-/* Dash Stats */
-.dash-stats {
-    margin-bottom: 32px;
-}
-
-.stat-card {
-    background: #ffffff;
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    border: 1px solid rgba(0,0,0,0.04);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    animation: slideUp 0.6s ease-out both;
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-
-.stat-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.stat-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #111827;
-}
-
-.stat-icon {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 1.5rem;
-    opacity: 0.1;
-}
-
-/* Document Item Enhancement */
-.docs-grid {
+.activity-view-page .adjustment-list {
     display: grid;
-    grid-template-columns: 1fr;
     gap: 12px;
 }
 
-.doc-card {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+.activity-view-page .adjustment-item {
+    border: 1px solid var(--av-border);
     border-radius: 12px;
-    padding: 16px;
+    background: #fcfdff;
+    padding: 14px;
+}
+
+.activity-view-page .adjustment-head {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    transition: all 0.2s ease;
+    margin-bottom: 8px;
 }
 
-.doc-card:hover {
-    background: #ffffff;
-    border-color: #154c79;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transform: translateY(-2px);
-}
-
-.doc-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-}
-
-.doc-main {
-    flex: 1;
-    min-width: 0;
-}
-
-.doc-title {
-    font-weight: 600;
+.activity-view-page .adjustment-dates {
+    display: inline-flex;
+    gap: 6px;
     color: #111827;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 2px;
+    margin-bottom: 8px;
 }
 
-.doc-meta {
+.activity-view-page .adjustment-reason {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #4b5563;
+}
+
+.activity-view-page .status-pill {
     font-size: 0.75rem;
-    color: #6b7280;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
-.doc-actions {
-    display: flex;
-    gap: 8px;
+.activity-view-page .status-pill-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.activity-view-page .status-pill-approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.activity-view-page .status-pill-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+@keyframes av-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 1100px) {
-    .dash-stats { grid-template-columns: repeat(2, 1fr); }
+    .activity-view-page .dash-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .activity-view-page .process-context-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 600px) {
-    .dash-stats { grid-template-columns: 1fr; }
+    .activity-view-page .dash-stats {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
-
-<!-- Document Preview Modal -->
-<div id="documentPreviewModal" class="document-preview-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--card-bg, #1a1d24); border-radius: 12px; max-width: 95vw; max-height: 95vh; width: 900px; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color, #2d333b);">
-            <h3 id="documentPreviewTitle" style="margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Document</h3>
-            <div style="display: flex; gap: 8px;">
-                <a id="documentPreviewDownload" href="#" target="_blank" class="btn btn-sm btn-primary">Download</a>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('documentPreviewModal').style.display='none'">Close</button>
-            </div>
-        </div>
-        <div id="documentPreviewBody" style="flex: 1; min-height: 400px; overflow: auto; padding: 20px; display: flex; align-items: center; justify-content: center;">
-            <iframe id="documentPreviewIframe" style="width: 100%; height: 70vh; border: none; display: none;"></iframe>
-            <img id="documentPreviewImg" style="max-width: 100%; max-height: 70vh; object-fit: contain; display: none;" alt="Preview">
-            <div id="documentPreviewFallback" style="text-align: center; color: var(--text-muted); display: none; padding: 40px;">
-                <p>Preview not available for this file type.</p>
-                <a id="documentPreviewFallbackLink" href="#" target="_blank" class="btn btn-primary">Download to view</a>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
 document.getElementById('complianceStatus')?.addEventListener('change', function() {
@@ -942,47 +738,27 @@ document.getElementById('complianceStatus')?.addEventListener('change', function
     }
 });
 
-(function() {
-    const PREVIEW_TYPES = ['pdf', 'jpg', 'jpeg', 'png', 'gif'];
-    document.querySelectorAll('.document-preview-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const url = this.dataset.url;
-            const name = this.dataset.name;
-            const ext = (name.split('.').pop() || '').toLowerCase();
-            const modal = document.getElementById('documentPreviewModal');
-            const iframe = document.getElementById('documentPreviewIframe');
-            const img = document.getElementById('documentPreviewImg');
-            const fallback = document.getElementById('documentPreviewFallback');
-            const fallbackLink = document.getElementById('documentPreviewFallbackLink');
-            const downloadBtn = document.getElementById('documentPreviewDownload');
+const showAdjFormBtn = document.getElementById('showAdjFormBtn');
+const hideAdjFormBtn = document.getElementById('hideAdjFormBtn');
+const adjForm = document.getElementById('adjForm');
 
-            document.getElementById('documentPreviewTitle').textContent = name;
-            downloadBtn.href = url;
-            fallbackLink.href = url;
+showAdjFormBtn?.addEventListener('click', function() {
+    showAdjFormBtn.style.display = 'none';
+    if (adjForm) {
+        adjForm.style.display = 'block';
+    }
+});
 
-            iframe.style.display = 'none';
-            img.style.display = 'none';
-            fallback.style.display = 'none';
-
-            if (PREVIEW_TYPES.includes(ext)) {
-                if (ext === 'pdf') {
-                    iframe.src = url;
-                    iframe.style.display = 'block';
-                } else {
-                    img.src = url;
-                    img.style.display = 'block';
-                }
-            } else {
-                fallback.style.display = 'block';
-            }
-
-            modal.style.display = 'flex';
-        });
-    });
-    document.getElementById('documentPreviewModal')?.addEventListener('click', function(e) {
-        if (e.target === this) this.style.display = 'none';
-    });
-})();
+hideAdjFormBtn?.addEventListener('click', function() {
+    if (adjForm) {
+        adjForm.style.display = 'none';
+    }
+    if (showAdjFormBtn) {
+        showAdjFormBtn.style.display = 'inline-flex';
+    }
+});
 </script>
+
+</div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

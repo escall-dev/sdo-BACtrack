@@ -9,6 +9,7 @@ require_once __DIR__ . '/../config/database.php';
 class Project {
     private $db;
     private $hasProjectOwnerNameColumn = null;
+    private $hasBactrackIdColumn = null;
 
     public function __construct() {
         $this->db = db();
@@ -27,6 +28,95 @@ class Project {
         }
 
         return $this->hasProjectOwnerNameColumn;
+    }
+
+    private function projectsTableHasBactrackIdColumn() {
+        if ($this->hasBactrackIdColumn !== null) {
+            return $this->hasBactrackIdColumn;
+        }
+
+        try {
+            $rows = $this->db->fetchAll("SHOW COLUMNS FROM projects LIKE 'bactrack_id'");
+            $this->hasBactrackIdColumn = !empty($rows);
+        } catch (Exception $e) {
+            $this->hasBactrackIdColumn = false;
+        }
+
+        return $this->hasBactrackIdColumn;
+    }
+
+    private function ensureBactrackIdColumn() {
+        if ($this->projectsTableHasBactrackIdColumn()) {
+            return;
+        }
+
+        try {
+            $this->db->query("ALTER TABLE projects ADD COLUMN bactrack_id VARCHAR(32) NULL AFTER title");
+            try {
+                $this->db->query("CREATE UNIQUE INDEX uq_projects_bactrack_id ON projects (bactrack_id)");
+            } catch (Exception $e) {
+                // Ignore when index already exists.
+            }
+            $this->hasBactrackIdColumn = true;
+        } catch (Exception $e) {
+            $message = strtolower($e->getMessage());
+            if (strpos($message, 'duplicate column') !== false || strpos($message, 'already exists') !== false) {
+                $this->hasBactrackIdColumn = true;
+                return;
+            }
+            throw $e;
+        }
+    }
+
+    private function generateBactrackId() {
+        $monthKey = date('Ym');
+        $lockName = 'projects_bactrack_id_' . $monthKey;
+        $lockAcquired = false;
+
+        try {
+            $lockRow = $this->db->fetch("SELECT GET_LOCK(?, 10) AS lck", [$lockName]);
+            $lockAcquired = isset($lockRow['lck']) && (int)$lockRow['lck'] === 1;
+
+            if (!$lockAcquired) {
+                throw new RuntimeException('Unable to lock BACTrack ID generator. Please retry.');
+            }
+
+            $seriesRow = $this->db->fetch(
+                "SELECT COALESCE(MAX(CAST(RIGHT(bactrack_id, 3) AS UNSIGNED)), 0) AS max_series
+                 FROM projects
+                 WHERE bactrack_id LIKE ?",
+                ['BT___-' . $monthKey . '-%']
+            );
+
+            $nextSeries = ((int)($seriesRow['max_series'] ?? 0)) + 1;
+            if ($nextSeries > 999) {
+                throw new RuntimeException('Monthly BACTrack ID series limit reached (999).');
+            }
+
+            $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $alphabetLength = strlen($alphabet);
+            $seriesPart = str_pad((string)$nextSeries, 3, '0', STR_PAD_LEFT);
+
+            for ($attempt = 0; $attempt < 15; $attempt++) {
+                $randPart = '';
+                for ($i = 0; $i < 3; $i++) {
+                    $idx = random_int(0, $alphabetLength - 1);
+                    $randPart .= $alphabet[$idx];
+                }
+
+                $candidate = 'BT' . $randPart . '-' . $monthKey . '-' . $seriesPart;
+                $exists = $this->db->fetch("SELECT id FROM projects WHERE bactrack_id = ? LIMIT 1", [$candidate]);
+                if (!$exists) {
+                    return $candidate;
+                }
+            }
+
+            throw new RuntimeException('Unable to generate a unique BACTrack ID. Please retry.');
+        } finally {
+            if ($lockAcquired) {
+                $this->db->fetch("SELECT RELEASE_LOCK(?)", [$lockName]);
+            }
+        }
     }
 
     public function findById($id) {
@@ -128,12 +218,16 @@ class Project {
     public function create($data) {
         $approvalStatus = $data['approval_status'] ?? 'APPROVED';
         $startDate = !empty($data['project_start_date']) ? $data['project_start_date'] : null;
+        $this->ensureBactrackIdColumn();
+        $bactrackId = $this->generateBactrackId();
+
         if ($this->projectsTableHasProjectOwnerNameColumn()) {
             $this->db->query(
-                "INSERT INTO projects (title, description, procurement_type, project_start_date, project_owner_name, created_by, approval_status) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO projects (title, bactrack_id, description, procurement_type, project_start_date, project_owner_name, created_by, approval_status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 [
                     $data['title'],
+                    $bactrackId,
                     $data['description'] ?? '',
                     $data['procurement_type'] ?? 'PUBLIC_BIDDING',
                     $startDate,
@@ -144,10 +238,11 @@ class Project {
             );
         } else {
             $this->db->query(
-                "INSERT INTO projects (title, description, procurement_type, project_start_date, created_by, approval_status) 
-                 VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO projects (title, bactrack_id, description, procurement_type, project_start_date, created_by, approval_status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)",
                 [
                     $data['title'],
+                    $bactrackId,
                     $data['description'] ?? '',
                     $data['procurement_type'] ?? 'PUBLIC_BIDDING',
                     $startDate,

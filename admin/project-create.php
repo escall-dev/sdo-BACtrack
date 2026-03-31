@@ -438,15 +438,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <?php if ($isBacSecretary): ?>
                 <div class="form-group">
-                    <label class="form-label" for="project_owner_id">Project Owner / Company *</label>
-                    <select id="project_owner_id" name="project_owner_id" class="form-control">
-                        <option value="">Select existing account (optional)</option>
-                        <?php foreach ($projectOwners as $owner): ?>
-                        <option value="<?php echo (int)$owner['id']; ?>" <?php echo ((int)($_POST['project_owner_id'] ?? 0) === (int)$owner['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($owner['name']); ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
+                  
                     <small style="color: var(--text-muted); display:block; margin-top:6px;">Select an existing account, or type a custom owner/company name below.</small>
                 </div>
 

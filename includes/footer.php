@@ -1,8 +1,7 @@
             </div><!-- .content-wrapper -->
             
             <footer class="admin-footer">
-                <p>&copy; <?php echo date('Y'); ?> <?php echo APP_NAME; ?> - BAC Procedural Timeline Tracking System<br>
-                Aligned with the RA 12009 procurement timeline reference</p>
+                <p>&copy; <?php echo date('Y'); ?>  ICT Unit</p>
             </footer>
         </main>
     </div>

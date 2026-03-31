@@ -12,25 +12,51 @@ if (empty($query)) {
     exit;
 }
 
-// Accept plain numeric IDs (e.g. 27) and formatted project numbers (e.g. PR-0027).
+// Accept plain numeric IDs (e.g. 27), legacy formatted IDs (e.g. PR-0027),
+// and BACTrack IDs (e.g. BTQ2M-202504-001).
 $numericId = null;
+$normalizedBactrackId = null;
 if (is_numeric($query)) {
     $numericId = (int) $query;
 } elseif (preg_match('/^PR[-_\s]*([0-9]+)$/i', $query, $matches)) {
     $numericId = (int) $matches[1];
+} elseif (preg_match('/^BT([A-Z0-9]{3})[-_\s]*(\d{6})[-_\s]*(\d{3})$/i', $query, $matches)) {
+    $normalizedBactrackId = 'BT' . strtoupper($matches[1]) . '-' . $matches[2] . '-' . $matches[3];
+}
+
+$hasBactrackIdColumn = false;
+try {
+    $col = $db->fetchAll("SHOW COLUMNS FROM projects LIKE 'bactrack_id'");
+    $hasBactrackIdColumn = !empty($col);
+} catch (Exception $e) {
+    $hasBactrackIdColumn = false;
 }
 
 if ($numericId !== null) {
     $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count 
             FROM projects p WHERE p.id = ?";
     $params = [$numericId];
+} elseif ($normalizedBactrackId !== null && $hasBactrackIdColumn) {
+    $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count
+            FROM projects p WHERE p.bactrack_id = ? LIMIT 1";
+    $params = [$normalizedBactrackId];
 } else {
-    $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count 
-            FROM projects p
-            WHERE p.title LIKE ?
-               OR CONCAT('PR-', LPAD(p.id, 4, '0')) LIKE ?
-            LIMIT 10";
-    $params = ['%' . $query . '%', '%' . $query . '%'];
+    if ($hasBactrackIdColumn) {
+        $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count 
+                FROM projects p
+                WHERE p.title LIKE ?
+                   OR CONCAT('PR-', LPAD(p.id, 4, '0')) LIKE ?
+                   OR p.bactrack_id LIKE ?
+                LIMIT 10";
+        $params = ['%' . $query . '%', '%' . $query . '%', '%' . strtoupper($query) . '%'];
+    } else {
+        $sql = "SELECT p.*, (SELECT COUNT(*) FROM bac_cycles WHERE project_id = p.id) as cycle_count 
+                FROM projects p
+                WHERE p.title LIKE ?
+                   OR CONCAT('PR-', LPAD(p.id, 4, '0')) LIKE ?
+                LIMIT 10";
+        $params = ['%' . $query . '%', '%' . $query . '%'];
+    }
 }
 
 $projects = $db->fetchAll($sql, $params);
@@ -74,6 +100,7 @@ foreach ($projects as $project) {
 
     $results[] = [
         'id' => $project['id'],
+        'bactrack_id' => $project['bactrack_id'] ?? null,
         'title' => $project['title'],
         'description' => $project['description'] ?? '',
         'status' => $project['approval_status'],

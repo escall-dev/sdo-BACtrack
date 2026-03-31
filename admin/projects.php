@@ -111,6 +111,7 @@ $projects = $projectModel->getAll($filters);
         <table class="data-table" data-paginate="15">
             <thead>
                 <tr>
+                    <th style="text-align: center;">BACTrack ID</th>
                     <th>Project Title</th>
                     <th style="text-align: center;">Procurement Type</th>
                     <th style="text-align: center;">Project Owner / Bidder</th>
@@ -123,6 +124,9 @@ $projects = $projectModel->getAll($filters);
             <tbody>
                 <?php foreach ($projects as $project): ?>
                 <tr>
+                    <td style="text-align: center; font-weight: 700; letter-spacing: 0.02em;">
+                        <?php echo htmlspecialchars($project['bactrack_id'] ?? ('PR-' . str_pad((string)$project['id'], 4, '0', STR_PAD_LEFT))); ?>
+                    </td>
                     <td>
                         <a href="<?php echo APP_URL; ?>/admin/project-view.php?id=<?php echo $project['id']; ?>" 
                            style="color: #000; font-weight: 600; text-decoration: none;">

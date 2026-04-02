@@ -112,7 +112,7 @@ $projects = $projectModel->getAll($filters);
             <thead>
                 <tr>
                     <th style="text-align: center;">BACTrack ID</th>
-                    <th>Project Title</th>
+                    <th style="text-align: center;">Project Title</th>
                     <th style="text-align: center;">Mode of Procurement</th>
                     <th style="text-align: center;">Project Proponent</th>
                     <th style="text-align: center;">Status</th>

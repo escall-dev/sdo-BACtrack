@@ -108,7 +108,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -118,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
 
         /* ─── Header ─── */
@@ -407,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #fee2e2;
         }
 
-        /* Full-bleed row: only the estimator + projects strip escapes .content-wrap max-width */
+        /* Full-bleed row: estimator + projects strip can span viewport width. */
         .top-panels-fullwidth {
             width: 100vw;
             margin-left: calc(50% - 50vw);
@@ -1560,7 +1564,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $projectModel = new Project();
             $allProjects = $projectModel->getAll([]);
 
-            $projectsPerPage = 10;
+            $projectsPerPage = 8;
             $totalProjects = count($allProjects);
             $totalPages = max(1, (int) ceil($totalProjects / $projectsPerPage));
 
@@ -1592,7 +1596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ?>
             <div class="data-card projects-card">
                 <div class="card-header">
-                    <i class="fas fa-folder-open"></i> Projects List
+                    <i class="fas fa-folder-open"></i> Project List
                 </div>
                 <div class="card-body">
                 <?php if (empty($projects)): ?>

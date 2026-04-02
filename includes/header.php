@@ -135,7 +135,7 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
 
                 <a href="<?php echo APP_URL; ?>/admin/contact.php" class="nav-item <?php echo $currentPage === 'contact' ? 'active' : ''; ?>" data-tooltip="Contact">
                     <span class="nav-icon"><i class="fas fa-envelope"></i></span>
-                    <span class="nav-text">Contact</span>
+                    <span class="nav-text">Need Help?</span>
                 </a>
                 
                 <?php if ($auth->isSuperAdmin()): ?>

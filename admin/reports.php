@@ -12,14 +12,74 @@ require_once __DIR__ . '/../models/BacCycle.php';
 $projectModel = new Project();
 $cycleModel = new BacCycle();
 
+$normalizeDate = static function ($value) {
+    $value = trim((string)$value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return '';
+    }
+
+    return date('Y-m-d', $timestamp);
+};
+
+$statusOptions = ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'];
+$selectedStatus = strtoupper(trim((string)($_GET['status'] ?? '')));
+if (!in_array($selectedStatus, $statusOptions, true)) {
+    $selectedStatus = '';
+}
+
+$selectedStartDate = $normalizeDate($_GET['start_date'] ?? '');
+$selectedEndDate = $normalizeDate($_GET['end_date'] ?? '');
+$selectedImplementationDate = $normalizeDate($_GET['implementation_date'] ?? '');
+
 // Project Owners see only their own projects
 $projectFilters = [];
 if ($auth->isProjectOwner()) {
     $projectFilters['created_by'] = $auth->getUserId();
 }
+$projectFilters['approval_status'] = $selectedStatus;
+
 $projects = $projectModel->getAll($projectFilters);
+
+if ($selectedStartDate !== '' || $selectedEndDate !== '' || $selectedImplementationDate !== '') {
+    $projects = array_values(array_filter($projects, static function ($project) use ($selectedStartDate, $selectedEndDate, $selectedImplementationDate) {
+        $implementationDate = !empty($project['project_start_date'])
+            ? date('Y-m-d', strtotime($project['project_start_date']))
+            : date('Y-m-d', strtotime($project['created_at']));
+
+        if ($selectedImplementationDate !== '' && $implementationDate !== $selectedImplementationDate) {
+            return false;
+        }
+
+        if ($selectedStartDate !== '' && $implementationDate < $selectedStartDate) {
+            return false;
+        }
+
+        if ($selectedEndDate !== '' && $implementationDate > $selectedEndDate) {
+            return false;
+        }
+
+        return true;
+    }));
+}
+
 $selectedProject = isset($_GET['project']) ? (int)$_GET['project'] : null;
 $selectedCycle = isset($_GET['cycle']) ? (int)$_GET['cycle'] : null;
+
+if ($selectedProject) {
+    $allowedProjectIds = array_map(static fn($project) => (int)$project['id'], $projects);
+    if (!in_array($selectedProject, $allowedProjectIds, true)) {
+        $selectedProject = null;
+    }
+}
 
 $cycles = [];
 if ($selectedProject) {
@@ -44,9 +104,9 @@ if ($selectedProject) {
     <div class="calendar-filter-header">
         <div class="calendar-filter-right">
             <form class="filter-form calendar-filter-form" method="GET" id="reportForm">
-                <div class="filter-group">
+                <div class="filter-group project-filter-group">
                     <label>Select Project</label>
-                    <select name="project" class="filter-select" id="projectSelect" required>
+                    <select name="project" class="filter-select" id="projectSelect">
                         <option value="">Choose a project...</option>
                         <?php foreach ($projects as $project): ?>
                         <option value="<?php echo $project['id']; ?>" <?php echo $selectedProject == $project['id'] ? 'selected' : ''; ?>>
@@ -55,7 +115,29 @@ if ($selectedProject) {
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <!-- Cycle filter removed -->
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select name="status" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <?php foreach ($statusOptions as $status): ?>
+                        <option value="<?php echo $status; ?>" <?php echo $selectedStatus === $status ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars(str_replace('_', ' ', ucwords(strtolower($status), '_'))); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Project Started</label>
+                    <input type="date" name="start_date" class="filter-input" value="<?php echo htmlspecialchars($selectedStartDate); ?>">
+                </div>
+                <div class="filter-group">
+                    <label>Project End</label>
+                    <input type="date" name="end_date" class="filter-input" value="<?php echo htmlspecialchars($selectedEndDate); ?>">
+                </div>
+                <div class="filter-group">
+                    <label>Implementation Date</label>
+                    <input type="date" name="implementation_date" class="filter-input" value="<?php echo htmlspecialchars($selectedImplementationDate); ?>">
+                </div>
                 <div class="filter-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Load
@@ -201,8 +283,23 @@ if ($selectedProject) {
         </div>
         <div class="pagination-controls" style="display: flex; gap: 8px;">
             <?php 
-                $baseUrl = APP_URL . '/admin/reports.php?project=' . $selectedProject;
-                if ($selectedCycle) $baseUrl .= '&cycle=' . $selectedCycle;
+                $queryParams = ['project' => $selectedProject];
+                if ($selectedCycle) {
+                    $queryParams['cycle'] = $selectedCycle;
+                }
+                if ($selectedStatus !== '') {
+                    $queryParams['status'] = $selectedStatus;
+                }
+                if ($selectedStartDate !== '') {
+                    $queryParams['start_date'] = $selectedStartDate;
+                }
+                if ($selectedEndDate !== '') {
+                    $queryParams['end_date'] = $selectedEndDate;
+                }
+                if ($selectedImplementationDate !== '') {
+                    $queryParams['implementation_date'] = $selectedImplementationDate;
+                }
+                $baseUrl = APP_URL . '/admin/reports.php?' . http_build_query($queryParams);
             ?>
             <a href="<?php echo $currentPage > 1 ? $baseUrl . '&page=' . ($currentPage - 1) : '#'; ?>" 
                class="btn btn-secondary <?php echo $currentPage <= 1 ? 'disabled' : ''; ?>" 

@@ -1706,6 +1706,17 @@ input[type="file"].form-control::file-selector-button:hover {
     min-width: 0;
 }
 
+/* Reports page: keep project filter at a controlled desktop width */
+#reportForm .project-filter-group {
+    flex: 0 0 320px;
+    max-width: 320px;
+}
+
+#reportForm #projectSelect {
+    width: 100%;
+    min-width: 0;
+}
+
 .calendar-filter-form .filter-actions {
     flex: 0 0 auto;
     display: flex;
@@ -2294,6 +2305,11 @@ input[type="file"].form-control::file-selector-button:hover {
 
     .filter-group {
         width: 100%;
+    }
+
+    #reportForm .project-filter-group {
+        flex: 1 1 100%;
+        max-width: none;
     }
 
     .filter-actions {

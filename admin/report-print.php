@@ -243,7 +243,7 @@ $activityTiming = $timelineSummary['meta_by_id'];
             }
             
             thead {
-                display: table-header-group;
+                display: table-row-group;
             }
             
             tfoot {
@@ -342,77 +342,70 @@ $activityTiming = $timelineSummary['meta_by_id'];
         </tbody>
     </table>
     <?php else: ?>
-        <?php 
-        $chunks = array_chunk($activities, 10);
-        foreach ($chunks as $index => $chunk): 
-        ?>
-        <div style="<?php echo $index > 0 ? 'page-break-before: always; margin-top: 30px;' : 'page-break-inside: avoid;'; ?>">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 40px;">#</th>
-                        <th>Activity / Process Name</th>
-                        <th style="width: 100px;">Planned Start</th>
-                        <th style="width: 100px;">Planned End</th>
-                        <th style="width: 90px;">Duration (Days)</th>
-                        <th style="width: 100px;">Actual Completion</th>
-                        <th style="width: 90px;">Status</th>
-                        <th style="width: 90px;">Compliance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($chunk as $activity): 
-                        $documents = $documentModel->getByActivity($activity['id']);
-                    ?>
-                    <tr>
-                        <td><?php echo $activity['step_order']; ?></td>
-                        <td>
-                            <strong><?php echo htmlspecialchars($activity['step_name']); ?></strong>
-                            <div class="documents-list"><?php echo htmlspecialchars($activityTiming[$activity['id']]['timing_label'] ?? ''); ?></div>
-                            <?php if (!empty($documents)): ?>
-                            <div class="documents-list">
-                                Documents: 
-                                <?php foreach ($documents as $i => $doc): ?>
-                                    <?php echo htmlspecialchars($doc['original_name']); ?><?php echo $i < count($documents) - 1 ? ', ' : ''; ?>
-                                <?php endforeach; ?>
-                            </div>
-                            <?php endif; ?>
-                        </td>
-                        <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
-                        <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
-                        <td><?php echo htmlspecialchars($activityTiming[$activity['id']]['duration_label'] ?? '-'); ?></td>
-                        <td>
-                            <?php echo $activity['actual_completion_date'] 
-                                ? date('M j, Y', strtotime($activity['actual_completion_date'])) 
-                                : '-'; ?>
-                        </td>
-                        <td>
-                            <span class="status-badge status-<?php echo strtolower($activity['status']); ?>">
-                                <?php echo $activity['status']; ?>
-                            </span>
-                        </td>
-                        <td>
-                            <?php if ($activity['compliance_status']): ?>
-                            <span class="status-badge compliance-<?php echo strtolower($activity['compliance_status']); ?>">
-                                <?php echo $activity['compliance_status']; ?>
-                            </span>
-                            <?php else: ?>
-                            -
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php if ($activity['compliance_remarks']): ?>
-                    <tr class="remarks-row">
-                        <td colspan="8">
-                            <strong>Compliance Remarks:</strong> <?php echo htmlspecialchars($activity['compliance_remarks']); ?>
-                        </td>
-                    </tr>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40px;">#</th>
+                <th>Activity / Process Name</th>
+                <th style="width: 100px;">Planned Start</th>
+                <th style="width: 100px;">Planned End</th>
+                <th style="width: 90px;">Duration (Days)</th>
+                <th style="width: 100px;">Actual Completion</th>
+                <th style="width: 90px;">Status</th>
+                <th style="width: 90px;">Compliance</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($activities as $activity): 
+                $documents = $documentModel->getByActivity($activity['id']);
+            ?>
+            <tr>
+                <td><?php echo $activity['step_order']; ?></td>
+                <td>
+                    <strong><?php echo htmlspecialchars($activity['step_name']); ?></strong>
+                    <div class="documents-list"><?php echo htmlspecialchars($activityTiming[$activity['id']]['timing_label'] ?? ''); ?></div>
+                    <?php if (!empty($documents)): ?>
+                    <div class="documents-list">
+                        Documents: 
+                        <?php foreach ($documents as $i => $doc): ?>
+                            <?php echo htmlspecialchars($doc['original_name']); ?><?php echo $i < count($documents) - 1 ? ', ' : ''; ?>
+                        <?php endforeach; ?>
+                    </div>
                     <?php endif; ?>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-        <?php endforeach; ?>
+                </td>
+                <td><?php echo date('M j, Y', strtotime($activity['planned_start_date'])); ?></td>
+                <td><?php echo date('M j, Y', strtotime($activity['planned_end_date'])); ?></td>
+                <td><?php echo htmlspecialchars($activityTiming[$activity['id']]['duration_label'] ?? '-'); ?></td>
+                <td>
+                    <?php echo $activity['actual_completion_date'] 
+                        ? date('M j, Y', strtotime($activity['actual_completion_date'])) 
+                        : '-'; ?>
+                </td>
+                <td>
+                    <span class="status-badge status-<?php echo strtolower($activity['status']); ?>">
+                        <?php echo $activity['status']; ?>
+                    </span>
+                </td>
+                <td>
+                    <?php if ($activity['compliance_status']): ?>
+                    <span class="status-badge compliance-<?php echo strtolower($activity['compliance_status']); ?>">
+                        <?php echo $activity['compliance_status']; ?>
+                    </span>
+                    <?php else: ?>
+                    -
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php if ($activity['compliance_remarks']): ?>
+            <tr class="remarks-row">
+                <td colspan="8">
+                    <strong>Compliance Remarks:</strong> <?php echo htmlspecialchars($activity['compliance_remarks']); ?>
+                </td>
+            </tr>
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
     <?php endif; ?>
 
     <div class="print-footer">

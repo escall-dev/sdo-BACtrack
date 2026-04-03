@@ -47,7 +47,7 @@ $projects = $projectModel->getAll($filters);
             <form class="filter-form calendar-filter-form" method="GET" onkeydown="if(event.key==='Enter'){event.preventDefault();this.submit();}">
                 <div class="filter-group">
                     <label>Search</label>
-                    <input type="text" name="search" class="filter-input" placeholder="Project title..." 
+                          <input type="text" name="search" class="filter-input" placeholder="Project title or ID..." 
                            value="<?php echo htmlspecialchars($filters['search']); ?>">
                 </div>
                 <div class="filter-group">
@@ -111,7 +111,7 @@ $projects = $projectModel->getAll($filters);
         <table class="data-table" data-paginate="15">
             <thead>
                 <tr>
-                    <th style="text-align: center;">BACTrack ID</th>
+                    <th style="text-align: center;">Project ID</th>
                     <th style="text-align: center;">Project Title</th>
                     <th style="text-align: center;">Mode of Procurement</th>
                     <th style="text-align: center;">Project Proponent</th>

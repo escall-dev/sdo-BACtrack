@@ -190,7 +190,9 @@ class Project {
         $params = [];
 
         if (!empty($filters['search'])) {
-            $sql .= " AND (p.title LIKE ? OR p.description LIKE ?)";
+            $sql .= " AND (p.title LIKE ? OR p.description LIKE ? OR p.bactrack_id LIKE ? OR CAST(p.id AS CHAR) LIKE ?)";
+            $params[] = '%' . $filters['search'] . '%';
+            $params[] = '%' . $filters['search'] . '%';
             $params[] = '%' . $filters['search'] . '%';
             $params[] = '%' . $filters['search'] . '%';
         }

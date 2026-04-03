@@ -447,6 +447,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.9rem;
         }
 
+        .top-panels .estimator-card > .card-header,
+        .top-panels .projects-card > .card-header {
+            background: #1b6ca8;
+            background-image: none;
+            color: #fff;
+        }
+
         /* ─── Cards ─── */
         .data-card {
             background: var(--card-bg);
@@ -615,6 +622,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 6px 10px;
             font-size: 0.8rem;
             gap: 5px;
+        }
+
+        .estimator-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .estimator-controls-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .estimator-control-label {
+            font-weight: 700;
+        }
+
+        .estimator-controls-row .search-input {
+            max-width: 360px;
+        }
+
+        .estimator-controls-row .est-budget-input {
+            max-width: 220px;
+        }
+
+        .estimator-controls-row .implementation-input {
+            max-width: 170px;
         }
 
         .estimator-card table th,
@@ -1388,6 +1425,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         @media (max-width: 600px) {
             .search-row { flex-direction: column; }
             .btn-search { width: 100%; justify-content: center; }
+            .estimator-controls-row {
+                align-items: stretch;
+            }
+            .estimator-controls-row .search-input,
+            .estimator-controls-row .est-budget-input,
+            .estimator-controls-row .implementation-input {
+                max-width: 100%;
+                width: 100%;
+            }
             .header-flag { display: none; }
             .footer-right { text-align: left; }
             .dark-modal-body { padding: 28px 20px 22px; }
@@ -1484,25 +1530,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             }
                         }
                     ?>
-                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
-                        <label style="font-weight:700;margin-right:6px;">Mode of Procurement:</label>
-                        <select id="estProcurementType" class="search-input" style="max-width:360px;">
-                            <option value="" selected>Select Mode of Procurement</option>
-                            <?php foreach ($estimatorTypes as $k => $lbl): ?>
-                                <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="estimator-controls">
+                        <div class="estimator-controls-row">
+                            <label for="estProcurementType" class="estimator-control-label">Mode of Procurement:</label>
+                            <select id="estProcurementType" class="search-input">
+                                <option value="" selected>Select Mode of Procurement</option>
+                                <?php foreach ($estimatorTypes as $k => $lbl): ?>
+                                    <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
+                                <?php endforeach; ?>
+                            </select>
 
-                        <input type="number" id="estBudget" class="search-input" min="0" step="0.01" placeholder="Estimated Budget (PHP)" style="max-width:220px;" />
+                            <label for="estBudget" class="estimator-control-label">Estimated Budget (PHP):</label>
+                            <input type="number" id="estBudget" class="search-input est-budget-input" min="0" step="0.01" placeholder="e.g. 100000" />
+                        </div>
 
-                        <label style="font-weight:700;margin-left:6px;">Implementation date:</label>
-                        <input type="date" id="plannerStart" class="search-input" style="max-width:170px;" />
+                        <div class="estimator-controls-row">
+                            <label for="plannerStart" class="estimator-control-label">Implementation date:</label>
+                            <input type="date" id="plannerStart" class="search-input implementation-input" />
 
-                        <button class="btn-search" onclick="computeEarliest()">Compute / Reset</button>
-                        <button class="btn-search" style="background:#ddd;color:#333;box-shadow:none;" onclick="startOver()">Start Over</button>
+                            <button class="btn-search" onclick="computeEarliest()">Compute / Reset</button>
+                            <button class="btn-search" style="background:#ddd;color:#333;box-shadow:none;" onclick="startOver()">Start Over</button>
+                        </div>
                     </div>
 
                     <div id="svpBudgetWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
+
+                    <div style="margin:8px 0 10px;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;color:#78350f;border-radius:10px;">
+                        <div style="font-weight:800;font-size:0.84rem;margin-bottom:6px;">Procurement Checklist (Must Need):</div>
+                        <ol style="margin:0;padding-left:18px;font-size:0.8rem;line-height:1.45;font-weight:600;">
+                            <li>PURCHASE REQUEST (3 Original Copies)</li>
+                            <li>MEMORANDUM (Photocopy only) (If applicable)</li>
+                            <li>ACTIVITY / PROJECT PROPOSAL (Photocopy only) (If applicable)</li>
+                            <li>SARO (Photocopy only) (If applicable)</li>
+                        </ol>
+                    </div>
 
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>

@@ -378,6 +378,16 @@ require_once __DIR__ . '/../includes/header.php';
     text-align: center;
 }
 
+.timeline-template-card .data-table {
+    min-width: 0;
+}
+
+.timeline-template-card .data-table th:nth-child(2),
+.timeline-template-card .data-table td:nth-child(2) {
+    white-space: normal;
+    word-break: break-word;
+}
+
 @media (max-width: 1200px) {
     .project-create-layout {
         grid-template-columns: 1fr;

@@ -72,7 +72,7 @@ define('PROJECT_APPROVAL_STATUSES', [
     'DRAFT' => 'Draft',
     'PENDING_APPROVAL' => 'Pending Approval',
     'APPROVED' => 'Approved',
-    'REJECTED' => 'Rejected'
+    'REJECTED' => 'Disapproved'
 ]);
 
 // BAC Cycle statuses

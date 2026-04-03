@@ -248,7 +248,7 @@ if ($selectedUnitLabel !== '') {
 $projectStatusLabels = [
     'APPROVED' => 'Approved',
     'PENDING_APPROVAL' => 'Pending Review',
-    'REJECTED' => 'Rejected',
+    'REJECTED' => 'Disapproved',
 ];
 
 $activityStatusLabels = [

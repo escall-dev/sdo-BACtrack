@@ -30,16 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'appro
     $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
 }
 
-// Handle reject action (BAC Secretary only) - remarks required
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reject_project' && $auth->isBacSecretary() && $projectId) {
+// Handle disapprove action (BAC Secretary only) - remarks required
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'disapprove_project' && $auth->isBacSecretary() && $projectId) {
     $remarks = trim($_POST['rejection_remarks'] ?? '');
     if ($project && ($project['approval_status'] ?? 'APPROVED') === 'PENDING_APPROVAL') {
         if (empty($remarks)) {
             setFlashMessage('error', 'Remarks or reason are required when declining a project.');
         } else {
-            $projectModel->reject($projectId, $remarks, $auth->getUserId());
+            $projectModel->disapprove($projectId, $remarks, $auth->getUserId());
             $notificationModel = new Notification();
-            $notificationModel->notifyProjectRejected($projectId, $project['title'], $remarks, (int)$project['created_by']);
+            $notificationModel->notifyProjectDisapproved($projectId, $project['title'], $remarks, (int)$project['created_by']);
             setFlashMessage('success', 'Project declined. The project owner has been notified with your remarks.');
         }
     }
@@ -390,7 +390,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <i class="fas fa-check"></i> Accept
             </button>
         </form>
-        <button type="button" class="btn btn-danger" onclick="document.getElementById('rejectForm').style.display=document.getElementById('rejectForm').style.display==='none'?'block':'none'">
+        <button type="button" class="btn btn-danger" onclick="document.getElementById('disapproveForm').style.display=document.getElementById('disapproveForm').style.display==='none'?'block':'none'">
             <i class="fas fa-times"></i> Decline
         </button>
         <?php endif; ?>
@@ -448,16 +448,16 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <?php endif; ?>
                 <?php if ($auth->isBacSecretary() && $isPendingApproval): ?>
-                <div id="rejectForm" style="display: none; margin-bottom: 16px; padding: 16px; background: var(--danger-bg); border-radius: var(--radius-md); border: 1px solid rgba(239,68,68,0.3);">
+                <div id="disapproveForm" style="display: none; margin-bottom: 16px; padding: 16px; background: var(--danger-bg); border-radius: var(--radius-md); border: 1px solid rgba(239,68,68,0.3);">
                     <form method="POST">
-                        <input type="hidden" name="action" value="reject_project">
+                        <input type="hidden" name="action" value="disapprove_project">
                         <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 600;">Reason for decline <span style="color: var(--danger);">*</span></label>
                         <textarea name="rejection_remarks" class="form-control" rows="4" required placeholder="Please provide the reason for declining this project. This will be shown to the project owner."></textarea>
                         <div style="display: flex; gap: 8px; margin-top: 12px;">
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-times"></i> Submit Decline
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('rejectForm').style.display='none'">Cancel</button>
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('disapproveForm').style.display='none'">Cancel</button>
                         </div>
                     </form>
                 </div>

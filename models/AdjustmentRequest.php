@@ -154,7 +154,7 @@ class AdjustmentRequest {
         }
     }
 
-    public function reject($id, $reviewerId, $notes = null) {
+    public function disapprove($id, $reviewerId, $notes = null) {
         return $this->db->query(
             "UPDATE timeline_adjustment_requests 
              SET status = 'REJECTED', reviewed_by = ?, review_notes = ?, reviewed_at = NOW() 

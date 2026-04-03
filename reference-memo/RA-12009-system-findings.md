@@ -21,7 +21,7 @@ Its main purpose is to:
 
 Based on the actual purpose of BACtrack, the system substantially corresponds to the reference memo as a timeline tracking and procedural awareness tool.
 
-SDO-BACtrack already functions as an internal BAC procedural timeline tracker. It supports project drafting and BAC review, approval and rejection workflow, activity timelines, compliance tagging, document uploads, adjustment requests, notifications, and printable reports.
+SDO-BACtrack already functions as an internal BAC procedural timeline tracker. It supports project drafting and BAC review, approval and disapproval workflow, activity timelines, compliance tagging, document uploads, adjustment requests, notifications, and printable reports.
 
 The reference memo under RA 12009 covers a broader procurement environment, but BACtrack does not need to implement the entire law if its approved scope is limited to timeline tracking, procedural visibility, and duration monitoring.
 
@@ -32,7 +32,7 @@ For its stated scope, the system is aligned. The main need is to keep terminolog
 ### Areas That Already Align
 
 1. The system tracks core public bidding milestones such as issuance of bidding documents, post-qualification, BAC resolution recommending award, notice of award, and notice to proceed.
-2. The system includes a review and approval workflow using draft, pending approval, approved, and rejected project states.
+2. The system includes a review and approval workflow using draft, pending approval, approved, and disapproved project states.
 3. The system supports project and activity document uploads to support each procedural step.
 4. The system makes both BAC members and project owners aware of the progress of activities through status views, notifications, and reports.
 5. The duration display in the project owner view correctly computes the number of days from planned start date to planned end date, inclusive.

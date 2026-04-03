@@ -162,13 +162,13 @@ class Project {
     }
 
     /**
-     * Reject a project (BAC only). Requires remarks. Sets approval_status to REJECTED.
+     * Disapprove a project (BAC only). Requires remarks. Sets approval_status to REJECTED.
      * @param int $id Project ID
-     * @param string $remarks Required reason for rejection
-     * @param int $rejectedBy User ID of BAC member who rejected
+     * @param string $remarks Required reason for disapproval
+     * @param int $rejectedBy User ID of BAC member who disapproved
      * @return bool
      */
-    public function reject($id, $remarks, $rejectedBy) {
+    public function disapprove($id, $remarks, $rejectedBy) {
         $remarks = trim($remarks);
         if (empty($remarks)) return false;
         return $this->db->query(
@@ -387,11 +387,11 @@ class Project {
         }
 
         try {
-            $stats['rejected'] = $this->db->fetch(
+            $stats['disapproved'] = $this->db->fetch(
                 "SELECT COUNT(*) as count FROM projects WHERE approval_status = 'REJECTED'"
             )['count'];
         } catch (Exception $e) {
-            $stats['rejected'] = 0;
+            $stats['disapproved'] = 0;
         }
 
         $stats['by_type'] = $this->db->fetchAll(

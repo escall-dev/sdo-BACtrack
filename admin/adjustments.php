@@ -14,14 +14,14 @@ $auth->requireProcurement();
 
 $adjustmentModel = new AdjustmentRequest();
 
-// Handle approval/rejection (must run before header.php outputs HTML)
+// Handle approval/disapproval (must run before header.php outputs HTML)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $auth->isBacSecretary()) {
     $requestId = (int)$_POST['request_id'];
     $action = $_POST['action'] ?? '';
     $notes = trim($_POST['notes'] ?? '');
 
-    if ($action === 'reject' && empty($notes)) {
-        setFlashMessage('danger', 'Review notes (reason) are required when rejecting a request.');
+    if ($action === 'disapprove' && empty($notes)) {
+        setFlashMessage('danger', 'Review notes (reason) are required when disapproving a request.');
         $auth->redirect(APP_URL . '/admin/adjustments.php');
     }
 
@@ -34,10 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $auth->isBacSecretary()) {
             $adjustmentModel->approve($requestId, $auth->getUserId(), $notes);
             $notificationModel->notifyAdjustmentResponse($requestId, $request['step_name'], $request['project_title'], 'APPROVED', $request['requested_by']);
             setFlashMessage('success', 'Adjustment request approved. Timeline updated.');
-        } elseif ($action === 'reject') {
-            $adjustmentModel->reject($requestId, $auth->getUserId(), $notes);
+        } elseif ($action === 'disapprove') {
+            $adjustmentModel->disapprove($requestId, $auth->getUserId(), $notes);
             $notificationModel->notifyAdjustmentResponse($requestId, $request['step_name'], $request['project_title'], 'REJECTED', $request['requested_by']);
-            setFlashMessage('success', 'Adjustment request rejected.');
+            setFlashMessage('success', 'Adjustment request disapproved.');
         }
     }
 
@@ -230,14 +230,14 @@ $requests = $adjustmentModel->getAll($filters);
     color: var(--text-primary);
 }
 
-.btn-modal-reject {
+.btn-modal-disapprove {
     background: var(--danger);
     color: white;
     border: none;
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
-.btn-modal-reject:hover {
+.btn-modal-disapprove:hover {
     background: #dc2626;
     transform: translateY(-1px);
     box-shadow: 0 6px 15px rgba(239, 68, 68, 0.35);
@@ -268,7 +268,7 @@ $requests = $adjustmentModel->getAll($filters);
                 <option value="">All Statuses</option>
                 <option value="PENDING" <?php echo $filters['status'] === 'PENDING' ? 'selected' : ''; ?>>Pending</option>
                 <option value="APPROVED" <?php echo $filters['status'] === 'APPROVED' ? 'selected' : ''; ?>>Approved</option>
-                <option value="REJECTED" <?php echo $filters['status'] === 'REJECTED' ? 'selected' : ''; ?>>Rejected</option>
+                <option value="REJECTED" <?php echo $filters['status'] === 'REJECTED' ? 'selected' : ''; ?>>Disapproved</option>
             </select>
         </div>
         <div class="filter-actions">
@@ -342,7 +342,7 @@ $requests = $adjustmentModel->getAll($filters);
                                     <button type="submit" name="action" value="approve" class="btn btn-sm btn-success" title="Approve">
                                         <i class="fas fa-check"></i>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-danger" title="Reject" onclick="openRejectModal(<?php echo $request['id']; ?>)">
+                                    <button type="button" class="btn btn-sm btn-danger" title="Disapprove" onclick="openDisapproveModal(<?php echo $request['id']; ?>)">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </form>
@@ -362,19 +362,19 @@ $requests = $adjustmentModel->getAll($filters);
     <?php endif; ?>
 </div>
 
-<!-- Rejection Modal -->
-<div id="rejectModal" class="modal">
+<!-- Disapproval Modal -->
+<div id="disapproveModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-exclamation-circle"></i> Rejection Reason</h3>
-            <button type="button" class="close-btn" onclick="closeRejectModal()">&times;</button>
+            <h3><i class="fas fa-exclamation-circle"></i> Disapproval Reason</h3>
+            <button type="button" class="close-btn" onclick="closeDisapproveModal()">&times;</button>
         </div>
         <form method="POST">
             <input type="hidden" name="request_id" id="modal-request-id">
-            <input type="hidden" name="action" value="reject">
+            <input type="hidden" name="action" value="disapprove">
             <div class="modal-body">
                 <label for="modal-notes" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px;">
-                    REASON FOR REJECTION
+                    REASON FOR DISAPPROVAL
                 </label>
                 <textarea name="notes" class="form-control" rows="4" placeholder="Type your reason here..." required id="modal-notes" style="width: 100%; border-radius: var(--radius-md); padding: 12px; font-size: 0.95rem;"></textarea>
                 <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
@@ -382,11 +382,11 @@ $requests = $adjustmentModel->getAll($filters);
                 </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeRejectModal()">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeDisapproveModal()">
                     <i class="fas fa-undo"></i> Cancel
                 </button>
-                <button type="submit" class="btn-modal btn-modal-reject">
-                    <i class="fas fa-minus-circle"></i> Confirm Rejection
+                <button type="submit" class="btn-modal btn-modal-disapprove">
+                    <i class="fas fa-minus-circle"></i> Confirm Disapproval
                 </button>
             </div>
         </form>
@@ -394,23 +394,23 @@ $requests = $adjustmentModel->getAll($filters);
 </div>
 
 <script>
-function openRejectModal(id) {
+function openDisapproveModal(id) {
     document.getElementById('modal-request-id').value = id;
-    document.getElementById('rejectModal').style.display = 'block';
+    document.getElementById('disapproveModal').style.display = 'block';
     setTimeout(() => {
         document.getElementById('modal-notes').focus();
     }, 100);
 }
 
-function closeRejectModal() {
-    document.getElementById('rejectModal').style.display = 'none';
+function closeDisapproveModal() {
+    document.getElementById('disapproveModal').style.display = 'none';
 }
 
 // Close on click outside
 window.onclick = function(event) {
-    const modal = document.getElementById('rejectModal');
+    const modal = document.getElementById('disapproveModal');
     if (event.target == modal) {
-        closeRejectModal();
+        closeDisapproveModal();
     }
 }
 </script>

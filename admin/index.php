@@ -143,8 +143,8 @@ if ($auth->isSuperAdmin()) {
                     <i class="fas fa-times-circle"></i>
                 </div>
                 <div class="stat-content">
-                    <span class="stat-value"><?php echo $projectStats['rejected'] ?? 0; ?></span>
-                    <span class="stat-label">Rejected</span>
+                    <span class="stat-value"><?php echo $projectStats['disapproved'] ?? 0; ?></span>
+                    <span class="stat-label">Disapproved</span>
                 </div>
             </a>
 

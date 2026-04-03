@@ -170,7 +170,7 @@ class ProcurementTimelineService {
 
         if (!empty($resolved['current_stage_key']) && $activityStageKey !== $resolved['current_stage_key']) {
             $result['allowed'] = false;
-            $result['message'] = 'Action rejected. Current active stage is ' . $resolved['current_stage'] . '.';
+            $result['message'] = 'Action disapproved. Current active stage is ' . $resolved['current_stage'] . '.';
             return $result;
         }
 

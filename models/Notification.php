@@ -153,7 +153,7 @@ class Notification {
     }
 
     public function notifyAdjustmentResponse($requestId, $activityName, $projectTitle, $status, $requesterId) {
-        $statusText = $status === 'APPROVED' ? 'approved' : 'rejected';
+        $statusText = $status === 'APPROVED' ? 'approved' : 'disapproved';
         $this->create([
             'user_id' => $requesterId,
             'title' => 'Adjustment Request ' . ucfirst($statusText),
@@ -165,9 +165,9 @@ class Notification {
     }
 
     /**
-     * Notify project owner when their project is rejected by BAC.
+     * Notify project owner when their project is disapproved by BAC.
      */
-    public function notifyProjectRejected($projectId, $projectTitle, $remarks, $projectOwnerId) {
+    public function notifyProjectDisapproved($projectId, $projectTitle, $remarks, $projectOwnerId) {
         $msg = "Your project '{$projectTitle}' has been declined by BAC. ";
         $msg .= "Reason: " . $remarks;
         $this->create([

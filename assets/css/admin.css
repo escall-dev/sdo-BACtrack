@@ -1499,7 +1499,7 @@ input[type="file"].form-control::file-selector-button:hover {
 }
 
 .data-table .status-delayed,
-.data-table .status-rejected {
+.data-table .status-disapproved {
     color: #991b1b !important;
 }
 
@@ -1558,7 +1558,7 @@ input[type="file"].form-control::file-selector-button:hover {
     color: #b45309;
 }
 
-.status-rejected {
+.status-disapproved {
     background: var(--danger-bg);
     color: #dc2626;
 }
@@ -1613,7 +1613,7 @@ input[type="file"].form-control::file-selector-button:hover {
 }
 
 
-.status-rejected {
+.status-disapproved {
     background: var(--danger-bg);
     color: #dc2626;
 }

@@ -691,7 +691,7 @@ require_once __DIR__ . '/../includes/header.php';
     color: #166534;
 }
 
-.activity-view-page .status-pill-rejected {
+.activity-view-page .status-pill-disapproved {
     background: #fee2e2;
     color: #991b1b;
 }

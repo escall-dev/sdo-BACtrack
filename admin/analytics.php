@@ -672,7 +672,7 @@ if (isset($_GET['analytics_export'])) {
         fputcsv($output, []);
 
         fputcsv($output, ['Project Status']);
-        fputcsv($output, ['Approved', 'Pending Review', 'Rejected']);
+        fputcsv($output, ['Approved', 'Pending Review', 'Disapproved']);
         fputcsv($output, [
             $statusProjects['APPROVED'],
             $statusProjects['PENDING_APPROVAL'],
@@ -736,7 +736,7 @@ if (isset($_GET['analytics_export'])) {
 $projectStatusLabels = [
     'APPROVED' => 'Approved',
     'PENDING_APPROVAL' => 'Pending Review',
-    'REJECTED' => 'Rejected',
+    'REJECTED' => 'Disapproved',
 ];
 
 $activityStatusLabels = [

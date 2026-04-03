@@ -139,10 +139,10 @@ INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `type`, `refer
 (13, 3, 'Adjustment Request Approved', 'Your timeline adjustment request for \'Pre-Procurement Conference\' in project \'CR FOR ALL GENDERS\' has been approved.', 'ADJUSTMENT_RESPONSE', 'adjustment_request', 4, 1, '2026-02-08 02:19:21'),
 (14, 3, 'Timeline Adjustment Request', 'Project Owner requested a timeline adjustment for \'Advertisement and Posting of Invitation to Bid\' in project \'CR FOR ALL GENDERS\'.', 'ADJUSTMENT_REQUEST', 'adjustment_request', 5, 1, '2026-02-08 02:24:41'),
 (15, 1, 'Timeline Adjustment Request', 'Project Owner requested a timeline adjustment for \'Advertisement and Posting of Invitation to Bid\' in project \'CR FOR ALL GENDERS\'.', 'ADJUSTMENT_REQUEST', 'adjustment_request', 5, 0, '2026-02-08 02:24:41'),
-(16, 2, 'Adjustment Request Rejected', 'Your timeline adjustment request for \'Advertisement and Posting of Invitation to Bid\' in project \'CR FOR ALL GENDERS\' has been rejected.', 'ADJUSTMENT_RESPONSE', 'adjustment_request', 5, 1, '2026-02-08 02:25:25'),
+(16, 2, 'Adjustment Request Disapproved', 'Your timeline adjustment request for \'Advertisement and Posting of Invitation to Bid\' in project \'CR FOR ALL GENDERS\' has been disapproved.', 'ADJUSTMENT_RESPONSE', 'adjustment_request', 5, 1, '2026-02-08 02:25:25'),
 (17, 3, 'Timeline Adjustment Request', 'redgine pinedes requested a timeline adjustment for \'Pre-Procurement Conference\' in project \'procurement of printed materials for aral program\'.', 'ADJUSTMENT_REQUEST', 'adjustment_request', 6, 1, '2026-02-10 06:22:17'),
 (18, 1, 'Timeline Adjustment Request', 'redgine pinedes requested a timeline adjustment for \'Pre-Procurement Conference\' in project \'procurement of printed materials for aral program\'.', 'ADJUSTMENT_REQUEST', 'adjustment_request', 6, 0, '2026-02-10 06:22:17'),
-(19, 4, 'Adjustment Request Rejected', 'Your timeline adjustment request for \'Pre-Procurement Conference\' in project \'procurement of printed materials for aral program\' has been rejected.', 'ADJUSTMENT_RESPONSE', 'adjustment_request', 6, 0, '2026-02-26 07:19:57');
+(19, 4, 'Adjustment Request Disapproved', 'Your timeline adjustment request for \'Pre-Procurement Conference\' in project \'procurement of printed materials for aral program\' has been disapproved.', 'ADJUSTMENT_RESPONSE', 'adjustment_request', 6, 0, '2026-02-26 07:19:57');
 
 -- --------------------------------------------------------
 

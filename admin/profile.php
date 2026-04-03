@@ -778,7 +778,7 @@ body {
     border: 1px solid #faca15;
 }
 
-.status-rejected {
+.status-disapproved {
     background: #fde8e8;
     color: #9b1c1c;
     border: 1px solid #f8b4b4;

@@ -484,10 +484,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .projects-card .card-body {
-            display: flex;
-            flex-direction: column;
-            height: 560px;
-            min-height: 0;
             padding: 10px 12px;
         }
 
@@ -500,10 +496,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .projects-card .card-body > .table-responsive {
-            flex: 1 1 auto;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: auto;
+            overflow: visible;
         }
 
         .projects-card .projects-pager {
@@ -517,32 +510,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .projects-card .projects-table th,
         .projects-card .projects-table td {
             white-space: normal;
-            word-break: normal;
-        }
-
-        .projects-card .data-table th:nth-child(2),
-        .projects-card .data-table td:nth-child(2),
-        .projects-card .projects-table th:nth-child(2),
-        .projects-card .projects-table td:nth-child(2) {
-            min-width: 150px;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .projects-card .data-table .project-open-link,
         .projects-card .projects-table .project-open-link {
             white-space: normal;
-        }
-
-        /* Projects List: compact density — more rows visible, still readable */
-        .top-panels .projects-card .card-header {
-            min-height: 38px;
-            padding: 8px 12px;
-            font-size: 0.76rem;
-            gap: 8px;
-            letter-spacing: 0.03em;
-        }
-
-        .top-panels .projects-card .card-header i {
-            font-size: 0.82rem;
         }
 
         .projects-card .projects-count {
@@ -1470,7 +1444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <a href="#" class="nav-link" onclick="openContactModal(); return false;"><i class="fas fa-phone"></i> Contacts</a>
             </div>
             <button class="btn-login" onclick="openLoginModal()">
-                <i class="fas fa-sign-in-alt"></i> LOGIN
+                <i class=""></i> LOGIN
             </button>
         </div>
     </header>

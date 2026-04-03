@@ -1,7 +1,7 @@
 <?php
 /**
- * Edit Project (Draft only)
- * SDO-BACtrack - Project owners can edit draft projects before submitting for BAC review
+ * Edit Project
+ * SDO-BACtrack - Authorized users can update project details
  */
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -20,15 +20,11 @@ if (!$project) {
     $auth->redirect(APP_URL . '/admin/projects.php');
 }
 
-// Only project owner can edit, and only DRAFT projects
-if ($auth->isProjectOwner() && (int)$project['created_by'] !== (int)$auth->getUserId()) {
+// Allow edit only for project managers (procurement roles or project creator).
+$canManageProject = $auth->isProcurement() || ((int)$project['created_by'] === (int)$auth->getUserId());
+if (!$canManageProject) {
     setFlashMessage('error', 'You do not have access to this project.');
     $auth->redirect(APP_URL . '/admin/projects.php');
-}
-
-if (($project['approval_status'] ?? '') !== 'DRAFT') {
-    setFlashMessage('error', 'Only draft projects can be edited.');
-    $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
 }
 
 $error = '';
@@ -48,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'procurement_type' => $procurementType,
             'project_start_date' => $startDate
         ]);
-        setFlashMessage('success', 'Draft updated successfully.');
+        setFlashMessage('success', 'Project updated successfully.');
         $auth->redirect(APP_URL . '/admin/project-view.php?id=' . $projectId);
     }
 }
@@ -66,7 +62,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="data-card">
     <div class="card-header">
-        <h2><i class="fas fa-edit"></i> Edit Draft</h2>
+        <h2><i class="fas fa-edit"></i> Edit Project</h2>
     </div>
     <div class="card-body">
         <?php if ($error): ?>

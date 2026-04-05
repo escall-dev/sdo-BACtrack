@@ -518,7 +518,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Process Name</th>
+                                <th>Process</th>
                                 <th>Days</th>
                             </tr>
                         </thead>

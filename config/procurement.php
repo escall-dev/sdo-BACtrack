@@ -64,7 +64,7 @@ if (!function_exists('procurementConfig')) {
                     // Annex B (SVP 200k & below) stages before implementation date.
                     'backward_timeline_stages' => [
                         ['key' => 'preparation_purchase_request', 'name' => 'Preparation of Purchase Request', 'days' => 0],
-                        ['key' => 'submission_receipt_approved_pr', 'name' => 'Submission and Receipt of Approved Purchase Request', 'days' => 1],
+                        ['key' => 'submission_receipt_approved_pr', 'name' => 'submission of complete and approved procurement requirements.', 'days' => 1],
                         ['key' => 'preparation_rfq', 'name' => 'Preparation of Request for Quotation (RFQ)', 'days' => 4],
                         ['key' => 'posting_rfq_canvass', 'name' => 'Posting of RFQ or Conduct of Canvass', 'days' => 3],
                         ['key' => 'opening_bids_abstract_quotation', 'name' => 'Opening of bids documents / Preparation of Abstract of Quotation', 'days' => 1],
@@ -83,7 +83,7 @@ if (!function_exists('procurementConfig')) {
                     // Annex B (SVP 200k & above) stages before implementation date.
                     'backward_timeline_stages' => [
                         ['key' => 'preparation_purchase_request', 'name' => 'Preparation of Purchase Request', 'days' => 0],
-                        ['key' => 'submission_receipt_approved_pr', 'name' => 'Submission and Receipt of Approved Purchase Request', 'days' => 1],
+                        ['key' => 'submission_receipt_approved_pr', 'name' => 'submission of complete and approved procurement requirements.', 'days' => 1],
                         ['key' => 'preparation_rfq', 'name' => 'Preparation of Request for Quotation (RFQ)', 'days' => 4],
                         ['key' => 'posting_rfq_canvass', 'name' => 'Posting of RFQ or Conduct of Canvass', 'days' => 3],
                         ['key' => 'resolution_to_award', 'name' => 'Preparation of Abstract of Quotation / Resolution to Award', 'days' => 4],

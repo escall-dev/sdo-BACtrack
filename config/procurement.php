@@ -161,7 +161,7 @@ if (!function_exists('procurementConfig')) {
                 ],
                 'DIRECT_ACQUISITION' => [
                     'backward_timeline_stages' => [
-                        ['key' => 'market_identification_p200k', 'name' => 'Market Identification (<= P200K)', 'days' => 1],
+                        ['key' => 'market_identification_p200k', 'name' => 'Market Identification (≤ ₱200K)', 'days' => 1],
                         ['key' => 'direct_purchase_and_recording', 'name' => 'Direct Purchase and Recording', 'days' => 1],
                     ],
                     'forward_execution_stages' => [

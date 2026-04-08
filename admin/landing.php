@@ -421,22 +421,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .top-panels {
-            display: grid;
-            grid-template-columns: 640px minmax(0, 1fr);
+            display: flex;
+            flex-direction: column;
             gap: 20px;
-            align-items: start;
+            align-items: stretch;
         }
 
         .top-panels .estimator-card {
+            width: 640px;
+            max-width: 100%;
+            align-self: flex-end;
             min-width: 0;
         }
 
         .top-panels .projects-card {
+            width: calc(100% - 640px - 20px);
+            max-width: 100%;
+            align-self: center;
             min-width: 0;
         }
 
         .top-panels .data-card {
-            width: 100%;
             max-width: none;
             margin: 0;
         }
@@ -1464,8 +1469,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (max-width: 1100px) {
-            .top-panels {
-                grid-template-columns: 1fr;
+            .top-panels .estimator-card {
+                align-self: stretch;
+                width: 100%;
+            }
+            .top-panels .projects-card {
+                align-self: stretch;
+                width: 100%;
             }
         }
     </style>

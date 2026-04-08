@@ -17,6 +17,21 @@ function timelineFormatDayCount($days) {
     return $days . ' day' . ($days === 1 ? '' : 's');
 }
 
+function timelineNormalizeStepName($stepName) {
+    $stepName = (string) $stepName;
+
+    $replacements = [
+        '(<= P200K)' => '(≤ ₱200K)',
+        '(<=P200K)' => '(≤ ₱200K)',
+        '(>= P200K)' => '(≥ ₱200K)',
+        '(>=P200K)' => '(≥ ₱200K)',
+        '(> P200K)' => '(> ₱200K)',
+        'P200K' => '₱200K',
+    ];
+
+    return strtr($stepName, $replacements);
+}
+
 function timelineDurationDays($startDate, $endDate) {
     $start = timelineParseDate($startDate);
     $end = timelineParseDate($endDate);

@@ -61,7 +61,7 @@ VALUES
   ('DIRECT_CONTRACTING', 'Payment Processing', 5, 1),
 
   -- Direct Acquisition
-  ('DIRECT_ACQUISITION', 'Market Identification (<= P200K)', 1, 1),
+  ('DIRECT_ACQUISITION', 'Market Identification (≤ ₱200K)', 1, 1),
   ('DIRECT_ACQUISITION', 'Direct Purchase and Recording', 2, 1),
   ('DIRECT_ACQUISITION', 'Implementation', 3, 1),
   ('DIRECT_ACQUISITION', 'Delivery and Inspection', 4, 1),

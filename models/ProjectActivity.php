@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/timeline.php';
 
 class ProjectActivity {
     private $db;
@@ -13,8 +14,25 @@ class ProjectActivity {
         $this->db = db();
     }
 
+    private function normalizeStepName($activity) {
+        if (is_array($activity) && array_key_exists('step_name', $activity)) {
+            $activity['step_name'] = timelineNormalizeStepName($activity['step_name']);
+        }
+        return $activity;
+    }
+
+    private function normalizeActivities($activities) {
+        if (!is_array($activities)) {
+            return $activities;
+        }
+        foreach ($activities as $i => $activity) {
+            $activities[$i] = $this->normalizeStepName($activity);
+        }
+        return $activities;
+    }
+
     public function findById($id) {
-        return $this->db->fetch(
+        $activity = $this->db->fetch(
             "SELECT pa.*, bc.project_id, bc.cycle_number, p.title as project_title
              FROM project_activities pa
              LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
@@ -22,19 +40,21 @@ class ProjectActivity {
              WHERE pa.id = ?",
             [$id]
         );
+        return $this->normalizeStepName($activity);
     }
 
     public function getByCycle($cycleId) {
-        return $this->db->fetchAll(
+        $activities = $this->db->fetchAll(
             "SELECT * FROM project_activities 
              WHERE bac_cycle_id = ? 
              ORDER BY step_order ASC",
             [$cycleId]
         );
+        return $this->normalizeActivities($activities);
     }
 
     public function getByProject($projectId) {
-        return $this->db->fetchAll(
+        $activities = $this->db->fetchAll(
             "SELECT pa.*, bc.cycle_number 
              FROM project_activities pa
              LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
@@ -42,6 +62,7 @@ class ProjectActivity {
              ORDER BY bc.cycle_number, pa.step_order ASC",
             [$projectId]
         );
+        return $this->normalizeActivities($activities);
     }
 
     public function create($data) {
@@ -128,7 +149,7 @@ class ProjectActivity {
         $today = date('Y-m-d');
         $futureDate = date('Y-m-d', strtotime("+{$days} days"));
         
-        return $this->db->fetchAll(
+        $activities = $this->db->fetchAll(
             "SELECT pa.*, bc.project_id, p.title as project_title
              FROM project_activities pa
              LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
@@ -138,10 +159,11 @@ class ProjectActivity {
              ORDER BY pa.planned_end_date ASC",
             [$today, $futureDate]
         );
+        return $this->normalizeActivities($activities);
     }
 
     public function getDelayedActivities() {
-        return $this->db->fetchAll(
+        $activities = $this->db->fetchAll(
             "SELECT pa.*, bc.project_id, p.title as project_title
              FROM project_activities pa
              LEFT JOIN bac_cycles bc ON pa.bac_cycle_id = bc.id
@@ -149,6 +171,7 @@ class ProjectActivity {
              WHERE pa.status = 'DELAYED'
              ORDER BY pa.planned_end_date ASC"
         );
+        return $this->normalizeActivities($activities);
     }
 
     public function getCalendarEvents($startDate, $endDate, $projectId = null) {
@@ -166,7 +189,8 @@ class ProjectActivity {
 
         $sql .= " ORDER BY pa.planned_start_date, pa.step_order";
 
-        return $this->db->fetchAll($sql, $params);
+        $activities = $this->db->fetchAll($sql, $params);
+        return $this->normalizeActivities($activities);
     }
 
     public function generateFromTemplate($cycleId, $procurementType, $startDate) {

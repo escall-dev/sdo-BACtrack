@@ -1579,7 +1579,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </table>
 
                     <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;justify-content:flex-end;">
-                        <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Date:</label>
+                        <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Implementation Date:</label>
                         <input type="date" id="latestAllowableDate" class="search-input" style="max-width:160px;" readonly />
                     </div>
 

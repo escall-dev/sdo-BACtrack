@@ -1554,6 +1554,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <div id="svpBudgetWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
+                    <div id="estimatorDateWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
 
                     <div style="margin:8px 0 10px;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;color:#78350f;border-radius:10px;">
                         <div style="font-weight:800;font-size:0.84rem;margin-bottom:6px;">Procurement Checklist (Must Need):</div>
@@ -2635,6 +2636,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return val ? new Date(val + 'T00:00:00') : null;
         }
 
+        function toDateInputValue(date) {
+            if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
         function addDays(date, days) {
             const d = new Date(date);
             d.setDate(d.getDate() + days);
@@ -2647,26 +2656,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             el.value = val || '';
         }
 
+        function showEstimatorDateWarning(message) {
+            const el = document.getElementById('estimatorDateWarning');
+            if (!el) return;
+            const msg = String(message || '').trim();
+            el.textContent = msg;
+            el.style.display = msg ? 'block' : 'none';
+        }
+
+        function clearPlannerDatesAndLatestAllowable() {
+            setLatestAllowableDate('');
+            const tbody = document.getElementById('plannerBody');
+            if (tbody) {
+                const inputs = tbody.querySelectorAll('input[type="date"]');
+                inputs.forEach(i => { i.value = ''; });
+            }
+        }
+
         function computeLatestAllowableSchedule() {
             const { type, stages } = getSelectedBackwardStages();
             if (!type || stages.length === 0) {
-                setLatestAllowableDate('');
+                showEstimatorDateWarning('');
+                clearPlannerDatesAndLatestAllowable();
                 return;
             }
 
             const implementationVal = document.getElementById('plannerStart')?.value || '';
             if (!implementationVal) {
-                setLatestAllowableDate('');
-                const tbody = document.getElementById('plannerBody');
-                if (tbody) {
-                    const inputs = tbody.querySelectorAll('input[type="date"]');
-                    inputs.forEach(i => { i.value = ''; });
-                }
+                showEstimatorDateWarning('');
+                clearPlannerDatesAndLatestAllowable();
                 return;
             }
 
             const implementationDate = parseDateInput(implementationVal);
             if (!implementationDate) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const implLocal = new Date(implementationDate);
+            implLocal.setHours(0, 0, 0, 0);
+            if (implLocal.getTime() === today.getTime()) {
+                showEstimatorDateWarning('transaction invalid please set another implementation date');
+                clearPlannerDatesAndLatestAllowable();
+                return;
+            }
+            showEstimatorDateWarning('');
 
             const lastIndex = stages.length - 1;
 
@@ -2693,8 +2727,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 const startEl = document.getElementById(`start-${i}`);
                 const endEl = document.getElementById(`end-${i}`);
-                if (startEl) startEl.value = plannedStart.toISOString().slice(0, 10);
-                if (endEl) endEl.value = plannedEnd.toISOString().slice(0, 10);
+                if (startEl) startEl.value = toDateInputValue(plannedStart);
+                if (endEl) endEl.value = toDateInputValue(plannedEnd);
             }
 
             // Latest Allowable Date = END date of the first backward step.

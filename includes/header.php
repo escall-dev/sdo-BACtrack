@@ -126,6 +126,13 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
                     <span class="nav-text">Reports</span>
                 </a>
 
+                <?php if ($auth->isBacSecretary()): ?>
+                <a href="<?php echo APP_URL; ?>/admin/announcements.php" class="nav-item <?php echo $currentPage === 'announcements' ? 'active' : ''; ?>" data-tooltip="Announcements">
+                    <span class="nav-icon"><i class="fas fa-bullhorn"></i></span>
+                    <span class="nav-text">Announcements</span>
+                </a>
+                <?php endif; ?>
+
                 <?php if ($auth->isProcurement()): ?>
                 <a href="<?php echo APP_URL; ?>/admin/analytics.php" class="nav-item <?php echo $currentPage === 'analytics' ? 'active' : ''; ?>" data-tooltip="Analytics">
                     <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>

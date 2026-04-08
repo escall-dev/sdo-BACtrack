@@ -8,6 +8,7 @@ require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/procurement.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Announcement.php';
 
 $auth = auth();
 
@@ -50,6 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+}
+
+// Landing announcements (public display)
+$activeAnnouncements = [];
+try {
+    $announcementModel = new Announcement();
+    $activeAnnouncements = $announcementModel->getActive(8);
+} catch (Throwable $e) {
+    // Fail closed on landing (do not block login page).
+    $activeAnnouncements = [];
 }
 ?>
 <!DOCTYPE html>
@@ -425,6 +436,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-direction: column;
             gap: 20px;
             align-items: stretch;
+        }
+
+        /* Estimator slot: allows left-side announcements without shifting layout */
+        .estimator-slot {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: stretch;
+        }
+
+        .estimator-slot .estimator-card {
+            position: relative;
+            z-index: 2;
+        }
+
+        .estimator-slot .landing-announcements-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: calc(100% - 640px - 20px);
+            max-width: calc(100% - 640px - 20px);
+            min-width: 0;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .estimator-slot .landing-announcements-card .card-body {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .landing-announcements-carousel {
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .landing-announcements-track {
+            display: flex;
+            flex: 1;
+            transition: transform 260ms ease;
+            will-change: transform;
+            touch-action: pan-y;
+        }
+
+        .landing-announcements-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            padding: 20px 54px 0;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .landing-announcements-inner {
+            width: 100%;
+            max-width: 820px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
+            padding: 18px 18px 16px;
+        }
+
+        .landing-announcements-inner .announcement-item {
+            padding: 0;
+            border-bottom: none;
+        }
+
+        .landing-announcements-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding-top: 10px;
+            padding-bottom: 2px;
+        }
+
+        .landing-announcements-controls {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .landing-announcements-btn {
+            pointer-events: auto;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(15, 23, 42, 0.18);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            backdrop-filter: blur(4px);
+        }
+
+        .landing-announcements-btn:hover {
+            background: rgba(15, 23, 42, 0.30);
+            border-color: rgba(255,255,255,0.55);
+        }
+
+        .landing-announcements-btn.prev { left: 12px; }
+        .landing-announcements-btn.next { right: 12px; }
+
+        .landing-announcements-dot {
+            width: 26px;
+            height: 4px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(148, 163, 184, 0.35);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .landing-announcements-dot.active {
+            background: rgba(15, 76, 117, 0.85);
+            border-color: rgba(15, 76, 117, 0.95);
         }
 
         .top-panels .estimator-card {
@@ -1469,6 +1610,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (max-width: 1100px) {
+            .estimator-slot {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .estimator-slot .landing-announcements-card {
+                position: static;
+                width: 100%;
+                max-width: 100%;
+            }
             .top-panels .estimator-card {
                 align-self: stretch;
                 width: 100%;
@@ -1518,6 +1669,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="top-panels">
 
             <!-- Detailed Procurement Timeline Planner (table) -->
+            <div class="estimator-slot">
+            <div class="data-card landing-announcements-card" id="landingAnnouncementsCard">
+                <div class="card-body">
+                    <?php if (empty($activeAnnouncements)): ?>
+                        <div class="empty-state compact-empty" style="text-align:center;">
+                            <h3>No announcements yet</h3>
+                            <p style="color:var(--text-muted);">Announcements posted by the BAC Secretariat will appear here.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="landing-announcements-carousel" id="landingAnnouncementsCarousel" aria-label="Announcements carousel">
+                            <div class="landing-announcements-controls" aria-label="Carousel controls">
+                                <button type="button" class="landing-announcements-btn prev" id="landingAnnouncementsPrev" aria-label="Previous announcement">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button type="button" class="landing-announcements-btn next" id="landingAnnouncementsNext" aria-label="Next announcement">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="landing-announcements-track" id="landingAnnouncementsTrack">
+                                <?php foreach (array_values($activeAnnouncements) as $idx => $ann): ?>
+                                    <?php
+                                        $title = (string)($ann['title'] ?? '');
+                                        $body = (string)($ann['body'] ?? '');
+                                        $linkUrl = (string)($ann['link_url'] ?? '');
+                                        $createdAt = (string)($ann['created_at'] ?? '');
+                                        $dateText = $createdAt ? date('M d, Y', strtotime($createdAt)) : '';
+                                    ?>
+                                    <div class="landing-announcements-slide" data-index="<?php echo (int)$idx; ?>">
+                                        <div class="landing-announcements-inner">
+                                        <div class="announcement-item">
+                                            <?php if ($dateText !== ''): ?>
+                                                <div class="ann-date"><i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($dateText); ?></div>
+                                            <?php endif; ?>
+
+                                            <?php if ($linkUrl !== ''): ?>
+                                                <a class="ann-title" href="<?php echo htmlspecialchars($linkUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($title); ?></a>
+                                            <?php else: ?>
+                                                <span class="ann-title"><?php echo htmlspecialchars($title); ?></span>
+                                            <?php endif; ?>
+
+                                            <?php if ($body !== ''): ?>
+                                                <div class="ann-desc"><?php echo nl2br(htmlspecialchars($body)); ?></div>
+                                            <?php else: ?>
+                                                <div class="ann-desc" style="color:var(--text-muted);">No details provided.</div>
+                                            <?php endif; ?>
+                                        </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="landing-announcements-dots" id="landingAnnouncementsDots" role="tablist" aria-label="Announcement pointers"></div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
             <div class="data-card estimator-card">
                 <div class="card-header">
                     <i class="fas fa-table"></i> Procurement Timeline Estimator
@@ -1603,6 +1809,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              
                 </div>
             </div>
+            </div>
 
             <!-- Projects List -->
             <?php
@@ -1664,10 +1871,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th title="Tracking Number">Tracking #</th>
+                                    <th title="Tracking Number">Tracking Number</th>
                                     <th title="Project Title">Project Title</th>
                                     <th title="Mode of Procurement">Procurement</th>
-                                    <th title="Implementation Date">Impl. Date</th>
+                                    <th title="Implementation Date">Implementation Date</th>
                                     <th title="Project Proponent">Project Proponent</th>
                                     <th title="Status">Status</th>
                                 </tr>
@@ -2611,6 +2818,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             showBudgetWarning('');
         }
 
+        /* ── Landing announcements carousel ── */
+        function syncLandingAnnouncementsHeight() {
+            const estimatorCard = document.querySelector('.estimator-card');
+            const annCard = document.getElementById('landingAnnouncementsCard');
+            if (!estimatorCard || !annCard) return;
+
+            const h = estimatorCard.getBoundingClientRect().height;
+            if (!Number.isFinite(h) || h <= 0) return;
+
+            annCard.style.height = `${Math.round(h)}px`;
+        }
+
+        function initLandingAnnouncementsCarousel() {
+            const carousel = document.getElementById('landingAnnouncementsCarousel');
+            const track = document.getElementById('landingAnnouncementsTrack');
+            const dots = document.getElementById('landingAnnouncementsDots');
+            const prevBtn = document.getElementById('landingAnnouncementsPrev');
+            const nextBtn = document.getElementById('landingAnnouncementsNext');
+            if (!carousel || !track || !dots) return;
+
+            const slides = Array.from(track.querySelectorAll('.landing-announcements-slide'));
+            const total = slides.length;
+            if (total <= 1) return;
+
+            let index = 0;
+
+            function renderDots() {
+                dots.innerHTML = '';
+                for (let i = 0; i < total; i++) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'landing-announcements-dot' + (i === index ? ' active' : '');
+                    btn.setAttribute('aria-label', `Go to announcement ${i + 1} of ${total}`);
+                    btn.addEventListener('click', () => goTo(i));
+                    dots.appendChild(btn);
+                }
+            }
+
+            function goTo(next) {
+                const nextIndex = (next + total) % total;
+                index = nextIndex;
+                track.style.transform = `translateX(-${index * 100}%)`;
+                dots.querySelectorAll('.landing-announcements-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === index);
+                });
+            }
+
+            renderDots();
+            goTo(0);
+
+            if (prevBtn) prevBtn.addEventListener('click', () => goTo(index - 1));
+            if (nextBtn) nextBtn.addEventListener('click', () => goTo(index + 1));
+
+            // Auto-advance (carousel-like behavior)
+            let autoTimer = setInterval(() => goTo(index + 1), 7000);
+
+            function resetAutoAdvance() {
+                clearInterval(autoTimer);
+                autoTimer = setInterval(() => goTo(index + 1), 7000);
+            }
+
+            carousel.addEventListener('pointerdown', resetAutoAdvance);
+            if (prevBtn) prevBtn.addEventListener('click', resetAutoAdvance);
+            if (nextBtn) nextBtn.addEventListener('click', resetAutoAdvance);
+
+            let pointerId = null;
+            let startX = 0;
+            let lastX = 0;
+            let isDown = false;
+
+            track.addEventListener('pointerdown', (e) => {
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
+                pointerId = e.pointerId;
+                isDown = true;
+                startX = e.clientX;
+                lastX = startX;
+                try { track.setPointerCapture(pointerId); } catch (err) {}
+            });
+
+            track.addEventListener('pointermove', (e) => {
+                if (!isDown || e.pointerId !== pointerId) return;
+                lastX = e.clientX;
+            });
+
+            function endPointer(e) {
+                if (!isDown || e.pointerId !== pointerId) return;
+                isDown = false;
+                const dx = lastX - startX;
+                const threshold = 40;
+                if (dx > threshold) {
+                    goTo(index - 1);
+                } else if (dx < -threshold) {
+                    goTo(index + 1);
+                }
+                pointerId = null;
+            }
+
+            track.addEventListener('pointerup', endPointer);
+            track.addEventListener('pointercancel', endPointer);
+        }
+
         /* ── Detailed Planner logic ── */
         function getSelectedBackwardStages() {
             const type = (document.getElementById('estProcurementType')?.value || '').trim();
@@ -2771,6 +3079,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.addEventListener('DOMContentLoaded', function() {
             switchLandingTab('home');
             renderPlannerRows();
+            initLandingAnnouncementsCarousel();
+            syncLandingAnnouncementsHeight();
+            window.addEventListener('resize', syncLandingAnnouncementsHeight);
 
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape') {

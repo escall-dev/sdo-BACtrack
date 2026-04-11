@@ -1648,7 +1648,7 @@ try {
             <div class="navbar-links">
                 <button type="button" id="landing-home-tab" class="nav-link nav-tab-btn active" onclick="switchLandingTab('home')" role="tab" aria-selected="true" aria-controls="landing-home-panel"><i class="fas fa-home"></i> Home</button>
                 <button type="button" id="landing-calendar-tab" class="nav-link nav-tab-btn" onclick="switchLandingTab('calendar')" role="tab" aria-selected="false" aria-controls="landing-calendar-panel"><i class="fas fa-calendar-alt"></i> Calendar</button>
-                <a href="#" class="nav-link" onclick="openContactModal(); return false;"><i class="fas fa-phone"></i> Contacts</a>
+                <a href="#" class="nav-link" onclick="openContactModal(); return false;"><i class="fas fa-phone"></i> Contact Us</a>
             </div>
             <button class="btn-login" onclick="openLoginModal()">
                 <i class=""></i> LOGIN

@@ -245,15 +245,19 @@ try {
         .navbar-links {
             display: flex;
             align-items: center;
-            height: 100%;
             justify-content: center;
-            background: none;
             z-index: 2;
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            margin-left: 90px;
+            margin-left: 72px;
             gap: 8px;
+            padding: 4px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.24);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(10px) saturate(150%);
+            -webkit-backdrop-filter: blur(10px) saturate(150%);
         }
         .btn-login {
             margin-left: 18px;
@@ -262,43 +266,43 @@ try {
         .nav-link {
             color: #fff;
             text-decoration: none;
-            padding: 0 18px;
+            padding: 0 14px;
             display: flex;
             align-items: center;
-            gap: 7px;
-            font-size: 1rem;
-            font-weight: 700;
-            height: 62px;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            height: 38px;
             border: none;
             background: none;
             position: relative;
-            transition: color var(--transition-base);
+            border-radius: 999px;
+            transition: all var(--transition-base);
             letter-spacing: 0.01em;
         }
-        .nav-link:not(:last-child) {
-            border-right: 1px solid rgba(255,255,255,0.18);
-        }
+
         .nav-link.active {
             color: #fff;
-            background: none;
-        }
-        .nav-link.active {
-            font-weight: 800;
+            background: rgba(255, 255, 255, 0.22);
+            font-weight: 700;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
         }
         .nav-link.active::after {
             content: '';
             display: block;
             position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 3px;
+            left: 10px;
+            right: 10px;
+            bottom: 4px;
+            height: 2px;
             background: var(--accent);
-            border-radius: 2px 2px 0 0;
+            border-radius: 999px;
         }
         .nav-link:hover {
-            color: var(--accent-light);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.14);
         }
+        .nav-link i { font-size: 0.82rem; }
         .nav-tab-btn {
             cursor: pointer;
             font-family: inherit;
@@ -313,14 +317,14 @@ try {
             gap: 7px;
             padding: 0 18px;
             height: 38px;
-            background: none;
-            border: 1.5px solid rgba(255,255,255,0.35);
+            background: rgba(15, 23, 42, 0.2);
+            border: 1.5px solid rgba(255,255,255,0.45);
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.87rem;
             font-weight: 600;
             border-radius: 999px;
             cursor: pointer;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.03em;
             transition: all var(--transition-base);
             margin-left: 18px;
             box-shadow: 0 2px 8px rgba(15,76,117,0.10);
@@ -385,10 +389,7 @@ try {
             display: flex;
             flex-direction: column;
             gap: 24px;
-          
-            border-radius: var(--radius-lg);
-          
-            padding: 32px 32px;
+            padding: 24px 16px;
         }
 
         .landing-tab-panel {
@@ -397,6 +398,74 @@ try {
 
         .landing-tab-panel.active {
             display: block;
+        }
+
+        #landing-home-panel.active {
+            display: flex;
+            justify-content: center;
+        }
+
+        .landing-home-hub {
+            width: min(1120px, 100%);
+            margin: 0 auto;
+            padding: 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            background: rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(18px) saturate(155%);
+            -webkit-backdrop-filter: blur(18px) saturate(155%);
+            box-shadow: 0 24px 46px rgba(15, 23, 42, 0.2);
+        }
+
+        .home-content-tabs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .home-content-tab {
+            border: 1px solid rgba(15, 76, 117, 0.2);
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--primary-dark);
+            border-radius: 999px;
+            padding: 9px 16px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .home-content-tab:hover {
+            background: rgba(15, 76, 117, 0.12);
+            border-color: rgba(15, 76, 117, 0.35);
+        }
+
+        .home-content-tab.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.36);
+            box-shadow: 0 10px 22px rgba(15, 76, 117, 0.35);
+        }
+
+        .home-content-panel {
+            display: none;
+            width: 100%;
+            animation: fadeIn 220ms ease;
+        }
+
+        .home-content-panel.active {
+            display: block;
+        }
+
+        .home-content-panel .data-card {
+            width: 100%;
         }
 
         #landing-calendar-container {
@@ -410,9 +479,11 @@ try {
             gap: 8px;
             color: var(--text-secondary);
             padding: 24px;
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.42);
             border-radius: var(--radius-md);
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px) saturate(150%);
+            -webkit-backdrop-filter: blur(12px) saturate(150%);
             font-size: 0.9rem;
         }
 
@@ -422,57 +493,14 @@ try {
             background: #fee2e2;
         }
 
-        /* Full-bleed row: estimator + projects strip can span viewport width. */
-        .top-panels-fullwidth {
-            width: 100vw;
-            margin-left: calc(50% - 50vw);
-            margin-right: calc(50% - 50vw);
-            padding: 0 12px;
-            box-sizing: border-box;
-        }
-
-        .top-panels {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: stretch;
-        }
-
-        /* Estimator slot: allows left-side announcements without shifting layout */
-        .estimator-slot {
-            position: relative;
-            width: 100%;
-            min-width: 0;
-            display: flex;
-            justify-content: flex-end;
-            align-items: stretch;
-        }
-
-        .estimator-slot .estimator-card {
-            position: relative;
-            z-index: 2;
-        }
-
-        .estimator-slot .landing-announcements-card {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: calc(100% - 640px - 20px);
-            max-width: calc(100% - 640px - 20px);
-            min-width: 0;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .estimator-slot .landing-announcements-card .card-body {
-            flex: 1;
+        .landing-announcements-card .card-body {
+            min-height: 360px;
             overflow: hidden;
         }
 
         .landing-announcements-carousel {
             position: relative;
-            height: 100%;
+            min-height: 330px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -489,7 +517,7 @@ try {
         .landing-announcements-slide {
             flex: 0 0 100%;
             min-width: 100%;
-            padding: 20px 54px 0;
+            padding: 20px 54px 8px;
             overflow: auto;
             display: flex;
             justify-content: center;
@@ -499,8 +527,8 @@ try {
         .landing-announcements-inner {
             width: 100%;
             max-width: 820px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.68);
             border-radius: 18px;
             box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
             padding: 18px 18px 16px;
@@ -535,14 +563,14 @@ try {
             height: 38px;
             border-radius: 999px;
             border: 1px solid rgba(255,255,255,0.35);
-            background: rgba(15, 23, 42, 0.18);
+            background: rgba(15, 23, 42, 0.28);
             color: #fff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all var(--transition-base);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
         }
 
         .landing-announcements-btn:hover {
@@ -568,49 +596,19 @@ try {
             border-color: rgba(15, 76, 117, 0.95);
         }
 
-        .top-panels .estimator-card {
-            width: 640px;
-            max-width: 100%;
-            align-self: flex-end;
-            min-width: 0;
-        }
-
-        .top-panels .projects-card {
-            width: calc(100% - 640px - 20px);
-            max-width: 100%;
-            align-self: center;
-            min-width: 0;
-        }
-
-        .top-panels .data-card {
-            max-width: none;
-            margin: 0;
-        }
-
-        .top-panels .card-header {
-            min-height: 50px;
-            padding: 14px 20px;
-            font-size: 0.9rem;
-        }
-
-        .top-panels .estimator-card > .card-header,
-        .top-panels .projects-card > .card-header {
-            background: #1b6ca8;
-            background-image: none;
-            color: #fff;
-        }
-
         /* ─── Cards ─── */
         .data-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.62);
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+            backdrop-filter: blur(16px) saturate(165%);
+            -webkit-backdrop-filter: blur(16px) saturate(165%);
             overflow: hidden;
             scroll-margin-top: 150px;
         }
         .card-header {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, rgba(15, 76, 117, 0.92) 0%, rgba(27, 108, 168, 0.88) 100%);
             padding: 14px 20px;
             display: flex;
             align-items: center;
@@ -622,7 +620,10 @@ try {
             text-transform: uppercase;
         }
         .card-header i { font-size: 0.95rem; opacity: 0.85; }
-        .card-body { padding: 20px; }
+        .card-body {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.92);
+        }
 
         .estimator-card {
             width: 100%;
@@ -649,7 +650,7 @@ try {
         }
 
         .projects-card .card-body > .table-responsive {
-            overflow: visible;
+            overflow-x: auto;
         }
 
         .projects-card .projects-pager {
@@ -690,17 +691,17 @@ try {
             line-height: 1.3;
             border-collapse: collapse;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         .projects-card .projects-table thead {
-            background: #f1f5f9;
+            background: rgba(226, 232, 240, 0.92);
         }
 
         .projects-card .projects-table th,
         .projects-card .projects-table td {
             padding: 5px 6px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(203, 213, 225, 0.9);
             text-align: center;
             vertical-align: middle;
         }
@@ -731,7 +732,7 @@ try {
         }
 
         .projects-card .projects-table tbody tr {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.9);
         }
 
         .projects-card .projects-table .projects-td-tracking {
@@ -757,6 +758,23 @@ try {
 
         .estimator-card .card-body {
             padding: 10px 12px;
+            max-height: min(68vh, 640px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .estimator-card .card-body::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .estimator-card .card-body::-webkit-scrollbar-thumb {
+            background: rgba(15, 76, 117, 0.38);
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .estimator-card .card-body::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.55);
         }
 
         .estimator-card .search-input {
@@ -1571,6 +1589,9 @@ try {
         @media (max-width: 600px) {
             .search-row { flex-direction: column; }
             .btn-search { width: 100%; justify-content: center; }
+            .estimator-card .card-body {
+                max-height: 62vh;
+            }
             .estimator-controls-row {
                 align-items: stretch;
             }
@@ -1594,10 +1615,12 @@ try {
                 position: static;
                 transform: none;
                 left: auto;
-                gap: 12px;
-                justify-content: center;
+                gap: 6px;
+                justify-content: flex-start;
                 width: 100%;
                 margin: 8px 0 0 0;
+                overflow-x: auto;
+                white-space: nowrap;
             }
             .btn-login {
                 position: static;
@@ -1610,23 +1633,38 @@ try {
         }
 
         @media (max-width: 1100px) {
-            .estimator-slot {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
+            .landing-home-hub {
+                padding: 14px;
             }
-            .estimator-slot .landing-announcements-card {
-                position: static;
-                width: 100%;
-                max-width: 100%;
+
+            .home-content-tabs {
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 2px;
             }
-            .top-panels .estimator-card {
-                align-self: stretch;
-                width: 100%;
+
+            .home-content-tab {
+                flex: 0 0 auto;
             }
-            .top-panels .projects-card {
-                align-self: stretch;
-                width: 100%;
+
+            .landing-announcements-slide {
+                padding: 16px 44px 8px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .landing-home-hub {
+                padding: 12px;
+            }
+
+            .home-content-tab {
+                padding: 8px 12px;
+                font-size: 0.82rem;
+            }
+
+            .landing-announcements-slide {
+                padding: 14px 38px 6px;
             }
         }
     </style>
@@ -1664,326 +1702,363 @@ try {
     <main class="main-content">
         <div class="content-wrap">
             <section id="landing-home-panel" class="landing-tab-panel active" role="tabpanel" aria-labelledby="landing-home-tab">
+                <div class="landing-home-hub">
+                    <div class="home-content-tabs" role="tablist" aria-label="Homepage content sections">
+                        <button
+                            type="button"
+                            id="home-content-announcements-tab"
+                            class="home-content-tab active"
+                            onclick="switchHomeContentTab('announcements')"
+                            role="tab"
+                            aria-selected="true"
+                            aria-controls="home-content-announcements-panel"
+                        >
+                            <i class="fas fa-bullhorn"></i> Announcements
+                        </button>
+                        <button
+                            type="button"
+                            id="home-content-estimator-tab"
+                            class="home-content-tab"
+                            onclick="switchHomeContentTab('estimator')"
+                            role="tab"
+                            aria-selected="false"
+                            aria-controls="home-content-estimator-panel"
+                        >
+                            <i class="fas fa-table"></i> Procurement Timeline Estimator
+                        </button>
+                        <button
+                            type="button"
+                            id="home-content-projects-tab"
+                            class="home-content-tab"
+                            onclick="switchHomeContentTab('projects')"
+                            role="tab"
+                            aria-selected="false"
+                            aria-controls="home-content-projects-panel"
+                        >
+                            <i class="fas fa-folder-open"></i> Project List
+                        </button>
+                    </div>
 
-            <div class="top-panels-fullwidth">
-            <div class="top-panels">
-
-            <!-- Detailed Procurement Timeline Planner (table) -->
-            <div class="estimator-slot">
-            <div class="data-card landing-announcements-card" id="landingAnnouncementsCard">
-                <div class="card-body">
-                    <?php if (empty($activeAnnouncements)): ?>
-                        <div class="empty-state compact-empty" style="text-align:center;">
-                            <h3>No announcements yet</h3>
-                            <p style="color:var(--text-muted);">Announcements posted by the BAC Secretariat will appear here.</p>
-                        </div>
-                    <?php else: ?>
-                        <div class="landing-announcements-carousel" id="landingAnnouncementsCarousel" aria-label="Announcements carousel">
-                            <div class="landing-announcements-controls" aria-label="Carousel controls">
-                                <button type="button" class="landing-announcements-btn prev" id="landingAnnouncementsPrev" aria-label="Previous announcement">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <button type="button" class="landing-announcements-btn next" id="landingAnnouncementsNext" aria-label="Next announcement">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
+                    <section id="home-content-announcements-panel" class="home-content-panel active" role="tabpanel" aria-labelledby="home-content-announcements-tab" aria-hidden="false">
+                        <div class="data-card landing-announcements-card" id="landingAnnouncementsCard">
+                            <div class="card-header">
+                                <i class="fas fa-bullhorn"></i> Announcements
                             </div>
-                            <div class="landing-announcements-track" id="landingAnnouncementsTrack">
-                                <?php foreach (array_values($activeAnnouncements) as $idx => $ann): ?>
-                                    <?php
-                                        $title = (string)($ann['title'] ?? '');
-                                        $body = (string)($ann['body'] ?? '');
-                                        $linkUrl = (string)($ann['link_url'] ?? '');
-                                        $createdAt = (string)($ann['created_at'] ?? '');
-                                        $dateText = $createdAt ? date('M d, Y', strtotime($createdAt)) : '';
-                                    ?>
-                                    <div class="landing-announcements-slide" data-index="<?php echo (int)$idx; ?>">
-                                        <div class="landing-announcements-inner">
-                                        <div class="announcement-item">
-                                            <?php if ($dateText !== ''): ?>
-                                                <div class="ann-date"><i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($dateText); ?></div>
-                                            <?php endif; ?>
-
-                                            <?php if ($linkUrl !== ''): ?>
-                                                <a class="ann-title" href="<?php echo htmlspecialchars($linkUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($title); ?></a>
-                                            <?php else: ?>
-                                                <span class="ann-title"><?php echo htmlspecialchars($title); ?></span>
-                                            <?php endif; ?>
-
-                                            <?php if ($body !== ''): ?>
-                                                <div class="ann-desc"><?php echo nl2br(htmlspecialchars($body)); ?></div>
-                                            <?php else: ?>
-                                                <div class="ann-desc" style="color:var(--text-muted);">No details provided.</div>
-                                            <?php endif; ?>
-                                        </div>
-                                        </div>
+                            <div class="card-body">
+                                <?php if (empty($activeAnnouncements)): ?>
+                                    <div class="empty-state compact-empty" style="text-align:center;">
+                                        <h3>No announcements yet</h3>
+                                        <p style="color:var(--text-muted);">Announcements posted by the BAC Secretariat will appear here.</p>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="landing-announcements-carousel" id="landingAnnouncementsCarousel" aria-label="Announcements carousel">
+                                        <div class="landing-announcements-controls" aria-label="Carousel controls">
+                                            <button type="button" class="landing-announcements-btn prev" id="landingAnnouncementsPrev" aria-label="Previous announcement">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <button type="button" class="landing-announcements-btn next" id="landingAnnouncementsNext" aria-label="Next announcement">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                        <div class="landing-announcements-track" id="landingAnnouncementsTrack">
+                                            <?php foreach (array_values($activeAnnouncements) as $idx => $ann): ?>
+                                                <?php
+                                                    $title = (string)($ann['title'] ?? '');
+                                                    $body = (string)($ann['body'] ?? '');
+                                                    $linkUrl = (string)($ann['link_url'] ?? '');
+                                                    $createdAt = (string)($ann['created_at'] ?? '');
+                                                    $dateText = $createdAt ? date('M d, Y', strtotime($createdAt)) : '';
+                                                ?>
+                                                <div class="landing-announcements-slide" data-index="<?php echo (int)$idx; ?>">
+                                                    <div class="landing-announcements-inner">
+                                                    <div class="announcement-item">
+                                                        <?php if ($dateText !== ''): ?>
+                                                            <div class="ann-date"><i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($dateText); ?></div>
+                                                        <?php endif; ?>
+
+                                                        <?php if ($linkUrl !== ''): ?>
+                                                            <a class="ann-title" href="<?php echo htmlspecialchars($linkUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($title); ?></a>
+                                                        <?php else: ?>
+                                                            <span class="ann-title"><?php echo htmlspecialchars($title); ?></span>
+                                                        <?php endif; ?>
+
+                                                        <?php if ($body !== ''): ?>
+                                                            <div class="ann-desc"><?php echo nl2br(htmlspecialchars($body)); ?></div>
+                                                        <?php else: ?>
+                                                            <div class="ann-desc" style="color:var(--text-muted);">No details provided.</div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <div class="landing-announcements-dots" id="landingAnnouncementsDots" role="tablist" aria-label="Announcement pointers"></div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="landing-announcements-dots" id="landingAnnouncementsDots" role="tablist" aria-label="Announcement pointers"></div>
                         </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <div class="data-card estimator-card">
-                <div class="card-header">
-                    <i class="fas fa-table"></i> Procurement Timeline Estimator
-                </div>
-                <div class="card-body">
-                    <?php
-                        $procCfg = procurementConfig();
-                        $workflowKeys = array_keys($procCfg['workflows'] ?? []);
-                        $estimatorWhitelist = [
-                            'COMPETITIVE_BIDDING' => 'Competitive Bidding',
-                            'SMALL_VALUE_PROCUREMENT' => 'Small Value Procurement (200k and below)',
-                            'SMALL_VALUE_PROCUREMENT_200K' => 'Small Value Procurement (200k and above)',
-                            'DIRECT_ACQUISITION' => 'Direct Acquisition',
-                        ];
+                    </section>
 
-                        $estimatorTypes = [];
-                        foreach ($estimatorWhitelist as $key => $label) {
-                            if (in_array($key, $workflowKeys, true)) {
-                                $estimatorTypes[$key] = $label;
-                            }
-                        }
-                    ?>
-                    <div class="estimator-controls">
-                        <div class="estimator-controls-row">
-                            <label for="estProcurementType" class="estimator-control-label">Mode of Procurement:</label>
-                            <select id="estProcurementType" class="search-input">
-                                <option value="" selected>Select Mode of Procurement</option>
-                                <?php foreach ($estimatorTypes as $k => $lbl): ?>
-                                    <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-
-                            <label for="estBudget" class="estimator-control-label">Estimated Budget (PHP):</label>
-                            <input type="number" id="estBudget" class="search-input est-budget-input" min="0" step="0.01" placeholder="e.g. 100000" />
-                        </div>
-
-                        <div class="estimator-controls-row">
-                            <label for="plannerStart" class="estimator-control-label">Implementation date:</label>
-                            <input type="date" id="plannerStart" class="search-input implementation-input" />
-
-                            <button class="btn-search" onclick="computeEarliest()">Compute / Reset</button>
-                            <button class="btn-search" style="background:#ddd;color:#333;box-shadow:none;" onclick="startOver()">Start Over</button>
-                        </div>
-                    </div>
-
-                    <div id="svpBudgetWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
-                    <div id="estimatorDateWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
-
-                    <div style="margin:8px 0 10px;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;color:#78350f;border-radius:10px;">
-                        <div style="font-weight:800;font-size:0.84rem;margin-bottom:6px;">Procurement Checklist (Must Need):</div>
-                        <ol style="margin:0;padding-left:18px;font-size:0.8rem;line-height:1.45;font-weight:600;">
-                            <li>PURCHASE REQUEST (3 Original Copies)</li>
-                            <li>MEMORANDUM (Photocopy only) (If applicable)</li>
-                            <li>ACTIVITY / PROJECT PROPOSAL (Photocopy only) (If applicable)</li>
-                            <li>SARO (Photocopy only) (If applicable)</li>
-                        </ol>
-                    </div>
-
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:var(--bg-secondary);">
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:46%;text-align:left;">Procurement Stage</th>
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:27%;">Start Date</th>
-                                <th style="padding:5px 6px;border:1px solid var(--border-color);width:27%;">End Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="plannerBody">
-                            <!-- rows injected by JS -->
-                        </tbody>
-                    </table>
-
-                    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;justify-content:flex-end;">
-                        <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Implementation Date:</label>
-                        <input type="date" id="latestAllowableDate" class="search-input" style="max-width:160px;" readonly />
-                    </div>
-
-                    <div style="text-align:center;font-weight:700;font-size:0.82rem;margin-top:10px;">
-                            <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
-                                User's Guide | Found errors? Tell us.
-                            </a>
-                    </div>
-
-             
-                </div>
-            </div>
-            </div>
-
-            <!-- Projects List -->
-            <?php
-            require_once __DIR__ . '/../models/Project.php';
-            $projectModel = new Project();
-            $allProjects = $projectModel->getAll([]);
-
-            $projectsPerPage = 8;
-            $totalProjects = count($allProjects);
-            $totalPages = max(1, (int) ceil($totalProjects / $projectsPerPage));
-
-            $currentPage = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            if ($currentPage < 1) {
-                $currentPage = 1;
-            }
-            if ($currentPage > $totalPages) {
-                $currentPage = $totalPages;
-            }
-
-            $offset = ($currentPage - 1) * $projectsPerPage;
-            $projects = array_slice($allProjects, $offset, $projectsPerPage);
-
-            $queryParams = $_GET;
-            unset($queryParams['page']);
-
-            $makePageUrl = function($page) use ($queryParams) {
-                $params = $queryParams;
-                if ($page > 1) {
-                    $params['page'] = $page;
-                }
-                $query = http_build_query($params);
-                return 'landing.php' . ($query !== '' ? ('?' . $query) : '');
-            };
-
-            $startRow = $totalProjects === 0 ? 0 : ($offset + 1);
-            $endRow = $totalProjects === 0 ? 0 : min($offset + $projectsPerPage, $totalProjects);
-            ?>
-            <div class="data-card projects-card">
-                <div class="card-header">
-                    <i class="fas fa-folder-open"></i> Project List
-                </div>
-                <div class="card-body">
-                <?php if (empty($projects)): ?>
-                    <div class="empty-state compact-empty" style="text-align:center;">
-                        <div class="empty-icon" style="color:var(--text-muted);"><i class="fas fa-folder-plus"></i></div>
-                        <h3>No projects found</h3>
-                        <p style="color:var(--text-muted);">No BAC projects have been created yet.</p>
-                    </div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="data-table projects-table">
-                            <colgroup>
-                                <col style="width:12%">
-                                <col style="width:25%">
-                                <col style="width:20%">
-                                <col style="width:15%">
-                                <col style="width:18%">
-                                <col style="width:10%">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th title="Tracking Number">Tracking Number</th>
-                                    <th title="Project Title">Project Title</th>
-                                    <th title="Mode of Procurement">Procurement</th>
-                                    <th title="Implementation Date">Implementation Date</th>
-                                    <th title="Project Proponent">Project Proponent</th>
-                                    <th title="Status">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($projects as $project): ?>
+                    <section id="home-content-estimator-panel" class="home-content-panel" role="tabpanel" aria-labelledby="home-content-estimator-tab" aria-hidden="true">
+                        <div class="data-card estimator-card">
+                            <div class="card-header">
+                                <i class="fas fa-table"></i> Procurement Timeline Estimator
+                            </div>
+                            <div class="card-body">
                                 <?php
-                                    $procTypeKey = $project['procurement_type'] ?? '';
-                                    $procTypeLabel = PROCUREMENT_TYPES[$procTypeKey] ?? $procTypeKey;
-                                    $rawStatus = !empty($project['timeline_status'])
-                                        ? $project['timeline_status']
-                                        : ($project['approval_status'] ?? 'APPROVED');
-                                    $statusText = (string)$rawStatus;
-                                    if (preg_match('/^Step\s+\d+\s*:\s*(.+?)(?:\s*\([A-Z_]+\))?$/i', $statusText, $matches)) {
-                                        $statusText = trim($matches[1]);
-                                    } elseif (preg_match('/^[A-Z_]+$/', $statusText)) {
-                                        $statusText = ucwords(strtolower(str_replace('_', ' ', $statusText)));
+                                    $procCfg = procurementConfig();
+                                    $workflowKeys = array_keys($procCfg['workflows'] ?? []);
+                                    $estimatorWhitelist = [
+                                        'COMPETITIVE_BIDDING' => 'Competitive Bidding',
+                                        'SMALL_VALUE_PROCUREMENT' => 'Small Value Procurement (200k and below)',
+                                        'SMALL_VALUE_PROCUREMENT_200K' => 'Small Value Procurement (200k and above)',
+                                        'DIRECT_ACQUISITION' => 'Direct Acquisition',
+                                    ];
+
+                                    $estimatorTypes = [];
+                                    foreach ($estimatorWhitelist as $key => $label) {
+                                        if (in_array($key, $workflowKeys, true)) {
+                                            $estimatorTypes[$key] = $label;
+                                        }
                                     }
-                                    $implementationDate = !empty($project['project_start_date'])
-                                        ? date('M d, Y', strtotime($project['project_start_date']))
-                                        : 'Not set';
-                                    $projectOwner = !empty($project['creator_name'])
-                                        ? $project['creator_name']
-                                        : 'Unassigned';
                                 ?>
-                                <tr class="project-row">
-                                    <td class="projects-td-tracking">
-                                        <button
-                                            type="button"
-                                            class="project-open-link tracking-number-link"
-                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
-                                            aria-label="Open BAC process for project <?php echo (int)$project['id']; ?>"
-                                        >
-                                            <?php echo htmlspecialchars($project['bactrack_id'] ?? sprintf('PR-%04d', $project['id'])); ?>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            class="project-open-link"
-                                            onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
-                                        >
-                                            <?php echo htmlspecialchars($project['title']); ?>
-                                        </button>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($procTypeLabel); ?></td>
-                                    <td><?php echo htmlspecialchars($implementationDate); ?></td>
-                                    <td><?php echo htmlspecialchars($projectOwner); ?></td>
-                                    <td><?php echo htmlspecialchars($statusText); ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                <div class="estimator-controls">
+                                    <div class="estimator-controls-row">
+                                        <label for="estProcurementType" class="estimator-control-label">Mode of Procurement:</label>
+                                        <select id="estProcurementType" class="search-input">
+                                            <option value="" selected>Select Mode of Procurement</option>
+                                            <?php foreach ($estimatorTypes as $k => $lbl): ?>
+                                                <option value="<?php echo htmlspecialchars($k); ?>"><?php echo htmlspecialchars($lbl); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
 
-                    <?php if ($totalPages > 1): ?>
-                    <div class="projects-pager">
-                        <div class="projects-count">
-                            Showing <?php echo $startRow; ?>-<?php echo $endRow; ?> of <?php echo $totalProjects; ?> projects
+                                        <label for="estBudget" class="estimator-control-label">Estimated Budget (PHP):</label>
+                                        <input type="number" id="estBudget" class="search-input est-budget-input" min="0" step="0.01" placeholder="e.g. 100000" />
+                                    </div>
+
+                                    <div class="estimator-controls-row">
+                                        <label for="plannerStart" class="estimator-control-label">Implementation date:</label>
+                                        <input type="date" id="plannerStart" class="search-input implementation-input" />
+
+                                        <button class="btn-search" onclick="computeEarliest()">Compute / Reset</button>
+                                        <button class="btn-search" style="background:#ddd;color:#333;box-shadow:none;" onclick="startOver()">Start Over</button>
+                                    </div>
+                                </div>
+
+                                <div id="svpBudgetWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
+                                <div id="estimatorDateWarning" style="display:none;margin:8px 0;padding:8px 10px;border:1px solid var(--danger);background:var(--danger-bg);color:#7f1d1d;border-radius:10px;font-weight:600;font-size:0.84rem;"></div>
+
+                                <div style="margin:8px 0 10px;padding:10px 12px;border:1px solid #fcd34d;background:#fffbeb;color:#78350f;border-radius:10px;">
+                                    <div style="font-weight:800;font-size:0.84rem;margin-bottom:6px;">Procurement Checklist (Must Need):</div>
+                                    <ol style="margin:0;padding-left:18px;font-size:0.8rem;line-height:1.45;font-weight:600;">
+                                        <li>PURCHASE REQUEST (3 Original Copies)</li>
+                                        <li>MEMORANDUM (Photocopy only) (If applicable)</li>
+                                        <li>ACTIVITY / PROJECT PROPOSAL (Photocopy only) (If applicable)</li>
+                                        <li>SARO (Photocopy only) (If applicable)</li>
+                                    </ol>
+                                </div>
+
+                                <table style="width:100%;border-collapse:collapse;">
+                                    <thead>
+                                        <tr style="background:var(--bg-secondary);">
+                                            <th style="padding:5px 6px;border:1px solid var(--border-color);width:46%;text-align:left;">Procurement Stage</th>
+                                            <th style="padding:5px 6px;border:1px solid var(--border-color);width:27%;">Start Date</th>
+                                            <th style="padding:5px 6px;border:1px solid var(--border-color);width:27%;">End Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plannerBody">
+                                        <!-- rows injected by JS -->
+                                    </tbody>
+                                </table>
+
+                                <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;justify-content:flex-end;">
+                                    <label style="font-weight:800;color:var(--text-secondary);font-size:0.84rem;">Latest Allowable Implementation Date:</label>
+                                    <input type="date" id="latestAllowableDate" class="search-input" style="max-width:160px;" readonly />
+                                </div>
+
+                                <div style="text-align:center;font-weight:700;font-size:0.82rem;margin-top:10px;">
+                                        <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
+                                            User's Guide | Found errors? Tell us.
+                                        </a>
+                                </div>
+                            </div>
                         </div>
-                        <div class="pager-links">
-                            <?php if ($currentPage > 1): ?>
-                                <a class="pager-link" href="<?php echo htmlspecialchars($makePageUrl($currentPage - 1)); ?>">Prev</a>
+                    </section>
+
+                    <!-- Projects List -->
+                    <?php
+                    require_once __DIR__ . '/../models/Project.php';
+                    $projectModel = new Project();
+                    $allProjects = $projectModel->getAll([]);
+
+                    $projectsPerPage = 8;
+                    $totalProjects = count($allProjects);
+                    $totalPages = max(1, (int) ceil($totalProjects / $projectsPerPage));
+
+                    $currentPage = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+                    if ($currentPage < 1) {
+                        $currentPage = 1;
+                    }
+                    if ($currentPage > $totalPages) {
+                        $currentPage = $totalPages;
+                    }
+
+                    $offset = ($currentPage - 1) * $projectsPerPage;
+                    $projects = array_slice($allProjects, $offset, $projectsPerPage);
+
+                    $queryParams = $_GET;
+                    unset($queryParams['page']);
+                    $queryParams['landing_tab'] = 'home';
+                    $queryParams['home_tab'] = 'projects';
+
+                    $makePageUrl = function($page) use ($queryParams) {
+                        $params = $queryParams;
+                        if ($page > 1) {
+                            $params['page'] = $page;
+                        }
+                        $query = http_build_query($params);
+                        return 'landing.php' . ($query !== '' ? ('?' . $query) : '');
+                    };
+
+                    $startRow = $totalProjects === 0 ? 0 : ($offset + 1);
+                    $endRow = $totalProjects === 0 ? 0 : min($offset + $projectsPerPage, $totalProjects);
+                    ?>
+                    <section id="home-content-projects-panel" class="home-content-panel" role="tabpanel" aria-labelledby="home-content-projects-tab" aria-hidden="true">
+                        <div class="data-card projects-card">
+                            <div class="card-header">
+                                <i class="fas fa-folder-open"></i> Project List
+                            </div>
+                            <div class="card-body">
+                            <?php if (empty($projects)): ?>
+                                <div class="empty-state compact-empty" style="text-align:center;">
+                                    <div class="empty-icon" style="color:var(--text-muted);"><i class="fas fa-folder-plus"></i></div>
+                                    <h3>No projects found</h3>
+                                    <p style="color:var(--text-muted);">No BAC projects have been created yet.</p>
+                                </div>
                             <?php else: ?>
-                                <span class="pager-link disabled">Prev</span>
+                                <div class="table-responsive">
+                                    <table class="data-table projects-table">
+                                        <colgroup>
+                                            <col style="width:12%">
+                                            <col style="width:25%">
+                                            <col style="width:20%">
+                                            <col style="width:15%">
+                                            <col style="width:18%">
+                                            <col style="width:10%">
+                                        </colgroup>
+                                        <thead>
+                                            <tr>
+                                                <th title="Tracking Number">Tracking Number</th>
+                                                <th title="Project Title">Project Title</th>
+                                                <th title="Mode of Procurement">Procurement</th>
+                                                <th title="Implementation Date">Implementation Date</th>
+                                                <th title="Project Proponent">Project Proponent</th>
+                                                <th title="Status">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($projects as $project): ?>
+                                            <?php
+                                                $procTypeKey = $project['procurement_type'] ?? '';
+                                                $procTypeLabel = PROCUREMENT_TYPES[$procTypeKey] ?? $procTypeKey;
+                                                $rawStatus = !empty($project['timeline_status'])
+                                                    ? $project['timeline_status']
+                                                    : ($project['approval_status'] ?? 'APPROVED');
+                                                $statusText = (string)$rawStatus;
+                                                if (preg_match('/^Step\s+\d+\s*:\s*(.+?)(?:\s*\([A-Z_]+\))?$/i', $statusText, $matches)) {
+                                                    $statusText = trim($matches[1]);
+                                                } elseif (preg_match('/^[A-Z_]+$/', $statusText)) {
+                                                    $statusText = ucwords(strtolower(str_replace('_', ' ', $statusText)));
+                                                }
+                                                $implementationDate = !empty($project['project_start_date'])
+                                                    ? date('M d, Y', strtotime($project['project_start_date']))
+                                                    : 'Not set';
+                                                $projectOwner = !empty($project['creator_name'])
+                                                    ? $project['creator_name']
+                                                    : 'Unassigned';
+                                            ?>
+                                            <tr class="project-row">
+                                                <td class="projects-td-tracking">
+                                                    <button
+                                                        type="button"
+                                                        class="project-open-link tracking-number-link"
+                                                        onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
+                                                        aria-label="Open BAC process for project <?php echo (int)$project['id']; ?>"
+                                                    >
+                                                        <?php echo htmlspecialchars($project['bactrack_id'] ?? sprintf('PR-%04d', $project['id'])); ?>
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        class="project-open-link"
+                                                        onclick="openBacProcessModal(<?php echo (int)$project['id']; ?>, <?php echo htmlspecialchars(json_encode($project['title']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($project['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>);"
+                                                    >
+                                                        <?php echo htmlspecialchars($project['title']); ?>
+                                                    </button>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($procTypeLabel); ?></td>
+                                                <td><?php echo htmlspecialchars($implementationDate); ?></td>
+                                                <td><?php echo htmlspecialchars($projectOwner); ?></td>
+                                                <td><?php echo htmlspecialchars($statusText); ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <?php if ($totalPages > 1): ?>
+                                <div class="projects-pager">
+                                    <div class="projects-count">
+                                        Showing <?php echo $startRow; ?>-<?php echo $endRow; ?> of <?php echo $totalProjects; ?> projects
+                                    </div>
+                                    <div class="pager-links">
+                                        <?php if ($currentPage > 1): ?>
+                                            <a class="pager-link" href="<?php echo htmlspecialchars($makePageUrl($currentPage - 1)); ?>">Prev</a>
+                                        <?php else: ?>
+                                            <span class="pager-link disabled">Prev</span>
+                                        <?php endif; ?>
+
+                                        <?php
+                                        $windowStart = max(1, $currentPage - 2);
+                                        $windowEnd = min($totalPages, $currentPage + 2);
+
+                                        if ($windowStart > 1) {
+                                            echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl(1)) . '">1</a>';
+                                            if ($windowStart > 2) {
+                                                echo '<span class="pager-link disabled">...</span>';
+                                            }
+                                        }
+
+                                        for ($i = $windowStart; $i <= $windowEnd; $i++) {
+                                            if ($i === $currentPage) {
+                                                echo '<span class="pager-link active">' . $i . '</span>';
+                                            } else {
+                                                echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl($i)) . '">' . $i . '</a>';
+                                            }
+                                        }
+
+                                        if ($windowEnd < $totalPages) {
+                                            if ($windowEnd < $totalPages - 1) {
+                                                echo '<span class="pager-link disabled">...</span>';
+                                            }
+                                            echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl($totalPages)) . '">' . $totalPages . '</a>';
+                                        }
+                                        ?>
+
+                                        <?php if ($currentPage < $totalPages): ?>
+                                            <a class="pager-link" href="<?php echo htmlspecialchars($makePageUrl($currentPage + 1)); ?>">Next</a>
+                                        <?php else: ?>
+                                            <span class="pager-link disabled">Next</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
                             <?php endif; ?>
-
-                            <?php
-                            $windowStart = max(1, $currentPage - 2);
-                            $windowEnd = min($totalPages, $currentPage + 2);
-
-                            if ($windowStart > 1) {
-                                echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl(1)) . '">1</a>';
-                                if ($windowStart > 2) {
-                                    echo '<span class="pager-link disabled">...</span>';
-                                }
-                            }
-
-                            for ($i = $windowStart; $i <= $windowEnd; $i++) {
-                                if ($i === $currentPage) {
-                                    echo '<span class="pager-link active">' . $i . '</span>';
-                                } else {
-                                    echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl($i)) . '">' . $i . '</a>';
-                                }
-                            }
-
-                            if ($windowEnd < $totalPages) {
-                                if ($windowEnd < $totalPages - 1) {
-                                    echo '<span class="pager-link disabled">...</span>';
-                                }
-                                echo '<a class="pager-link" href="' . htmlspecialchars($makePageUrl($totalPages)) . '">' . $totalPages . '</a>';
-                            }
-                            ?>
-
-                            <?php if ($currentPage < $totalPages): ?>
-                                <a class="pager-link" href="<?php echo htmlspecialchars($makePageUrl($currentPage + 1)); ?>">Next</a>
-                            <?php else: ?>
-                                <span class="pager-link disabled">Next</span>
-                            <?php endif; ?>
+                            </div>
                         </div>
-                    </div>
-                    <?php endif; ?>
-                <?php endif; ?>
+                    </section>
                 </div>
-            </div>
-
-            </div>
-            </div>
-
             </section>
 
             <section id="landing-calendar-panel" class="landing-tab-panel" role="tabpanel" aria-labelledby="landing-calendar-tab" aria-hidden="true">
@@ -2145,6 +2220,26 @@ try {
         let landingCalendarFocusRequestId = 0;
         const LANDING_CALENDAR_WIDGET_URL = 'calendar-widget.php';
         const LANDING_CALENDAR_VIEW_KEY = 'landing_calendar_view';
+
+        function switchHomeContentTab(tab) {
+            const tabs = ['announcements', 'estimator', 'projects'];
+
+            tabs.forEach((key) => {
+                const tabEl = document.getElementById('home-content-' + key + '-tab');
+                const panelEl = document.getElementById('home-content-' + key + '-panel');
+                const isActive = key === tab;
+
+                if (tabEl) {
+                    tabEl.classList.toggle('active', isActive);
+                    tabEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                }
+
+                if (panelEl) {
+                    panelEl.classList.toggle('active', isActive);
+                    panelEl.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+                }
+            });
+        }
 
         function switchLandingTab(tab) {
             const showCalendar = tab === 'calendar';
@@ -2819,17 +2914,6 @@ try {
         }
 
         /* ── Landing announcements carousel ── */
-        function syncLandingAnnouncementsHeight() {
-            const estimatorCard = document.querySelector('.estimator-card');
-            const annCard = document.getElementById('landingAnnouncementsCard');
-            if (!estimatorCard || !annCard) return;
-
-            const h = estimatorCard.getBoundingClientRect().height;
-            if (!Number.isFinite(h) || h <= 0) return;
-
-            annCard.style.height = `${Math.round(h)}px`;
-        }
-
         function initLandingAnnouncementsCarousel() {
             const carousel = document.getElementById('landingAnnouncementsCarousel');
             const track = document.getElementById('landingAnnouncementsTrack');
@@ -2982,6 +3066,8 @@ try {
             el.style.display = msg ? 'block' : 'none';
         }
 
+        const ESTIMATOR_INVALID_DATE_MESSAGE = 'Transaction invalid, please set another implementation date.';
+
         function clearPlannerDatesAndLatestAllowable() {
             setLatestAllowableDate('');
             const tbody = document.getElementById('plannerBody');
@@ -3013,8 +3099,8 @@ try {
             today.setHours(0, 0, 0, 0);
             const implLocal = new Date(implementationDate);
             implLocal.setHours(0, 0, 0, 0);
-            if (implLocal.getTime() === today.getTime()) {
-                showEstimatorDateWarning('transaction invalid please set another implementation date');
+            if (implLocal.getTime() <= today.getTime()) {
+                showEstimatorDateWarning(ESTIMATOR_INVALID_DATE_MESSAGE);
                 clearPlannerDatesAndLatestAllowable();
                 return;
             }
@@ -3049,6 +3135,22 @@ try {
                 if (endEl) endEl.value = toDateInputValue(plannedEnd);
             }
 
+            // Block schedule results if any computed stage starts before today.
+            for (let i = 0; i <= lastIndex; i++) {
+                const startVal = document.getElementById(`start-${i}`)?.value || '';
+                const startDate = parseDateInput(startVal);
+                if (!startDate) {
+                    continue;
+                }
+                const stageStart = new Date(startDate);
+                stageStart.setHours(0, 0, 0, 0);
+                if (stageStart.getTime() < today.getTime()) {
+                    showEstimatorDateWarning(ESTIMATOR_INVALID_DATE_MESSAGE);
+                    clearPlannerDatesAndLatestAllowable();
+                    return;
+                }
+            }
+
             // Latest Allowable Date = END date of the first backward step.
             const firstEnd = document.getElementById('end-0')?.value || '';
             setLatestAllowableDate(firstEnd);
@@ -3066,6 +3168,7 @@ try {
             }
             document.getElementById('plannerStart').value = '';
             setLatestAllowableDate('');
+            showEstimatorDateWarning('');
             renderPlannerRows();
             validateBudgetRealtime();
         }
@@ -3077,11 +3180,19 @@ try {
 
         // initialize planner on load
         document.addEventListener('DOMContentLoaded', function() {
-            switchLandingTab('home');
+            const params = new URLSearchParams(window.location.search || '');
+            const landingTab = params.get('landing_tab') === 'calendar' ? 'calendar' : 'home';
+            const requestedHomeTab = params.get('home_tab');
+            const validHomeTabs = ['announcements', 'estimator', 'projects'];
+            const hasProjectsPageParam = params.has('page');
+            const homeTab = validHomeTabs.includes(requestedHomeTab)
+                ? requestedHomeTab
+                : (hasProjectsPageParam ? 'projects' : 'announcements');
+
+            switchLandingTab(landingTab);
+            switchHomeContentTab(homeTab);
             renderPlannerRows();
             initLandingAnnouncementsCarousel();
-            syncLandingAnnouncementsHeight();
-            window.addEventListener('resize', syncLandingAnnouncementsHeight);
 
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape') {

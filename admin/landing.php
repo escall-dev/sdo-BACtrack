@@ -150,7 +150,7 @@ try {
             right: 0;
             top: 0;
             z-index: 1200;
-            overflow: hidden;
+            overflow: visible;
         }
         .site-header::before {
             content: '';
@@ -311,6 +311,52 @@ try {
             outline: 2px solid var(--accent-light);
             outline-offset: -2px;
         }
+        .nav-dropdown {
+            position: relative;
+        }
+        .nav-dropdown-toggle {
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .nav-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 220px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 18px 28px rgba(2, 6, 23, 0.38);
+            padding: 6px;
+            display: none;
+            z-index: 2500;
+        }
+        .nav-dropdown.open .nav-dropdown-menu {
+            display: block;
+        }
+        .nav-dropdown-item {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition-base), color var(--transition-base);
+        }
+        .nav-dropdown-item:hover {
+            background: rgba(148, 163, 184, 0.2);
+            color: #ffffff;
+        }
+        .nav-dropdown-caret {
+            font-size: 0.72rem;
+        }
         .btn-login {
             display: inline-flex;
             align-items: center;
@@ -401,6 +447,11 @@ try {
         }
 
         #landing-home-panel.active {
+            display: flex;
+            justify-content: center;
+        }
+
+        #landing-contact-panel.active {
             display: flex;
             justify-content: center;
         }
@@ -1547,6 +1598,228 @@ try {
         .dark-alert-error   { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
         .dark-alert-success { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
 
+        .landing-bac-contact-wrap {
+            width: min(716px, 100%);
+            margin: 0 auto;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            background: rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(18px) saturate(155%);
+            -webkit-backdrop-filter: blur(18px) saturate(155%);
+            box-shadow: 0 24px 46px rgba(15, 23, 42, 0.2);
+            padding: 18px;
+        }
+        .landing-bac-contact-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 18px;
+        }
+        .landing-bac-card {
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px) saturate(150%);
+            -webkit-backdrop-filter: blur(12px) saturate(150%);
+            padding: 20px;
+        }
+        .landing-bac-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.08rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .landing-bac-card p {
+            margin: 0 0 14px;
+            color: #475569;
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+        .landing-bac-project-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .landing-bac-project-trigger {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #0f172a;
+            font-size: 0.92rem;
+            padding: 10px 12px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .landing-bac-project-trigger:focus {
+            outline: none;
+            border-color: #0f4c75;
+            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.14);
+            background: #ffffff;
+        }
+        .landing-bac-project-trigger-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .landing-bac-project-select-source {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+        }
+        .landing-bac-project-note {
+            color: #64748b;
+            font-size: 0.82rem;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+        .landing-project-picker-modal {
+            background: #f8fafc;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            width: min(680px, 94%);
+            max-height: 84vh;
+            position: relative;
+            overflow: hidden;
+            animation: slideDown 0.2s ease;
+        }
+        .landing-project-picker-head {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+        }
+        .landing-project-picker-title {
+            margin: 0;
+            font-size: 1rem;
+            color: #0f172a;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .landing-project-picker-search {
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: 0.92rem;
+            padding: 10px 12px;
+        }
+        .landing-project-picker-search:focus {
+            outline: none;
+            border-color: #0f4c75;
+            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.14);
+        }
+        .landing-project-picker-list {
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 56vh;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .landing-project-picker-item {
+            border: 1px solid #dbe3ee;
+            background: #ffffff;
+            border-radius: 10px;
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            color: #0f172a;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all var(--transition-base);
+        }
+        .landing-project-picker-item:hover {
+            border-color: #0f4c75;
+            background: #f0f7ff;
+        }
+        .landing-project-picker-item.active {
+            border-color: #0f4c75;
+            box-shadow: 0 0 0 2px rgba(15, 76, 117, 0.16);
+            background: #edf6ff;
+        }
+        .landing-project-picker-item-tracker {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #0f4c75;
+            letter-spacing: 0.02em;
+        }
+        .landing-project-picker-item-title {
+            font-size: 0.9rem;
+            color: #0f172a;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+        .landing-project-picker-empty {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            padding: 20px 8px;
+        }
+        .landing-bac-contact-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .landing-bac-action-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #0f172a;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all var(--transition-base);
+            min-width: 180px;
+        }
+        .landing-bac-action-link:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .landing-bac-action-link.is-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+        .landing-bac-help-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0f4c75 0%, #1b6ca8 100%);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .landing-bac-help-link:hover {
+            color: #ffffff;
+            text-decoration: none;
+            filter: brightness(1.04);
+        }
+
         /* ─── Footer ─── */
         .site-footer {
             background: var(--primary-dark);
@@ -1606,6 +1879,18 @@ try {
             .dark-modal-body { padding: 28px 20px 22px; }
             .dark-modal.bac-modal .dark-modal-body { padding: 18px 14px 14px; }
             .bac-process-table { font-size: 0.8rem; }
+            .landing-bac-contact-grid {
+                grid-template-columns: 1fr;
+            }
+            .landing-bac-contact-actions {
+                flex-direction: column;
+            }
+            .landing-bac-action-link,
+            .landing-bac-help-link {
+                width: 100%;
+                min-width: 0;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 800px) {
@@ -1637,6 +1922,10 @@ try {
                 padding: 14px;
             }
 
+            .landing-bac-contact-wrap {
+                padding: 14px;
+            }
+
             .home-content-tabs {
                 justify-content: flex-start;
                 flex-wrap: nowrap;
@@ -1655,6 +1944,10 @@ try {
 
         @media (max-width: 600px) {
             .landing-home-hub {
+                padding: 12px;
+            }
+
+            .landing-bac-contact-wrap {
                 padding: 12px;
             }
 
@@ -1686,7 +1979,19 @@ try {
             <div class="navbar-links">
                 <button type="button" id="landing-home-tab" class="nav-link nav-tab-btn active" onclick="switchLandingTab('home')" role="tab" aria-selected="true" aria-controls="landing-home-panel"><i class="fas fa-home"></i> Home</button>
                 <button type="button" id="landing-calendar-tab" class="nav-link nav-tab-btn" onclick="switchLandingTab('calendar')" role="tab" aria-selected="false" aria-controls="landing-calendar-panel"><i class="fas fa-calendar-alt"></i> Calendar</button>
-                <a href="#" class="nav-link" onclick="openContactModal(); return false;"><i class="fas fa-phone"></i> Contact Us</a>
+                <div class="nav-dropdown" id="landingContactNavDropdown">
+                    <button type="button" class="nav-link nav-dropdown-toggle" onclick="toggleLandingContactDropdown(event)" aria-haspopup="true" aria-expanded="false" id="landingContactNavButton">
+                        <i class="fas fa-phone"></i> Contact Us <i class="fas fa-chevron-down nav-dropdown-caret"></i>
+                    </button>
+                    <div class="nav-dropdown-menu" id="landingContactDropdownMenu">
+                        <button type="button" class="nav-dropdown-item" onclick="openIctHelpdeskFromNav()">
+                            <i class="fas fa-headset"></i> ICT Helpdesk
+                        </button>
+                        <button type="button" class="nav-dropdown-item" onclick="openBacSecretariatFromNav()">
+                            <i class="fas fa-envelope-open-text"></i> Contact BAC Secretariat
+                        </button>
+                    </div>
+                </div>
             </div>
             <button class="btn-login" onclick="openLoginModal()">
                 <i class=""></i> LOGIN
@@ -1877,7 +2182,7 @@ try {
                                 </div>
 
                                 <div style="text-align:center;font-weight:700;font-size:0.82rem;margin-top:10px;">
-                                        <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
+                                    <a href="http://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
                                             User's Guide | Found errors? Tell us.
                                         </a>
                                 </div>
@@ -2058,6 +2363,7 @@ try {
                             </div>
                         </div>
                     </section>
+
                 </div>
             </section>
 
@@ -2065,31 +2371,76 @@ try {
                 <div id="landing-calendar-container" aria-live="polite"></div>
             </section>
 
+            <section id="landing-contact-panel" class="landing-tab-panel" role="tabpanel" aria-hidden="true">
+                <div class="landing-bac-contact-wrap">
+                    <div class="landing-bac-contact-grid" style="grid-template-columns:1fr;">
+                        <div class="landing-bac-card">
+                            <h3><i class="fas fa-envelope-open-text"></i> Contact BAC Secretariat</h3>
+                            <p>Select a project first, then choose Gmail or Outlook to compose your message.</p>
+                            <label class="landing-bac-project-label" for="landingBacProjectTrigger">Select Project</label>
+                            <button type="button" id="landingBacProjectTrigger" class="landing-bac-project-trigger" onclick="openLandingBacProjectModal()" aria-haspopup="dialog" aria-controls="landingBacProjectModal">
+                                <span id="landingBacProjectTriggerLabel" class="landing-bac-project-trigger-label">-- Choose a project --</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <select id="landingBacProjectSelect" class="landing-bac-project-select-source" onchange="updateLandingBacEmailLinks()" aria-hidden="true" tabindex="-1">
+                                <option value="">-- Choose a project --</option>
+                                <?php if (!empty($allProjects)): ?>
+                                    <?php foreach ($allProjects as $contactProject): ?>
+                                        <?php $contactProjectId = (string)($contactProject['id'] ?? ''); ?>
+                                        <?php $contactProjectTitle = (string)($contactProject['title'] ?? ''); ?>
+                                        <?php if ($contactProjectTitle === ''): ?>
+                                            <?php continue; ?>
+                                        <?php endif; ?>
+                                        <?php $contactProjectTracker = (string)($contactProject['bactrack_id'] ?? ''); ?>
+                                        <?php if ($contactProjectTracker === '' && $contactProjectId !== ''): ?>
+                                            <?php $contactProjectTracker = sprintf('PR-%04d', (int)$contactProjectId); ?>
+                                        <?php endif; ?>
+                                        <option
+                                            value="<?php echo htmlspecialchars($contactProjectId !== '' ? $contactProjectId : $contactProjectTitle, ENT_QUOTES); ?>"
+                                            data-project-title="<?php echo htmlspecialchars($contactProjectTitle, ENT_QUOTES); ?>"
+                                            data-project-tracker="<?php echo htmlspecialchars($contactProjectTracker, ENT_QUOTES); ?>"
+                                        >
+                                            <?php echo htmlspecialchars(($contactProjectTracker !== '' ? ($contactProjectTracker . ' - ') : '') . $contactProjectTitle); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <p class="landing-bac-project-note">Recipient: bac.sanpedro@deped.gov.ph</p>
+                            <div class="landing-bac-contact-actions">
+                                <a id="landingBacOutlookLink" class="landing-bac-action-link is-disabled" href="mailto:bac.sanpedro@deped.gov.ph" aria-disabled="true" tabindex="-1">
+                                    <i class="fas fa-paper-plane"></i> Outlook
+                                </a>
+                                <a id="landingBacGmailLink" class="landing-bac-action-link is-disabled" href="https://mail.google.com/mail/?view=cm&amp;to=bac.sanpedro@deped.gov.ph" target="_blank" rel="noopener noreferrer" aria-disabled="true" tabindex="-1">
+                                    <i class="fab fa-google"></i> Gmail
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="modal-overlay" id="landingBacProjectModal" onclick="if(event.target===this) closeLandingBacProjectModal()">
+                <div class="landing-project-picker-modal" role="dialog" aria-modal="true" aria-labelledby="landingProjectPickerTitle">
+                    <button type="button" class="modal-close-dark" onclick="closeLandingBacProjectModal()" aria-label="Close project picker">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="landing-project-picker-head">
+                        <h3 id="landingProjectPickerTitle" class="landing-project-picker-title"><i class="fas fa-folder-open"></i> Select Project</h3>
+                        <input
+                            type="search"
+                            id="landingBacProjectModalSearch"
+                            class="landing-project-picker-search"
+                            placeholder="Search by tracker or project title"
+                            oninput="renderLandingBacProjectList()"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div id="landingBacProjectModalList" class="landing-project-picker-list"></div>
+                </div>
+            </div>
+
         </div>
     </main>
-
-    <!-- ── Contact Modal ── -->
-    <div class="modal-overlay" id="contactModal" onclick="if(event.target===this) closeContactModal()">
-        <div class="dark-modal">
-            <button type="button" class="modal-close-dark" onclick="closeContactModal()">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="dark-modal-body" style="text-align:center;">
-                <div class="dark-modal-header" style="margin-bottom:18px;">
-                    <i class="fas fa-headset" style="font-size:2.2rem;color:var(--accent-light);margin-bottom:10px;"></i>
-                    <h2 style="margin-bottom:4px;">ICT Helpdesk Support</h2>
-                    <p>Contact and Assistance</p>
-                </div>
-                <p style="margin:0 auto 20px;color:#cbd5e1;line-height:1.65;max-width:520px;">
-                    If you are experiencing technical difficulties or have questions about this system,
-                    you may reach out to our ICT Helpdesk portal.
-                </p>
-                <a href="https://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" class="dark-btn-primary" style="text-decoration:none;">
-                    <i class="fas fa-external-link-alt"></i> Connect with Us
-                </a>
-            </div>
-        </div>
-    </div>
 
     <!-- ── BAC Process Modal ── -->
     <div class="modal-overlay" id="bacProcessModal" onclick="if(event.target===this) closeBacProcessModal()">
@@ -2220,7 +2571,6 @@ try {
         let landingCalendarFocusRequestId = 0;
         const LANDING_CALENDAR_WIDGET_URL = 'calendar-widget.php';
         const LANDING_CALENDAR_VIEW_KEY = 'landing_calendar_view';
-
         function switchHomeContentTab(tab) {
             const tabs = ['announcements', 'estimator', 'projects'];
 
@@ -2242,27 +2592,39 @@ try {
         }
 
         function switchLandingTab(tab) {
-            const showCalendar = tab === 'calendar';
+            const activeTab = tab === 'calendar' || tab === 'contact' ? tab : 'home';
+            const showHome = activeTab === 'home';
+            const showCalendar = activeTab === 'calendar';
+            const showContact = activeTab === 'contact';
             const homeTab = document.getElementById('landing-home-tab');
             const calendarTab = document.getElementById('landing-calendar-tab');
+            const contactMenuButton = document.getElementById('landingContactNavButton');
             const homePanel = document.getElementById('landing-home-panel');
             const calendarPanel = document.getElementById('landing-calendar-panel');
+            const contactPanel = document.getElementById('landing-contact-panel');
 
             if (homeTab) {
-                homeTab.classList.toggle('active', !showCalendar);
-                homeTab.setAttribute('aria-selected', showCalendar ? 'false' : 'true');
+                homeTab.classList.toggle('active', showHome);
+                homeTab.setAttribute('aria-selected', showHome ? 'true' : 'false');
             }
             if (calendarTab) {
                 calendarTab.classList.toggle('active', showCalendar);
                 calendarTab.setAttribute('aria-selected', showCalendar ? 'true' : 'false');
             }
+            if (contactMenuButton) {
+                contactMenuButton.classList.toggle('active', showContact);
+            }
             if (homePanel) {
-                homePanel.classList.toggle('active', !showCalendar);
-                homePanel.setAttribute('aria-hidden', showCalendar ? 'true' : 'false');
+                homePanel.classList.toggle('active', showHome);
+                homePanel.setAttribute('aria-hidden', showHome ? 'false' : 'true');
             }
             if (calendarPanel) {
                 calendarPanel.classList.toggle('active', showCalendar);
                 calendarPanel.setAttribute('aria-hidden', showCalendar ? 'false' : 'true');
+            }
+            if (contactPanel) {
+                contactPanel.classList.toggle('active', showContact);
+                contactPanel.setAttribute('aria-hidden', showContact ? 'false' : 'true');
             }
 
             if (showCalendar && !landingCalendarLoaded && !landingCalendarLoading) {
@@ -2580,11 +2942,248 @@ try {
         function closeLoginModal() {
             document.getElementById('loginModal').style.display = 'none';
         }
-        function openContactModal() {
-            document.getElementById('contactModal').style.display = 'flex';
+
+        function closeLandingContactDropdown() {
+            const dropdown = document.getElementById('landingContactNavDropdown');
+            const button = document.getElementById('landingContactNavButton');
+            if (dropdown) {
+                dropdown.classList.remove('open');
+            }
+            if (button) {
+                button.setAttribute('aria-expanded', 'false');
+            }
         }
-        function closeContactModal() {
-            document.getElementById('contactModal').style.display = 'none';
+
+        function toggleLandingContactDropdown(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const dropdown = document.getElementById('landingContactNavDropdown');
+            const button = document.getElementById('landingContactNavButton');
+            if (!dropdown || !button) {
+                return;
+            }
+
+            const willOpen = !dropdown.classList.contains('open');
+            closeLandingContactDropdown();
+            dropdown.classList.toggle('open', willOpen);
+            button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        function openIctHelpdeskFromNav() {
+            closeLandingContactDropdown();
+            window.open('http://192.168.11.1/icthelpdesk/login.php', '_blank', 'noopener,noreferrer');
+        }
+
+        function openBacSecretariatFromNav() {
+            closeLandingContactDropdown();
+            switchLandingTab('contact');
+
+            const panel = document.getElementById('landing-contact-panel');
+            if (panel) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function setLandingBacActionsEnabled(isEnabled) {
+            const actionIds = ['landingBacOutlookLink', 'landingBacGmailLink'];
+            actionIds.forEach((id) => {
+                const link = document.getElementById(id);
+                if (!link) {
+                    return;
+                }
+
+                link.classList.toggle('is-disabled', !isEnabled);
+                link.setAttribute('aria-disabled', isEnabled ? 'false' : 'true');
+                if (isEnabled) {
+                    link.removeAttribute('tabindex');
+                } else {
+                    link.setAttribute('tabindex', '-1');
+                }
+            });
+        }
+
+        let landingBacProjectOptionCache = [];
+
+        function cacheLandingBacProjectOptions() {
+            const projectSelect = document.getElementById('landingBacProjectSelect');
+            if (!projectSelect) {
+                landingBacProjectOptionCache = [];
+                return;
+            }
+
+            landingBacProjectOptionCache = Array.from(projectSelect.options)
+                .slice(1)
+                .map((option) => {
+                    const title = String(option.dataset.projectTitle || '').trim();
+                    const tracker = String(option.dataset.projectTracker || '').trim();
+                    const label = String(option.textContent || '').trim();
+                    return {
+                        value: option.value,
+                        title: title,
+                        tracker: tracker,
+                        label: label,
+                        searchText: (label + ' ' + tracker + ' ' + title).toLowerCase(),
+                    };
+                });
+        }
+
+        function getLandingBacSelectedOption() {
+            const projectSelect = document.getElementById('landingBacProjectSelect');
+            if (!projectSelect) {
+                return null;
+            }
+
+            return projectSelect.options[projectSelect.selectedIndex] || null;
+        }
+
+        function syncLandingBacProjectTriggerLabel() {
+            const triggerLabel = document.getElementById('landingBacProjectTriggerLabel');
+            const selectedOption = getLandingBacSelectedOption();
+            if (!triggerLabel) {
+                return;
+            }
+
+            const label = selectedOption && String(selectedOption.value || '') !== ''
+                ? String(selectedOption.textContent || '').trim()
+                : '-- Choose a project --';
+            triggerLabel.textContent = label;
+        }
+
+        function openLandingBacProjectModal() {
+            const modal = document.getElementById('landingBacProjectModal');
+            const searchInput = document.getElementById('landingBacProjectModalSearch');
+            if (!modal) {
+                return;
+            }
+
+            if (!Array.isArray(landingBacProjectOptionCache) || landingBacProjectOptionCache.length === 0) {
+                cacheLandingBacProjectOptions();
+            }
+
+            modal.style.display = 'flex';
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            renderLandingBacProjectList();
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        function closeLandingBacProjectModal() {
+            const modal = document.getElementById('landingBacProjectModal');
+            if (!modal) {
+                return;
+            }
+
+            modal.style.display = 'none';
+        }
+
+        function selectLandingBacProject(projectValue) {
+            const projectSelect = document.getElementById('landingBacProjectSelect');
+            if (!projectSelect) {
+                return;
+            }
+
+            projectSelect.value = projectValue;
+            updateLandingBacEmailLinks();
+            closeLandingBacProjectModal();
+        }
+
+        function renderLandingBacProjectList() {
+            const searchInput = document.getElementById('landingBacProjectModalSearch');
+            const listContainer = document.getElementById('landingBacProjectModalList');
+            const projectSelect = document.getElementById('landingBacProjectSelect');
+            if (!listContainer || !projectSelect) {
+                return;
+            }
+
+            const keyword = String((searchInput && searchInput.value) || '').trim().toLowerCase();
+            const selectedValue = String(projectSelect.value || '');
+
+            listContainer.innerHTML = '';
+
+            const filteredOptions = landingBacProjectOptionCache.filter((entry) => {
+                return keyword === '' || entry.searchText.includes(keyword);
+            });
+
+            const clearButton = document.createElement('button');
+            clearButton.type = 'button';
+            clearButton.className = 'landing-project-picker-item' + (selectedValue === '' ? ' active' : '');
+            clearButton.addEventListener('click', function() {
+                selectLandingBacProject('');
+            });
+
+            const clearTitle = document.createElement('span');
+            clearTitle.className = 'landing-project-picker-item-title';
+            clearTitle.textContent = '-- Choose a project --';
+            clearButton.appendChild(clearTitle);
+            listContainer.appendChild(clearButton);
+
+            if (filteredOptions.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'landing-project-picker-empty';
+                empty.textContent = 'No matching projects found.';
+                listContainer.appendChild(empty);
+                return;
+            }
+
+            filteredOptions.forEach((entry) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'landing-project-picker-item' + (entry.value === selectedValue ? ' active' : '');
+                button.addEventListener('click', function() {
+                    selectLandingBacProject(entry.value);
+                });
+
+                if (entry.tracker !== '') {
+                    const tracker = document.createElement('span');
+                    tracker.className = 'landing-project-picker-item-tracker';
+                    tracker.textContent = entry.tracker;
+                    button.appendChild(tracker);
+                }
+
+                const title = document.createElement('span');
+                title.className = 'landing-project-picker-item-title';
+                title.textContent = entry.title;
+                button.appendChild(title);
+
+                listContainer.appendChild(button);
+            });
+        }
+
+        function updateLandingBacEmailLinks() {
+            const projectSelect = document.getElementById('landingBacProjectSelect');
+            const outlookLink = document.getElementById('landingBacOutlookLink');
+            const gmailLink = document.getElementById('landingBacGmailLink');
+
+            if (!projectSelect || !outlookLink || !gmailLink) {
+                return;
+            }
+
+            const selectedOption = projectSelect.options[projectSelect.selectedIndex] || null;
+            const projectTitle = String((selectedOption && selectedOption.dataset.projectTitle) || '').trim();
+            const projectTracker = String((selectedOption && selectedOption.dataset.projectTracker) || '').trim();
+            const defaultGmailUrl = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent('bac.sanpedro@deped.gov.ph');
+
+            syncLandingBacProjectTriggerLabel();
+
+            if (projectTitle === '') {
+                outlookLink.href = 'mailto:bac.sanpedro@deped.gov.ph';
+                gmailLink.href = defaultGmailUrl;
+                setLandingBacActionsEnabled(false);
+                return;
+            }
+
+            const subjectBase = projectTracker !== '' ? (projectTracker + ' - ' + projectTitle) : projectTitle;
+            const subject = encodeURIComponent(subjectBase + ' - BAC');
+            outlookLink.href = 'mailto:bac.sanpedro@deped.gov.ph?subject=' + subject;
+            gmailLink.href = defaultGmailUrl + '&su=' + subject;
+            setLandingBacActionsEnabled(true);
         }
 
         function closeBacProcessModal() {
@@ -3181,7 +3780,10 @@ try {
         // initialize planner on load
         document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(window.location.search || '');
-            const landingTab = params.get('landing_tab') === 'calendar' ? 'calendar' : 'home';
+            const requestedLandingTab = params.get('landing_tab');
+            const landingTab = (requestedLandingTab === 'calendar' || requestedLandingTab === 'contact')
+                ? requestedLandingTab
+                : 'home';
             const requestedHomeTab = params.get('home_tab');
             const validHomeTabs = ['announcements', 'estimator', 'projects'];
             const hasProjectsPageParam = params.has('page');
@@ -3191,12 +3793,28 @@ try {
 
             switchLandingTab(landingTab);
             switchHomeContentTab(homeTab);
+            cacheLandingBacProjectOptions();
+            setLandingBacActionsEnabled(false);
+            updateLandingBacEmailLinks();
             renderPlannerRows();
             initLandingAnnouncementsCarousel();
 
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape') {
+                    closeLandingContactDropdown();
+                    closeLandingBacProjectModal();
                     closeLandingCalendarActivityModal();
+                }
+            });
+
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('landingContactNavDropdown');
+                if (!dropdown) {
+                    return;
+                }
+
+                if (!dropdown.contains(event.target)) {
+                    closeLandingContactDropdown();
                 }
             });
 

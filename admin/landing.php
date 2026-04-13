@@ -809,23 +809,6 @@ try {
 
         .estimator-card .card-body {
             padding: 10px 12px;
-            max-height: min(68vh, 640px);
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
-
-        .estimator-card .card-body::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        .estimator-card .card-body::-webkit-scrollbar-thumb {
-            background: rgba(15, 76, 117, 0.38);
-            border-radius: 999px;
-            border: 2px solid rgba(255, 255, 255, 0.7);
-        }
-
-        .estimator-card .card-body::-webkit-scrollbar-track {
-            background: rgba(226, 232, 240, 0.55);
         }
 
         .estimator-card .search-input {
@@ -1862,9 +1845,6 @@ try {
         @media (max-width: 600px) {
             .search-row { flex-direction: column; }
             .btn-search { width: 100%; justify-content: center; }
-            .estimator-card .card-body {
-                max-height: 62vh;
-            }
             .estimator-controls-row {
                 align-items: stretch;
             }
@@ -2011,25 +1991,25 @@ try {
                     <div class="home-content-tabs" role="tablist" aria-label="Homepage content sections">
                         <button
                             type="button"
-                            id="home-content-announcements-tab"
-                            class="home-content-tab active"
-                            onclick="switchHomeContentTab('announcements')"
-                            role="tab"
-                            aria-selected="true"
-                            aria-controls="home-content-announcements-panel"
-                        >
-                            <i class="fas fa-bullhorn"></i> Announcements
-                        </button>
-                        <button
-                            type="button"
                             id="home-content-estimator-tab"
-                            class="home-content-tab"
+                            class="home-content-tab active"
                             onclick="switchHomeContentTab('estimator')"
                             role="tab"
-                            aria-selected="false"
+                            aria-selected="true"
                             aria-controls="home-content-estimator-panel"
                         >
                             <i class="fas fa-table"></i> Procurement Timeline Estimator
+                        </button>
+                        <button
+                            type="button"
+                            id="home-content-announcements-tab"
+                            class="home-content-tab"
+                            onclick="switchHomeContentTab('announcements')"
+                            role="tab"
+                            aria-selected="false"
+                            aria-controls="home-content-announcements-panel"
+                        >
+                            <i class="fas fa-bullhorn"></i> Announcements
                         </button>
                         <button
                             type="button"
@@ -2044,7 +2024,7 @@ try {
                         </button>
                     </div>
 
-                    <section id="home-content-announcements-panel" class="home-content-panel active" role="tabpanel" aria-labelledby="home-content-announcements-tab" aria-hidden="false">
+                    <section id="home-content-announcements-panel" class="home-content-panel" role="tabpanel" aria-labelledby="home-content-announcements-tab" aria-hidden="true">
                         <div class="data-card landing-announcements-card" id="landingAnnouncementsCard">
                             <div class="card-header">
                                 <i class="fas fa-bullhorn"></i> Announcements
@@ -2104,7 +2084,7 @@ try {
                         </div>
                     </section>
 
-                    <section id="home-content-estimator-panel" class="home-content-panel" role="tabpanel" aria-labelledby="home-content-estimator-tab" aria-hidden="true">
+                    <section id="home-content-estimator-panel" class="home-content-panel active" role="tabpanel" aria-labelledby="home-content-estimator-tab" aria-hidden="false">
                         <div class="data-card estimator-card">
                             <div class="card-header">
                                 <i class="fas fa-table"></i> Procurement Timeline Estimator
@@ -2536,7 +2516,7 @@ try {
                 </form>
 
                 <div class="dark-help-link">
-                    Need help? Contact <a href="#"><strong>ICT Helpdesk</strong></a>
+                    Need help? Contact <a href="https://192.168.11.1/icthelpdesk/login.php"><strong>ICT Helpdesk</strong></a>
                 </div>
             </div>
         </div>
@@ -2572,7 +2552,7 @@ try {
         const LANDING_CALENDAR_WIDGET_URL = 'calendar-widget.php';
         const LANDING_CALENDAR_VIEW_KEY = 'landing_calendar_view';
         function switchHomeContentTab(tab) {
-            const tabs = ['announcements', 'estimator', 'projects'];
+            const tabs = ['estimator', 'announcements', 'projects'];
 
             tabs.forEach((key) => {
                 const tabEl = document.getElementById('home-content-' + key + '-tab');
@@ -2974,7 +2954,7 @@ try {
 
         function openIctHelpdeskFromNav() {
             closeLandingContactDropdown();
-            window.open('http://192.168.11.1/icthelpdesk/login.php', '_blank', 'noopener,noreferrer');
+            window.open('https://192.168.11.1/icthelpdesk/login.php', '_blank', 'noopener,noreferrer');
         }
 
         function openBacSecretariatFromNav() {
@@ -3634,7 +3614,28 @@ try {
         }
 
         function parseDateInput(val) {
-            return val ? new Date(val + 'T00:00:00') : null;
+            const normalized = String(val || '').trim();
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+                return null;
+            }
+
+            const d = new Date(normalized + 'T00:00:00');
+            return Number.isNaN(d.getTime()) ? null : d;
+        }
+
+        function todayDateInputValue() {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            return toDateInputValue(now);
+        }
+
+        function syncPlannerFixedStartDate() {
+            const todayValue = todayDateInputValue();
+            const startInput = document.getElementById('plannerFixedStart');
+            if (startInput) {
+                startInput.value = todayValue;
+            }
+            return todayValue;
         }
 
         function toDateInputValue(date) {
@@ -3665,7 +3666,26 @@ try {
             el.style.display = msg ? 'block' : 'none';
         }
 
-        const ESTIMATOR_INVALID_DATE_MESSAGE = 'Transaction invalid, please set another implementation date.';
+        const ESTIMATOR_INVALID_DATE_MESSAGE = 'Transaction invalid. Please choose or set a new implementation date.';
+        const ESTIMATOR_FETCH_ERROR_MESSAGE = 'Unable to compute schedule right now. Please try again.';
+        const ESTIMATOR_INPUT_DEBOUNCE_MS = 180;
+        let estimatorComputeRequestId = 0;
+        let estimatorInputDebounceHandle = null;
+
+        function clearEstimatorInputDebounce() {
+            if (estimatorInputDebounceHandle !== null) {
+                clearTimeout(estimatorInputDebounceHandle);
+                estimatorInputDebounceHandle = null;
+            }
+        }
+
+        function scheduleEstimatorRecompute() {
+            clearEstimatorInputDebounce();
+            estimatorInputDebounceHandle = setTimeout(function() {
+                estimatorInputDebounceHandle = null;
+                computeLatestAllowableSchedule();
+            }, ESTIMATOR_INPUT_DEBOUNCE_MS);
+        }
 
         function clearPlannerDatesAndLatestAllowable() {
             setLatestAllowableDate('');
@@ -3676,9 +3696,65 @@ try {
             }
         }
 
+        function validateEstimatorBackwardRows(rows, firstStageStartDate) {
+            const fallbackMessage = ESTIMATOR_INVALID_DATE_MESSAGE;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i] || {};
+                const startRaw = i === 0
+                    ? String(firstStageStartDate || '')
+                    : String(row.planned_start_date || '');
+                const endRaw = String(row.planned_end_date || '');
+
+                const startDate = parseDateInput(startRaw);
+                const endDate = parseDateInput(endRaw);
+                if (!startDate || !endDate) {
+                    return {
+                        valid: false,
+                        message: fallbackMessage,
+                    };
+                }
+
+                if (endDate.getTime() < startDate.getTime()) {
+                    return {
+                        valid: false,
+                        message: fallbackMessage,
+                    };
+                }
+            }
+
+            return {
+                valid: true,
+                message: '',
+            };
+        }
+
+        function applyEstimatorBackwardRows(rows, startDateToday) {
+            const { stages } = getSelectedBackwardStages();
+            const firstStageStart = startDateToday || todayDateInputValue();
+
+            for (let i = 0; i < stages.length; i++) {
+                const row = rows[i] || {};
+                const startEl = document.getElementById(`start-${i}`);
+                const endEl = document.getElementById(`end-${i}`);
+
+                if (startEl) {
+                    startEl.value = i === 0
+                        ? firstStageStart
+                        : String(row.planned_start_date || '');
+                }
+
+                if (endEl) {
+                    endEl.value = String(row.planned_end_date || '');
+                }
+            }
+        }
+
         function computeLatestAllowableSchedule() {
+            const todayValue = syncPlannerFixedStartDate();
             const { type, stages } = getSelectedBackwardStages();
             if (!type || stages.length === 0) {
+                estimatorComputeRequestId += 1;
                 showEstimatorDateWarning('');
                 clearPlannerDatesAndLatestAllowable();
                 return;
@@ -3686,73 +3762,103 @@ try {
 
             const implementationVal = document.getElementById('plannerStart')?.value || '';
             if (!implementationVal) {
+                estimatorComputeRequestId += 1;
                 showEstimatorDateWarning('');
                 clearPlannerDatesAndLatestAllowable();
                 return;
             }
 
             const implementationDate = parseDateInput(implementationVal);
-            if (!implementationDate) return;
+            if (!implementationDate) {
+                estimatorComputeRequestId += 1;
+                showEstimatorDateWarning('');
+                clearPlannerDatesAndLatestAllowable();
+                return;
+            }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const today = parseDateInput(todayValue);
             const implLocal = new Date(implementationDate);
             implLocal.setHours(0, 0, 0, 0);
-            if (implLocal.getTime() <= today.getTime()) {
+            if (!today || implLocal.getTime() <= today.getTime()) {
+                estimatorComputeRequestId += 1;
                 showEstimatorDateWarning(ESTIMATOR_INVALID_DATE_MESSAGE);
                 clearPlannerDatesAndLatestAllowable();
                 return;
             }
+
             showEstimatorDateWarning('');
+            const requestId = ++estimatorComputeRequestId;
 
-            const lastIndex = stages.length - 1;
+            const url = 'api/timeline-template.php?type=' + encodeURIComponent(type)
+                + '&estimator=1'
+                + '&implementation_date=' + encodeURIComponent(implementationVal)
+                + '&_ts=' + Date.now();
 
-            // Cursor ends the day before implementation date.
-            let cursor = addDays(implementationDate, -1);
-
-            // We compute from last to first (same anchor behavior as backend engine).
-            for (let i = lastIndex; i >= 0; i--) {
-                const stage = stages[i];
-                const baseDays = Math.max(0, parseInt(stage.days ?? 0, 10) || 0);
-                const effectiveDays = baseDays;
-
-                let plannedEnd;
-                let plannedStart;
-
-                if (effectiveDays === 0) {
-                    plannedStart = addDays(cursor, 1);
-                    plannedEnd = plannedStart;
-                } else {
-                    plannedEnd = new Date(cursor);
-                    plannedStart = addDays(plannedEnd, -(effectiveDays - 1));
-                    cursor = addDays(plannedStart, -1);
+            fetch(url, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to compute schedule');
+                    }
+                    return response.json();
+                })
+                .then((payload) => {
+                    if (requestId !== estimatorComputeRequestId) {
+                        return;
+                    }
 
-                const startEl = document.getElementById(`start-${i}`);
-                const endEl = document.getElementById(`end-${i}`);
-                if (startEl) startEl.value = toDateInputValue(plannedStart);
-                if (endEl) endEl.value = toDateInputValue(plannedEnd);
-            }
+                    const estimator = payload && payload.estimator ? payload.estimator : null;
+                    if (!estimator || estimator.error) {
+                        throw new Error((estimator && estimator.error) || 'Estimator payload is invalid.');
+                    }
 
-            // Block schedule results if any computed stage starts before today.
-            for (let i = 0; i <= lastIndex; i++) {
-                const startVal = document.getElementById(`start-${i}`)?.value || '';
-                const startDate = parseDateInput(startVal);
-                if (!startDate) {
-                    continue;
-                }
-                const stageStart = new Date(startDate);
-                stageStart.setHours(0, 0, 0, 0);
-                if (stageStart.getTime() < today.getTime()) {
-                    showEstimatorDateWarning(ESTIMATOR_INVALID_DATE_MESSAGE);
+                    const backendInvalidMessage = String(estimator.validation_message || '').trim();
+                    if (estimator.invalid_transaction) {
+                        showEstimatorDateWarning(backendInvalidMessage || ESTIMATOR_INVALID_DATE_MESSAGE);
+                        clearPlannerDatesAndLatestAllowable();
+                        return;
+                    }
+
+                    const rows = Array.isArray(estimator.backward_rows) ? estimator.backward_rows : [];
+                    if (rows.length === 0) {
+                        showEstimatorDateWarning(ESTIMATOR_INVALID_DATE_MESSAGE);
+                        clearPlannerDatesAndLatestAllowable();
+                        return;
+                    }
+
+                    const firstStageStart = String(estimator.start_date_today || todayValue);
+                    const rowValidation = validateEstimatorBackwardRows(rows, firstStageStart);
+                    if (!rowValidation.valid) {
+                        showEstimatorDateWarning(rowValidation.message || ESTIMATOR_INVALID_DATE_MESSAGE);
+                        clearPlannerDatesAndLatestAllowable();
+                        return;
+                    }
+
+                    applyEstimatorBackwardRows(rows, firstStageStart);
+
+                    const latestAllowable = String(estimator.latest_allowable_implementation_date || '');
+                    setLatestAllowableDate(latestAllowable);
+                    if (!latestAllowable) {
+                        showEstimatorDateWarning(ESTIMATOR_INVALID_DATE_MESSAGE);
+                        clearPlannerDatesAndLatestAllowable();
+                        return;
+                    }
+
+                    showEstimatorDateWarning('');
+                })
+                .catch(() => {
+                    if (requestId !== estimatorComputeRequestId) {
+                        return;
+                    }
+                    showEstimatorDateWarning(ESTIMATOR_FETCH_ERROR_MESSAGE);
                     clearPlannerDatesAndLatestAllowable();
-                    return;
-                }
-            }
-
-            // Latest Allowable Date = END date of the first backward step.
-            const firstEnd = document.getElementById('end-0')?.value || '';
-            setLatestAllowableDate(firstEnd);
+                });
         }
 
         function computeEarliest() {
@@ -3761,11 +3867,17 @@ try {
         }
 
         function startOver() {
+            estimatorComputeRequestId += 1;
+            clearEstimatorInputDebounce();
             const typeEl = document.getElementById('estProcurementType');
             if (typeEl) {
                 typeEl.value = '';
             }
-            document.getElementById('plannerStart').value = '';
+            const implementationInput = document.getElementById('plannerStart');
+            if (implementationInput) {
+                implementationInput.value = '';
+            }
+            syncPlannerFixedStartDate();
             setLatestAllowableDate('');
             showEstimatorDateWarning('');
             renderPlannerRows();
@@ -3789,13 +3901,14 @@ try {
             const hasProjectsPageParam = params.has('page');
             const homeTab = validHomeTabs.includes(requestedHomeTab)
                 ? requestedHomeTab
-                : (hasProjectsPageParam ? 'projects' : 'announcements');
+                : (hasProjectsPageParam ? 'projects' : 'estimator');
 
             switchLandingTab(landingTab);
             switchHomeContentTab(homeTab);
             cacheLandingBacProjectOptions();
             setLandingBacActionsEnabled(false);
             updateLandingBacEmailLinks();
+            syncPlannerFixedStartDate();
             renderPlannerRows();
             initLandingAnnouncementsCarousel();
 
@@ -3825,6 +3938,7 @@ try {
 
             if (typeEl) {
                 typeEl.addEventListener('change', function() {
+                    clearEstimatorInputDebounce();
                     renderPlannerRows();
                     validateBudgetRealtime();
                     computeLatestAllowableSchedule();
@@ -3836,7 +3950,8 @@ try {
             }
             if (implEl) {
                 implEl.addEventListener('change', computeLatestAllowableSchedule);
-                implEl.addEventListener('input', computeLatestAllowableSchedule);
+                implEl.addEventListener('input', scheduleEstimatorRecompute);
+                implEl.addEventListener('blur', computeLatestAllowableSchedule);
             }
             if (tbody) {
                 // no-op: removed "Add days" controls

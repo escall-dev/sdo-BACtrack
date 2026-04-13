@@ -1,79 +1,7 @@
 /**
  * SDO-BACtrack Notifications System
- * Handles floating toasts and real-time notification polling.
+ * Handles real-time notification polling.
  */
-
-class Toast {
-    static container = null;
-
-    static init() {
-        if (!this.container) {
-            this.container = document.createElement('div');
-            this.container.className = 'toast-container';
-            document.body.appendChild(this.container);
-        }
-    }
-
-    static show(title, message, type = 'info', duration = 10000) {
-        this.init();
-
-        const toast = document.createElement('div');
-        toast.className = `toast-item toast-${type}`;
-
-        const iconClass = this.getIcon(type);
-
-        toast.innerHTML = `
-            <div class="toast-icon">
-                <i class="fas fa-${iconClass}"></i>
-            </div>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close">&times;</button>
-            <div class="toast-progress">
-                <div class="toast-progress-fill" style="animation: toast-progress ${duration}ms linear forwards"></div>
-            </div>
-        `;
-
-        this.container.appendChild(toast);
-
-        // Close button
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            this.hide(toast);
-        });
-
-        // Auto hide
-        if (duration > 0) {
-            setTimeout(() => {
-                this.hide(toast);
-            }, duration);
-        }
-
-        return toast;
-    }
-
-    static hide(toast) {
-        toast.classList.add('hide');
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
-    }
-
-    static getIcon(type) {
-        switch (type) {
-            case 'success': return 'check-circle';
-            case 'danger':
-            case 'error': return 'exclamation-circle';
-            case 'warning': return 'exclamation-triangle';
-            case 'info':
-            default: return 'info-circle';
-        }
-    }
-}
-
-// Global Toast shorthand
-window.showToast = (title, message, type, duration) => Toast.show(title, message, type, duration);
 
 /**
  * Real-time notification polling
@@ -83,13 +11,6 @@ const NotificationSystem = {
     pollInterval: 30000, // 30 seconds
 
     init() {
-        // Find the latest notification ID currently in the DOM (from header)
-        const firstNotification = document.querySelector('.notification-item');
-        if (firstNotification) {
-            // This is a bit brittle, we might need a better way to track "new"
-            // For now, we'll just track if we've shown a toast for it.
-        }
-
         // Start polling
         setInterval(() => this.poll(), this.pollInterval);
         
@@ -105,10 +26,8 @@ const NotificationSystem = {
             const data = await response.json();
             if (data.unread && data.unread.length > 0) {
                 data.unread.forEach(notification => {
-                    // Only show toast if it's "new" (not seen in this session)
+                    // Only process if it's "new" (not seen in this session)
                     if (this.isNew(notification.id)) {
-                        const type = this.mapType(notification.type);
-                        window.showToast(notification.title, notification.message, type);
                         this.updateUI(notification);
                     }
                 });
@@ -125,18 +44,6 @@ const NotificationSystem = {
         seen.push(id);
         sessionStorage.setItem('seen_notifications', JSON.stringify(seen));
         return true;
-    },
-
-    mapType(type) {
-        switch (type) {
-            case 'DEADLINE_WARNING': return 'warning';
-            case 'ACTIVITY_DELAYED': return 'danger';
-            case 'DOCUMENT_UPLOADED': return 'info';
-            case 'ADJUSTMENT_REQUEST': return 'warning';
-            case 'ADJUSTMENT_RESPONSE': return 'success';
-            case 'PROJECT_REJECTED': return 'danger';
-            default: return 'info';
-        }
     },
 
     updateUI(notification) {

@@ -7,12 +7,16 @@
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/Project.php';
 
-$projectModel = new Project();
-$projectFilters = [];
-if (isset($auth) && $auth->isProjectOwner()) {
-    $projectFilters['created_by'] = $auth->getUserId();
+$isBacSecretaryView = isset($auth) && $auth->isBacSecretary();
+$projects = [];
+if (!$isBacSecretaryView) {
+    $projectModel = new Project();
+    $projectFilters = [];
+    if (isset($auth) && $auth->isProjectOwner()) {
+        $projectFilters['created_by'] = $auth->getUserId();
+    }
+    $projects = $projectModel->getAll($projectFilters);
 }
-$projects = $projectModel->getAll($projectFilters);
 ?>
 
 <style>
@@ -20,6 +24,11 @@ $projects = $projectModel->getAll($projectFilters);
     animation: contactFadeIn 0.35s ease-out;
     max-width: 720px;
     margin: 0 auto;
+}
+
+.contact-page-wrapper.is-helpdesk {
+    max-width: 560px;
+    margin-top: clamp(60px, 20vh, 160px);
 }
 
 @keyframes contactFadeIn {
@@ -33,6 +42,77 @@ $projects = $projectModel->getAll($projectFilters);
     border-radius: 16px;
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
     padding: 26px;
+}
+
+.helpdesk-floating-card {
+    background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #d7dfeb;
+    border-radius: 18px;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.helpdesk-floating-card::after {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 999px;
+    top: -84px;
+    right: -70px;
+   
+    pointer-events: none;
+}
+
+.helpdesk-floating-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #0f2f4d;
+}
+
+.helpdesk-floating-subtitle {
+    margin: 10px 0 14px;
+    color: #445b73;
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 500px;
+}
+
+.helpdesk-floating-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.helpdesk-floating-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 12px;
+    border: 1px solid #c5d2e4;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+}
+
+.helpdesk-floating-link.primary {
+    background: #0f4c75;
+    color: #ffffff;
+    border-color: #0f4c75;
+}
+
+.helpdesk-floating-link.primary:hover {
+    background: #0d3f61;
+    border-color: #0d3f61;
 }
 
 .bac-contact-title {
@@ -125,6 +205,10 @@ $projects = $projectModel->getAll($projectFilters);
         max-width: 100%;
     }
 
+    .contact-page-wrapper.is-helpdesk {
+        margin-top: 36px;
+    }
+
     .bac-contact-card {
         padding: 18px;
     }
@@ -141,10 +225,42 @@ $projects = $projectModel->getAll($projectFilters);
     .bac-contact-actions {
         grid-template-columns: 1fr;
     }
+
+    .helpdesk-floating-card {
+        padding: 16px;
+    }
+
+    .helpdesk-floating-title {
+        font-size: 1.35rem;
+    }
+
+    .helpdesk-floating-subtitle {
+        font-size: 0.94rem;
+    }
+
+    .helpdesk-floating-actions {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
-<div class="contact-page-wrapper">
+<div class="contact-page-wrapper <?php echo $isBacSecretaryView ? 'is-helpdesk' : ''; ?>">
+    <?php if ($isBacSecretaryView): ?>
+    <section class="helpdesk-floating-card" aria-labelledby="helpdeskContactHeading">
+        <h2 class="helpdesk-floating-title" id="helpdeskContactHeading">
+            <i class="fas fa-headset"></i>
+            ICT Helpdesk Support
+        </h2>
+        <p class="helpdesk-floating-subtitle">For account issues, technical errors, and system support requests, use the ICT Helpdesk portal. BAC Secretariat contact is available on the public landing page for external users.</p>
+
+        <div class="helpdesk-floating-actions">
+            <a class="helpdesk-floating-link primary" href="http://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-arrow-up-right-from-square"></i>
+                Open ICT Helpdesk
+            </a>
+        </div>
+    </section>
+    <?php else: ?>
     <section class="bac-contact-card" aria-labelledby="bacContactHeading">
         <h2 class="bac-contact-title" id="bacContactHeading">
             <i class="fas fa-envelope-open-text"></i>
@@ -177,6 +293,7 @@ $projects = $projectModel->getAll($projectFilters);
             </a>
         </div>
     </section>
+    <?php endif; ?>
 </div>
 
 <script>

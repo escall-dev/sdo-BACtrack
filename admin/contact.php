@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/Project.php';
 
 $isBacSecretaryView = isset($auth) && $auth->isBacSecretary();
+$clientSatisfactionSurveyUrl = 'mailto:bac.sanpedro@deped.gov.ph?subject=Client%20Satisfaction%20Measurement';
 $projects = [];
 if (!$isBacSecretaryView) {
     $projectModel = new Project();
@@ -27,8 +28,8 @@ if (!$isBacSecretaryView) {
 }
 
 .contact-page-wrapper.is-helpdesk {
-    max-width: 560px;
-    margin-top: clamp(60px, 20vh, 160px);
+    max-width: 1040px;
+    margin-top: clamp(34px, 9vh, 88px);
 }
 
 @keyframes contactFadeIn {
@@ -44,50 +45,75 @@ if (!$isBacSecretaryView) {
     padding: 26px;
 }
 
+.helpdesk-panels-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
 .helpdesk-floating-card {
-    background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
-    border: 1px solid #d7dfeb;
-    border-radius: 18px;
-    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
-    padding: 20px;
-    position: relative;
+    background: #ffffff;
+    border: 1px solid #d9dee8;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
     overflow: hidden;
 }
 
-.helpdesk-floating-card::after {
-    content: '';
-    position: absolute;
-    width: 200px;
-    height: 200px;
+.helpdesk-floating-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #dce3ee;
+}
+
+.helpdesk-floating-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #112a46;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.helpdesk-floating-body {
+    padding: 26px 20px 28px;
+    text-align: center;
+}
+
+.helpdesk-floating-icon {
+    width: 58px;
+    height: 58px;
     border-radius: 999px;
-    top: -84px;
-    right: -70px;
-   
-    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    font-size: 1.95rem;
+    color: #ffffff;
+    background: #2563eb;
+}
+
+.helpdesk-floating-icon.is-survey {
+    background: #10b981;
 }
 
 .helpdesk-floating-title {
     margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.65rem;
-    font-weight: 800;
-    color: #0f2f4d;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .helpdesk-floating-subtitle {
-    margin: 10px 0 14px;
-    color: #445b73;
-    font-size: 1rem;
+    margin: 10px auto 18px;
+    color: #5b6b7f;
+    font-size: 1.03rem;
     line-height: 1.55;
     max-width: 500px;
 }
 
 .helpdesk-floating-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
+    display: flex;
+    justify-content: center;
 }
 
 .helpdesk-floating-link {
@@ -96,23 +122,34 @@ if (!$isBacSecretaryView) {
     justify-content: center;
     gap: 8px;
     border-radius: 12px;
-    border: 1px solid #c5d2e4;
+    border: 1px solid transparent;
     text-decoration: none;
     font-weight: 700;
-    font-size: 0.95rem;
-    padding: 10px 12px;
+    font-size: 1.02rem;
+    padding: 11px 20px;
     transition: all 0.2s ease;
 }
 
 .helpdesk-floating-link.primary {
-    background: #0f4c75;
+    background: #0f67a1;
     color: #ffffff;
-    border-color: #0f4c75;
+    border-color: #0f67a1;
 }
 
 .helpdesk-floating-link.primary:hover {
-    background: #0d3f61;
-    border-color: #0d3f61;
+    background: #0e5585;
+    border-color: #0e5585;
+}
+
+.helpdesk-floating-link.success {
+    background: #10b981;
+    color: #ffffff;
+    border-color: #10b981;
+}
+
+.helpdesk-floating-link.success:hover {
+    background: #0e9d6f;
+    border-color: #0e9d6f;
 }
 
 .bac-contact-title {
@@ -206,7 +243,11 @@ if (!$isBacSecretaryView) {
     }
 
     .contact-page-wrapper.is-helpdesk {
-        margin-top: 36px;
+        margin-top: 20px;
+    }
+
+    .helpdesk-panels-grid {
+        grid-template-columns: 1fr;
     }
 
     .bac-contact-card {
@@ -227,15 +268,20 @@ if (!$isBacSecretaryView) {
     }
 
     .helpdesk-floating-card {
-        padding: 16px;
+        border-radius: 11px;
     }
 
     .helpdesk-floating-title {
-        font-size: 1.35rem;
+        font-size: 1.55rem;
     }
 
     .helpdesk-floating-subtitle {
         font-size: 0.94rem;
+    }
+
+    .helpdesk-floating-link {
+        width: 100%;
+        font-size: 1.08rem;
     }
 
     .helpdesk-floating-actions {
@@ -246,20 +292,49 @@ if (!$isBacSecretaryView) {
 
 <div class="contact-page-wrapper <?php echo $isBacSecretaryView ? 'is-helpdesk' : ''; ?>">
     <?php if ($isBacSecretaryView): ?>
-    <section class="helpdesk-floating-card" aria-labelledby="helpdeskContactHeading">
-        <h2 class="helpdesk-floating-title" id="helpdeskContactHeading">
-            <i class="fas fa-headset"></i>
-            ICT Helpdesk Support
-        </h2>
-        <p class="helpdesk-floating-subtitle">For account issues, technical errors, and system support requests, use the ICT Helpdesk portal. BAC Secretariat contact is available on the public landing page for external users.</p>
+    <div class="helpdesk-panels-grid">
+        <section class="helpdesk-floating-card" aria-labelledby="helpdeskContactHeading">
+            <header class="helpdesk-floating-header">
+                <h2 class="helpdesk-floating-heading" id="helpdeskContactHeading">
+                    <i class="fas fa-headset"></i>
+                    Need Help?
+                </h2>
+            </header>
+            <div class="helpdesk-floating-body">
+                <span class="helpdesk-floating-icon" aria-hidden="true"><i class="fas fa-question"></i></span>
+                <h3 class="helpdesk-floating-title">ICT Helpdesk Support</h3>
+                <p class="helpdesk-floating-subtitle">For technical difficulties and system concerns, connect with our ICT Helpdesk through the support portal.</p>
 
-        <div class="helpdesk-floating-actions">
-            <a class="helpdesk-floating-link primary" href="http://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer">
-                <i class="fas fa-arrow-up-right-from-square"></i>
-                Open ICT Helpdesk
-            </a>
-        </div>
-    </section>
+                <div class="helpdesk-floating-actions">
+                    <a class="helpdesk-floating-link primary" href="https://wfh-sdospc.com/ICTHelpdesk-Online/login.php" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-arrow-up-right-from-square"></i>
+                        Connect with Us
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="helpdesk-floating-card" aria-labelledby="clientSatisfactionHeading">
+            <header class="helpdesk-floating-header">
+                <h2 class="helpdesk-floating-heading" id="clientSatisfactionHeading">
+                    <i class="fas fa-star"></i>
+                    Client Satisfaction
+                </h2>
+            </header>
+            <div class="helpdesk-floating-body">
+                <span class="helpdesk-floating-icon is-survey" aria-hidden="true"><i class="fas fa-star"></i></span>
+                <h3 class="helpdesk-floating-title">Client Satisfaction Measurement</h3>
+                <p class="helpdesk-floating-subtitle">Your feedback helps us improve the system. Please share your experience through our survey form.</p>
+
+                <div class="helpdesk-floating-actions">
+                    <a class="helpdesk-floating-link success" href="<?php echo htmlspecialchars($clientSatisfactionSurveyUrl, ENT_QUOTES); ?>" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-clipboard-check"></i>
+                        Take the Survey
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
     <?php else: ?>
     <section class="bac-contact-card" aria-labelledby="bacContactHeading">
         <h2 class="bac-contact-title" id="bacContactHeading">

@@ -24,8 +24,19 @@
         window.SDO_BACTRACK_APP_URL = <?php echo json_encode(APP_URL); ?>;
         window.SDO_BACTRACK_TOKEN_PARAM = <?php echo json_encode(defined('AUTH_TOKEN_PARAM') ? AUTH_TOKEN_PARAM : 'auth_token'); ?>;
     </script>
+    <script>
+        (function() {
+            function blockContextMenu(event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // Capture phase ensures this runs before bubbling handlers in page widgets.
+            document.addEventListener('contextmenu', blockContextMenu, true);
+        })();
+    </script>
     <script src="<?php echo APP_URL; ?>/assets/js/auth-token.js"></script>
-    <script src="<?php echo APP_URL; ?>/assets/js/admin.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/admin.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/admin.js'); ?>"></script>
     <script src="<?php echo APP_URL; ?>/assets/js/notifications.js"></script>
     <script>
     // Generalized Pagination for Data Tables and Activity Lists

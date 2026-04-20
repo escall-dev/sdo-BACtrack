@@ -40,7 +40,7 @@ $pageTitles = [
     'analytics' => 'Analytics',
     'reports' => 'Reports',
     'report-print' => 'Print Report',
-    'contact' => 'Contact',
+    'contact' => 'Need Help?',
     'users' => 'User Management',
     'profile' => 'My Profile'
 ];

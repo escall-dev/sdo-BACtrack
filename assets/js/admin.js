@@ -3,6 +3,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    initContextMenuBlock();
     initSidebar();
     initFlashMessages();
     initNotifications();
@@ -10,6 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initModals();
     initFilterEnterKey();
 });
+
+function initContextMenuBlock() {
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    });
+}
 
 /**
  * Filter Bar - Submit on Enter key

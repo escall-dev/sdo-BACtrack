@@ -2162,7 +2162,7 @@ try {
                                 </div>
 
                                 <div style="text-align:center;font-weight:700;font-size:0.82rem;margin-top:10px;">
-                                    <a href="http://192.168.11.1/icthelpdesk/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
+                                    <a href="https://wfh-sdospc.com/ICTHelpdesk-Online/login.php" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);text-decoration:none;">
                                             User's Guide | Found errors? Tell us.
                                         </a>
                                 </div>
@@ -2534,6 +2534,10 @@ try {
     </footer>
 
     <script>
+        document.addEventListener('contextmenu', function (event) {
+            event.preventDefault();
+        });
+
         const ESTIMATOR_BACKWARD_STAGES = <?php
             $workflows = procurementConfig()['workflows'] ?? [];
             $backwardOnly = [];
@@ -2954,7 +2958,7 @@ try {
 
         function openIctHelpdeskFromNav() {
             closeLandingContactDropdown();
-            window.open('https://192.168.11.1/icthelpdesk/login.php', '_blank', 'noopener,noreferrer');
+            window.open('https://wfh-sdospc.com/ICTHelpdesk-Online/login.php', '_blank', 'noopener,noreferrer');
         }
 
         function openBacSecretariatFromNav() {

@@ -7,8 +7,8 @@
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../models/Project.php';
 
-$isBacSecretaryView = isset($auth) && $auth->isBacSecretary();
-$clientSatisfactionSurveyUrl = 'mailto:bac.sanpedro@deped.gov.ph?subject=Client%20Satisfaction%20Measurement';
+$isBacSecretaryView = isset($auth) && ($auth->isBacSecretary() || $auth->isSuperAdmin());
+$clientSatisfactionSurveyUrl = 'https://wfh-sdospc.com/csm/csm.php';
 $projects = [];
 if (!$isBacSecretaryView) {
     $projectModel = new Project();
@@ -49,6 +49,7 @@ if (!$isBacSecretaryView) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
+    align-items: stretch;
 }
 
 .helpdesk-floating-card {
@@ -57,6 +58,8 @@ if (!$isBacSecretaryView) {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .helpdesk-floating-header {
@@ -76,6 +79,10 @@ if (!$isBacSecretaryView) {
 .helpdesk-floating-body {
     padding: 26px 20px 28px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
 }
 
 .helpdesk-floating-icon {
@@ -103,6 +110,12 @@ if (!$isBacSecretaryView) {
     letter-spacing: -0.02em;
 }
 
+.helpdesk-floating-title.is-csm {
+    font-size: 1.45rem;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
+
 .helpdesk-floating-subtitle {
     margin: 10px auto 18px;
     color: #5b6b7f;
@@ -114,6 +127,8 @@ if (!$isBacSecretaryView) {
 .helpdesk-floating-actions {
     display: flex;
     justify-content: center;
+    margin-top: auto;
+    width: 100%;
 }
 
 .helpdesk-floating-link {
@@ -275,6 +290,11 @@ if (!$isBacSecretaryView) {
         font-size: 1.55rem;
     }
 
+    .helpdesk-floating-title.is-csm {
+        white-space: normal;
+        font-size: 1.55rem;
+    }
+
     .helpdesk-floating-subtitle {
         font-size: 0.94rem;
     }
@@ -323,7 +343,7 @@ if (!$isBacSecretaryView) {
             </header>
             <div class="helpdesk-floating-body">
                 <span class="helpdesk-floating-icon is-survey" aria-hidden="true"><i class="fas fa-star"></i></span>
-                <h3 class="helpdesk-floating-title">Client Satisfaction Measurement</h3>
+                <h3 class="helpdesk-floating-title is-csm">Client Satisfaction Measurement</h3>
                 <p class="helpdesk-floating-subtitle">Your feedback helps us improve the system. Please share your experience through our survey form.</p>
 
                 <div class="helpdesk-floating-actions">

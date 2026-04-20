@@ -2258,6 +2258,10 @@ input[type="file"].form-control::file-selector-button:hover {
 /* Responsive */
 @media (max-width: 992px) {
     .sidebar {
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+        z-index: 10050;
         transform: translateX(-100%);
         width: var(--sidebar-width) !important;
         visibility: hidden;

@@ -4,10 +4,14 @@
  * SDO-BACtrack - BAC Procedural Timeline Tracking System
  */
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'sdo_bac');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+require_once __DIR__ . '/env.php';
+
+define('DB_HOST', app_env_get('DB_HOST', 'localhost'));
+define('DB_PORT', app_env_get_int('DB_PORT', 3306));
+define('DB_NAME', app_env_get('DB_NAME', 'sdo_bac'));
+define('DB_USER', app_env_get('DB_USER', 'root'));
+define('DB_PASS', app_env_get('DB_PASS', ''));
+define('DB_CHARSET', app_env_get('DB_CHARSET', 'utf8mb4'));
 
 class Database {
     private static $instance = null;
@@ -15,8 +19,14 @@ class Database {
 
     private function __construct() {
         try {
+            $dsn = 'mysql:host=' . DB_HOST;
+            if (DB_PORT > 0) {
+                $dsn .= ';port=' . DB_PORT;
+            }
+            $dsn .= ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
+
             $this->connection = new PDO(
-                "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+                $dsn,
                 DB_USER,
                 DB_PASS,
                 [

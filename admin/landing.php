@@ -2508,7 +2508,7 @@ try {
                                placeholder="Enter your password" required>
                     </div>
 
-                    <a href="#" class="dark-forgot-link"><i class="fas fa-key"></i> Forgot Password?</a>
+                    <!-- <a href="#" class="dark-forgot-link"><i class="fas fa-key"></i> Forgot Password?</a> -->
 
                     <button type="submit" class="dark-btn-primary">
                         <i class="fas fa-sign-in-alt"></i> Sign In
@@ -2516,7 +2516,7 @@ try {
                 </form>
 
                 <div class="dark-help-link">
-                    Need help? Contact <a href="https://192.168.11.1/icthelpdesk/login.php"><strong>ICT Helpdesk</strong></a>
+                    Need help? Contact <a href="https://wfh-sdospc.com/ICTHelpdesk-Online/login.php"><strong>ICT Helpdesk</strong></a>
                 </div>
             </div>
         </div>

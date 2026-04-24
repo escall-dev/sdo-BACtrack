@@ -44,6 +44,11 @@ if (!$existing) {
     exit;
 }
 
-$model->delete($id);
-echo json_encode(['success' => true]);
+try {
+    $model->delete($id);
+    echo json_encode(['success' => true]);
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Failed to delete announcement']);
+}
 

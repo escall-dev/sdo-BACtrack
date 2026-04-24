@@ -45,6 +45,11 @@ if ($data['title'] === '') {
 }
 
 $model = new Announcement();
-$id = $model->create($data, $auth->getUserId());
-echo json_encode(['success' => true, 'id' => $id]);
+try {
+    $id = $model->create($data, $auth->getUserId(), $_FILES['image'] ?? null);
+    echo json_encode(['success' => true, 'id' => $id]);
+} catch (Throwable $e) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}
 

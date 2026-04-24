@@ -63,7 +63,7 @@ $pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
                 <div class="logo">
                     <img src="/SDO-BACtrack/sdo-template/logo-imgs/sdo-logo.jpg" alt="SDO San Pedro Logo" class="logo-img" style="width:50px;height:50px;object-fit:cover;clip-path:circle(70% at 50% 50%);background-color:transparent;mix-blend-mode:multiply;">
                     <div class="logo-text">
-                        <span class="logo-title">SDO CTS</span>
+                        <span class="logo-title">SDO BACtrack</span>
                         <span class="logo-subtitle">ADMIN PANEL</span>
                     </div>
                 </div>

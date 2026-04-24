@@ -45,7 +45,7 @@ $pageTitles = [
     'profile' => 'My Profile'
 ];
 
-$pageTitle = $pageTitles[$currentPage] ?? 'Admin Panel';
+$pageTitle = $pageTitles[$currentPage] ?? 'Announcements';
 ?>
 <!DOCTYPE html>
 <html lang="en">

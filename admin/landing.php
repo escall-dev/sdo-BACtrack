@@ -62,6 +62,64 @@ try {
     // Fail closed on landing (do not block login page).
     $activeAnnouncements = [];
 }
+
+function landingAnnouncementImageSrc($imageUrl) {
+    $raw = trim((string)$imageUrl);
+    if ($raw === '') {
+        return '';
+    }
+
+    if (preg_match('#^https?://#i', $raw) || strpos($raw, '//') === 0) {
+        return $raw;
+    }
+
+    return rtrim(APP_URL, '/') . '/' . ltrim($raw, '/');
+}
+
+function landingAnnouncementLinkHref($linkUrl) {
+    $raw = trim((string)$linkUrl);
+    if ($raw === '') {
+        return '';
+    }
+
+    if (preg_match('#^https?://#i', $raw) || strpos($raw, '//') === 0) {
+        return $raw;
+    }
+
+    // Accept plain domains and normalize to https for display/click behavior.
+    if (preg_match('/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(?:[\/:?#].*)?$/i', $raw)) {
+        return 'https://' . $raw;
+    }
+
+    return '';
+}
+
+function landingAnnouncementLinkLabel($linkHref) {
+    $href = trim((string)$linkHref);
+    if ($href === '') {
+        return '';
+    }
+
+    $parts = parse_url($href);
+    if (!is_array($parts)) {
+        return $href;
+    }
+
+    $host = (string)($parts['host'] ?? '');
+    $path = (string)($parts['path'] ?? '');
+    $query = isset($parts['query']) ? ('?' . $parts['query']) : '';
+
+    $label = ($host !== '' ? $host : '') . $path . $query;
+    if ($label === '') {
+        $label = $href;
+    }
+
+    if (strlen($label) > 88) {
+        $label = substr($label, 0, 85) . '...';
+    }
+
+    return $label;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -921,14 +979,33 @@ try {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.75rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 5px;
         }
-        .ann-date i { color: var(--accent); }
+        .ann-image {
+            margin: 0 0 10px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        .ann-image img {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            max-height: 420px;
+            display: block;
+            object-fit: contain;
+        }
         .ann-title {
             display: block;
             color: var(--primary);
@@ -943,6 +1020,26 @@ try {
             font-size: 0.875rem;
             color: var(--text-secondary);
             line-height: 1.55;
+        }
+        .ann-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 0 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            max-width: 100%;
+        }
+        .ann-link span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ann-link:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
         }
 
         /* ─── Alerts ─── */
@@ -2050,7 +2147,9 @@ try {
                                                 <?php
                                                     $title = (string)($ann['title'] ?? '');
                                                     $body = (string)($ann['body'] ?? '');
-                                                    $linkUrl = (string)($ann['link_url'] ?? '');
+                                                    $linkHref = landingAnnouncementLinkHref($ann['link_url'] ?? '');
+                                                    $linkLabel = landingAnnouncementLinkLabel($linkHref);
+                                                    $imageUrl = landingAnnouncementImageSrc($ann['image_url'] ?? '');
                                                     $createdAt = (string)($ann['created_at'] ?? '');
                                                     $dateText = $createdAt ? date('M d, Y', strtotime($createdAt)) : '';
                                                 ?>
@@ -2058,13 +2157,26 @@ try {
                                                     <div class="landing-announcements-inner">
                                                     <div class="announcement-item">
                                                         <?php if ($dateText !== ''): ?>
-                                                            <div class="ann-date"><i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($dateText); ?></div>
+                                                            <div class="ann-date"><?php echo htmlspecialchars($dateText); ?></div>
                                                         <?php endif; ?>
 
-                                                        <?php if ($linkUrl !== ''): ?>
-                                                            <a class="ann-title" href="<?php echo htmlspecialchars($linkUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($title); ?></a>
+                                                        <?php if ($imageUrl !== ''): ?>
+                                                            <div class="ann-image">
+                                                                <img src="<?php echo htmlspecialchars($imageUrl); ?>" alt="<?php echo htmlspecialchars($title !== '' ? $title : 'Announcement image'); ?>" loading="lazy" onerror="this.parentElement.style.display='none';">
+                                                            </div>
+                                                        <?php endif; ?>
+
+                                                        <?php if ($linkHref !== ''): ?>
+                                                            <a class="ann-title" href="<?php echo htmlspecialchars($linkHref); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($title); ?></a>
                                                         <?php else: ?>
                                                             <span class="ann-title"><?php echo htmlspecialchars($title); ?></span>
+                                                        <?php endif; ?>
+
+                                                        <?php if ($linkHref !== ''): ?>
+                                                            <a class="ann-link" href="<?php echo htmlspecialchars($linkHref); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo htmlspecialchars($linkHref); ?>">
+                                                                <i class="fas fa-link" aria-hidden="true"></i>
+                                                                <span><?php echo htmlspecialchars($linkLabel); ?></span>
+                                                            </a>
                                                         <?php endif; ?>
 
                                                         <?php if ($body !== ''): ?>

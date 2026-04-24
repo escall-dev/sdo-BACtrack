@@ -44,6 +44,7 @@ $data = [
     'starts_at' => trim($_POST['starts_at'] ?? ''),
     'ends_at' => trim($_POST['ends_at'] ?? ''),
 ];
+$removeImage = isset($_POST['remove_image']) && in_array((string)$_POST['remove_image'], ['1', 'true', 'on', 'yes'], true);
 
 if ($data['title'] === '') {
     http_response_code(422);
@@ -59,6 +60,11 @@ if (!$existing) {
     exit;
 }
 
-$model->update($id, $data);
-echo json_encode(['success' => true]);
+try {
+    $model->update($id, $data, $_FILES['image'] ?? null, $removeImage);
+    echo json_encode(['success' => true]);
+} catch (Throwable $e) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}
 

@@ -13,6 +13,19 @@ $auth->requireBacSecretary();
 
 $announcementModel = new Announcement();
 
+function announcementImageSrc($imageUrl) {
+    $raw = trim((string)$imageUrl);
+    if ($raw === '') {
+        return '';
+    }
+
+    if (preg_match('#^https?://#i', $raw) || strpos($raw, '//') === 0) {
+        return $raw;
+    }
+
+    return rtrim(APP_URL, '/') . '/' . ltrim($raw, '/');
+}
+
 // Handle form submissions — must run BEFORE header.php outputs any HTML
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -30,14 +43,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($data['title'] === '') {
             setFlashMessage('error', 'Title is required.');
         } else {
-            $announcementModel->create($data, $auth->getUserId());
-            setFlashMessage('success', 'Announcement created successfully.');
+            try {
+                $announcementModel->create($data, $auth->getUserId(), $_FILES['image'] ?? null);
+                setFlashMessage('success', 'Announcement created successfully.');
+            } catch (Throwable $e) {
+                setFlashMessage('error', $e->getMessage());
+            }
         }
         $auth->redirect(APP_URL . '/admin/announcements.php');
     }
 
     if ($action === 'update') {
         $id = (int)($_POST['announcement_id'] ?? 0);
+        $removeImage = isset($_POST['remove_image']) ? 1 : 0;
         $data = [
             'title' => trim($_POST['title'] ?? ''),
             'body' => trim($_POST['body'] ?? ''),
@@ -52,8 +70,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($data['title'] === '') {
             setFlashMessage('error', 'Title is required.');
         } else {
-            $announcementModel->update($id, $data);
-            setFlashMessage('success', 'Announcement updated successfully.');
+            try {
+                $updated = $announcementModel->update($id, $data, $_FILES['image'] ?? null, $removeImage === 1);
+                if ($updated) {
+                    setFlashMessage('success', 'Announcement updated successfully.');
+                } else {
+                    setFlashMessage('error', 'Announcement not found.');
+                }
+            } catch (Throwable $e) {
+                setFlashMessage('error', $e->getMessage());
+            }
         }
         $auth->redirect(APP_URL . '/admin/announcements.php');
     }
@@ -63,8 +89,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($id <= 0) {
             setFlashMessage('error', 'Announcement not found.');
         } else {
-            $announcementModel->delete($id);
-            setFlashMessage('success', 'Announcement deleted successfully.');
+            try {
+                $announcementModel->delete($id);
+                setFlashMessage('success', 'Announcement deleted successfully.');
+            } catch (Throwable $e) {
+                setFlashMessage('error', 'Failed to delete announcement.');
+            }
         }
         $auth->redirect(APP_URL . '/admin/announcements.php');
     }
@@ -116,6 +146,7 @@ require_once __DIR__ . '/../includes/header.php';
                             $isActive = !empty($a['is_active']) ? 1 : 0;
                             $creator = $a['creator_name'] ?? '';
                             $linkUrl = $a['link_url'] ?? '';
+                            $imageUrl = $a['image_url'] ?? '';
                         ?>
                         <tr>
                             <td style="font-weight:700;">
@@ -124,6 +155,13 @@ require_once __DIR__ . '/../includes/header.php';
                                     <div style="margin-top:4px;">
                                         <a href="<?php echo htmlspecialchars($linkUrl); ?>" target="_blank" rel="noopener noreferrer" style="font-size:0.8rem;color:var(--primary);text-decoration:none;">
                                             <i class="fas fa-link"></i> Link
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($imageUrl)): ?>
+                                    <div style="margin-top:4px;">
+                                        <a href="<?php echo htmlspecialchars(announcementImageSrc($imageUrl)); ?>" target="_blank" rel="noopener noreferrer" style="font-size:0.8rem;color:var(--primary);text-decoration:none;">
+                                            <i class="fas fa-image"></i> Image
                                         </a>
                                     </div>
                                 <?php endif; ?>
@@ -173,7 +211,7 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- Add / Edit Announcement Modal -->
 <div id="announcementModal" class="modal-overlay">
     <div class="modal-container">
-        <form method="POST" id="announcementForm">
+        <form method="POST" id="announcementForm" enctype="multipart/form-data">
             <div class="modal-header">
                 <h2 id="announcementModalTitle">New Announcement</h2>
                 <button class="modal-close" type="button" onclick="closeAnnouncementModal()">&times;</button>
@@ -202,6 +240,24 @@ require_once __DIR__ . '/../includes/header.php';
                             <textarea name="body" id="announcementBody" class="form-control" rows="6" placeholder="Write the announcement..."></textarea>
                         </div>
                         <small class="form-hint">This text will appear in the landing page carousel.</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Announcement Image (optional)</label>
+                        <input type="file" name="image" id="announcementImage" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
+                        <small class="form-hint">Allowed formats: JPG, PNG, GIF, WEBP. Maximum file size: 10 MB.</small>
+
+                        <div id="announcementCurrentImageWrap" style="display:none; margin-top: 10px;">
+                            <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:6px;">Current image</div>
+                            <img id="announcementCurrentImage" src="" alt="Announcement image" style="max-width:100%; width:320px; max-height:220px; object-fit:contain; background:#f8fafc; border-radius:8px; border:1px solid var(--border-color); display:block;">
+                        </div>
+
+                        <label id="announcementRemoveImageWrap" style="display:none; margin-top:10px; font-size:0.9rem; color:var(--text-secondary);">
+                            <input type="checkbox" name="remove_image" id="announcementRemoveImage" value="1" style="margin-right:8px;">
+                            Remove current image
+                        </label>
                     </div>
                 </div>
 
@@ -278,11 +334,56 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
+const ANNOUNCEMENT_APP_URL = <?php echo json_encode(rtrim(APP_URL, '/')); ?>;
+
+function normalizeAnnouncementImageUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw) || raw.startsWith('//')) return raw;
+    return ANNOUNCEMENT_APP_URL + '/' + raw.replace(/^\/+/, '');
+}
+
+function resetAnnouncementImageFields() {
+    const imageInput = document.getElementById('announcementImage');
+    const imageWrap = document.getElementById('announcementCurrentImageWrap');
+    const imageEl = document.getElementById('announcementCurrentImage');
+    const removeWrap = document.getElementById('announcementRemoveImageWrap');
+    const removeBox = document.getElementById('announcementRemoveImage');
+
+    imageInput.value = '';
+    imageEl.src = '';
+    imageWrap.style.display = 'none';
+    removeWrap.style.display = 'none';
+    removeBox.checked = false;
+}
+
+function setAnnouncementCurrentImage(imagePath) {
+    const imageWrap = document.getElementById('announcementCurrentImageWrap');
+    const imageEl = document.getElementById('announcementCurrentImage');
+    const removeWrap = document.getElementById('announcementRemoveImageWrap');
+    const removeBox = document.getElementById('announcementRemoveImage');
+    const imageSrc = normalizeAnnouncementImageUrl(imagePath);
+
+    if (!imageSrc) {
+        imageEl.src = '';
+        imageWrap.style.display = 'none';
+        removeWrap.style.display = 'none';
+        removeBox.checked = false;
+        return;
+    }
+
+    imageEl.src = imageSrc;
+    imageWrap.style.display = 'block';
+    removeWrap.style.display = 'inline-flex';
+    removeBox.checked = false;
+}
+
 function openAnnouncementModal() {
     document.getElementById('announcementModalTitle').textContent = 'New Announcement';
     document.getElementById('announcementFormAction').value = 'create';
     document.getElementById('announcementId').value = '';
     document.getElementById('announcementForm').reset();
+    resetAnnouncementImageFields();
     document.getElementById('announcementIsActive').checked = true;
     document.getElementById('announcementSubmitLabel').textContent = 'Create Announcement';
     document.getElementById('announcementModal').classList.add('show');
@@ -308,6 +409,8 @@ function editAnnouncement(a) {
     document.getElementById('announcementIsActive').checked = String(a.is_active || '0') === '1';
     document.getElementById('announcementStartsAt').value = toDateTimeLocalValue(a.starts_at);
     document.getElementById('announcementEndsAt').value = toDateTimeLocalValue(a.ends_at);
+    resetAnnouncementImageFields();
+    setAnnouncementCurrentImage(a.image_url || '');
     document.getElementById('announcementSubmitLabel').textContent = 'Update Announcement';
     document.getElementById('announcementModal').classList.add('show');
 }
@@ -325,6 +428,12 @@ function openDeleteAnnouncementModal(id, title) {
 function closeDeleteAnnouncementModal() {
     document.getElementById('deleteAnnouncementModal').classList.remove('show');
 }
+
+document.getElementById('announcementImage').addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+        document.getElementById('announcementRemoveImage').checked = false;
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -117,9 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --primary: #0f4c75;
-            --primary-light: #1b6ca8;
-            --primary-dark: #0a2f4a;
+            --primary: #1b4a9a;
+            --primary-light: #2563eb;
+            --primary-dark: #0f2d5c;
             --accent: #bbe1fa;
             --gold: #d4af37;
             --bg-dark: #0a1628;

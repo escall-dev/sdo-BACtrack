@@ -69,7 +69,7 @@ foreach ($activities as $activity) {
             $color = '#f59e0b'; // Amber
             break;
         case 'IN_PROGRESS':
-            $color = '#3b82f6'; // Blue
+            $color = '#1b4a9a'; // Blue
             break;
         case 'COMPLETED':
             $color = '#10b981'; // Green

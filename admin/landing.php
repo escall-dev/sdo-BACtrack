@@ -136,10 +136,10 @@ function landingAnnouncementLinkLabel($linkHref) {
     <style>
         /* ─── Design Tokens (mirrors admin.css) ─── */
         :root {
-            --primary:          #0f4c75;
-            --primary-light:    #1b6ca8;
-            --primary-dark:     #0a2f4a;
-            --primary-gradient: linear-gradient(135deg, #0f4c75 0%, #1b6ca8 100%);
+            --primary:          #1b4a9a;
+            --primary-light:    #2563eb;
+            --primary-dark:     #0f2d5c;
+            --primary-gradient: linear-gradient(135deg, #1b4a9a 0%, #2563eb 100%);
 
             --accent:           #d4af37;
             --accent-light:     #e5c158;
@@ -148,8 +148,8 @@ function landingAnnouncementLinkLabel($linkHref) {
             --success-bg:       #d1fae5;
             --danger:           #ef4444;
             --danger-bg:        #fee2e2;
-            --info:             #3b82f6;
-            --info-bg:          #dbeafe;
+            --info:             #1b4a9a;
+            --info-bg:          #eff6ff;
 
             --bg-primary:       #f8fafc;
             --bg-secondary:     #f1f5f9;
@@ -195,8 +195,8 @@ function landingAnnouncementLinkLabel($linkHref) {
 
         /* ─── Header ─── */
         .site-header {
-            background: rgba(15, 76, 117, 0.55); /* lighter fallback for browsers without backdrop-filter */
-            background: linear-gradient(135deg, rgba(15,76,117,0.55) 0%, rgba(27,108,168,0.55) 100%);
+            background: rgba(27, 74, 154, 0.55); /* lighter fallback for browsers without backdrop-filter */
+            background: linear-gradient(135deg, rgba(27,74,154,0.55) 0%, rgba(37,99,235,0.55) 100%);
             backdrop-filter: blur(10px) saturate(160%);
             -webkit-backdrop-filter: blur(10px) saturate(160%);
             padding: 0 0 0 0;
@@ -431,7 +431,7 @@ function landingAnnouncementLinkLabel($linkHref) {
             letter-spacing: 0.03em;
             transition: all var(--transition-base);
             margin-left: 18px;
-            box-shadow: 0 2px 8px rgba(15,76,117,0.10);
+            box-shadow: 0 2px 8px rgba(27,74,154,0.10);
             position: absolute;
             right: 32px;
             top: 50%;
@@ -945,7 +945,7 @@ function landingAnnouncementLinkLabel($linkHref) {
             outline: none;
             border-color: var(--primary-light);
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(15,76,117,0.1);
+            box-shadow: 0 0 0 3px rgba(27,74,154,0.1);
         }
         .search-input::placeholder { color: var(--text-muted); }
         .btn-search {
@@ -961,11 +961,11 @@ function landingAnnouncementLinkLabel($linkHref) {
             border-radius: var(--radius-md);
             cursor: pointer;
             transition: all var(--transition-base);
-            box-shadow: 0 3px 8px rgba(15,76,117,0.35);
+            box-shadow: 0 3px 8px rgba(27,74,154,0.35);
             white-space: nowrap;
         }
         .btn-search:hover {
-            background: linear-gradient(135deg, #1b6ca8 0%, #2578ba 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e90ff 100%);
             transform: translateY(-1px);
         }
         /* ─── Announcements ─── */
@@ -1105,7 +1105,7 @@ function landingAnnouncementLinkLabel($linkHref) {
             background: var(--primary-gradient);
             color: #fff;
             border-color: transparent;
-            box-shadow: 0 2px 8px rgba(15,76,117,0.24);
+            box-shadow: 0 2px 8px rgba(27,74,154,0.24);
             pointer-events: none;
         }
 
@@ -1116,7 +1116,7 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
 
         .project-open-link {
-            color: #0f4c75;
+            color: #1b4a9a;
             font-weight: 600;
             text-decoration: none;
             display: inline-flex;
@@ -1130,7 +1130,7 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
 
         .project-open-link:hover {
-            color: #1b6ca8;
+            color: #2563eb;
             text-decoration: underline;
         }
 
@@ -1322,7 +1322,7 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
 
         .calendar-status-pill.pending { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-        .calendar-status-pill.in-progress { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+        .calendar-status-pill.in-progress { background: #eff6ff; color: #0f2d5c; border-color: #bfdbfe; }
         .calendar-status-pill.completed { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
         .calendar-status-pill.delayed { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
 
@@ -1413,7 +1413,7 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
 
         .calendar-activity-link.primary:hover {
-            background: linear-gradient(135deg, #1b6ca8 0%, #2578ba 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e90ff 100%);
             color: #ffffff;
         }
 
@@ -1482,7 +1482,7 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
 
         .bac-status.completed { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
-        .bac-status.in_progress { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+        .bac-status.in_progress { background: #eff6ff; color: #0f2d5c; border-color: #bfdbfe; }
         .bac-status.pending { background: #e2e8f0; color: #475569; border-color: #cbd5e1; }
         .bac-status.delayed { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
 
@@ -1580,7 +1580,7 @@ function landingAnnouncementLinkLabel($linkHref) {
         .dark-form-control:focus {
             outline: none;
             border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(27,108,168,0.25);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
         }
         .dark-form-control::placeholder { color: #4b5563; }
         .dark-forgot-link {
@@ -1611,13 +1611,13 @@ function landingAnnouncementLinkLabel($linkHref) {
             align-items: center;
             gap: 8px;
             transition: all var(--transition-base);
-            box-shadow: 0 4px 15px rgba(15,76,117,0.4);
+            box-shadow: 0 4px 15px rgba(27,74,154,0.4);
             letter-spacing: 0.03em;
         }
         .dark-btn-primary:hover {
-            background: linear-gradient(135deg, #1b6ca8 0%, #2578ba 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1e90ff 100%);
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(15,76,117,0.5);
+            box-shadow: 0 6px 20px rgba(27,74,154,0.5);
         }
         .dark-divider {
             display: flex;
@@ -1742,8 +1742,8 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
         .landing-bac-project-trigger:focus {
             outline: none;
-            border-color: #0f4c75;
-            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.14);
+            border-color: #1b4a9a;
+            box-shadow: 0 0 0 3px rgba(27, 74, 154, 0.14);
             background: #ffffff;
         }
         .landing-bac-project-trigger-label {
@@ -1800,8 +1800,8 @@ function landingAnnouncementLinkLabel($linkHref) {
         }
         .landing-project-picker-search:focus {
             outline: none;
-            border-color: #0f4c75;
-            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.14);
+            border-color: #1b4a9a;
+            box-shadow: 0 0 0 3px rgba(27, 74, 154, 0.14);
         }
         .landing-project-picker-list {
             padding: 10px;
@@ -1826,18 +1826,18 @@ function landingAnnouncementLinkLabel($linkHref) {
             transition: all var(--transition-base);
         }
         .landing-project-picker-item:hover {
-            border-color: #0f4c75;
+            border-color: #1b4a9a;
             background: #f0f7ff;
         }
         .landing-project-picker-item.active {
-            border-color: #0f4c75;
-            box-shadow: 0 0 0 2px rgba(15, 76, 117, 0.16);
+            border-color: #1b4a9a;
+            box-shadow: 0 0 0 2px rgba(27, 74, 154, 0.16);
             background: #edf6ff;
         }
         .landing-project-picker-item-tracker {
             font-size: 0.8rem;
             font-weight: 800;
-            color: #0f4c75;
+            color: #1b4a9a;
             letter-spacing: 0.02em;
         }
         .landing-project-picker-item-title {
@@ -1888,11 +1888,12 @@ function landingAnnouncementLinkLabel($linkHref) {
             gap: 8px;
             padding: 10px 14px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #0f4c75 0%, #1b6ca8 100%);
+            background: linear-gradient(135deg, #1b4a9a 0%, #2563eb 100%);
             color: #ffffff;
             font-size: 0.9rem;
             font-weight: 700;
             text-decoration: none;
+            box-shadow: 0 4px 15px rgba(27,74,154,0.4);
         }
         .landing-bac-help-link:hover {
             color: #ffffff;
@@ -1902,7 +1903,7 @@ function landingAnnouncementLinkLabel($linkHref) {
 
         /* ─── Footer ─── */
         .site-footer {
-            background: var(--primary-dark);
+            background: var(--primary);
             border-top: 2px solid var(--accent);
             padding: 22px 20px;
             margin-top: auto;

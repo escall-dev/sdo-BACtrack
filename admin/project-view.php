@@ -316,7 +316,7 @@ require_once __DIR__ . '/../includes/header.php';
 .pv-progress-fill {
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+    background: linear-gradient(90deg, #1b4a9a 0%, #10b981 100%);
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
@@ -352,9 +352,9 @@ require_once __DIR__ . '/../includes/header.php';
 .pv-stat-pending .pv-stat-num { color: #d97706; }
 .pv-stat-pending .pv-stat-label { color: #b45309; }
 
-.pv-stat-progress { border-top: 3px solid #3b82f6; }
-.pv-stat-progress .pv-stat-num { color: #2563eb; }
-.pv-stat-progress .pv-stat-label { color: #1d4ed8; }
+.pv-stat-progress { border-top: 3px solid #1b4a9a; }
+.pv-stat-progress .pv-stat-num { color: #1b4a9a; }
+.pv-stat-progress .pv-stat-label { color: #0f2d5c; }
 
 .pv-stat-completed { border-top: 3px solid #10b981; }
 .pv-stat-completed .pv-stat-num { color: #059669; }
@@ -606,7 +606,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     </a>
                                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px;">
                                         <?php if ($phase === 'backward_timeline'): ?>
-                                        <span class="status-badge" style="background: #eff6ff; color: #1d4ed8;">Backward</span>
+                                        <span class="status-badge" style="background: #eff6ff; color: #0f2d5c;">Backward</span>
                                         <?php elseif ($phase === 'forward_execution'): ?>
                                         <span class="status-badge" style="background: #ecfdf5; color: #047857;">Forward</span>
                                         <?php endif; ?>

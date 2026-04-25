@@ -217,7 +217,7 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
 }
 
 .calendar-widget-legend-swatch.in-progress {
-    background: #3b82f6;
+    background: #1b4a9a;
 }
 
 .calendar-widget-legend-swatch.completed {
@@ -233,7 +233,7 @@ $projects = $projectModel->getAll(['approval_status' => 'APPROVED']);
     border: 1px solid #bfdbfe;
     border-radius: var(--radius-md);
     background: #eff6ff;
-    color: #1e3a8a;
+    color: #0f2d5c;
     font-size: 0.82rem;
     display: flex;
     align-items: center;

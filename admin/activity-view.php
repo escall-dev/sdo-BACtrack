@@ -507,7 +507,7 @@ require_once __DIR__ . '/../includes/header.php';
 }
 
 .activity-view-page .stat-value-info {
-    color: #2563eb;
+    color: #1b4a9a;
 }
 
 .activity-view-page .stat-value-danger {

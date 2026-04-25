@@ -79,12 +79,12 @@ $activityTiming = $timelineSummary['meta_by_id'];
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 3px solid #0f4c75;
+            border-bottom: 3px solid #1b4a9a;
         }
 
         .print-header h1 {
             font-size: 24px;
-            color: #0f4c75;
+            color: #1b4a9a;
             margin-bottom: 5px;
         }
 
@@ -141,7 +141,7 @@ $activityTiming = $timelineSummary['meta_by_id'];
         }
 
         th {
-            background: #0f4c75;
+            background: #1b4a9a;
             color: white;
             font-weight: 600;
             font-size: 11px;
@@ -161,7 +161,7 @@ $activityTiming = $timelineSummary['meta_by_id'];
         }
 
         .status-pending { background: #fef3c7; color: #b45309; }
-        .status-in_progress { background: #dbeafe; color: #1d4ed8; }
+        .status-in_progress { background: #eff6ff; color: #0f2d5c; }
         .status-completed { background: #d1fae5; color: #047857; }
         .status-delayed { background: #fee2e2; color: #dc2626; }
 
@@ -211,7 +211,7 @@ $activityTiming = $timelineSummary['meta_by_id'];
 
         .btn {
             padding: 10px 20px;
-            background: #0f4c75;
+            background: #1b4a9a;
             color: white;
             border: none;
             border-radius: 8px;
@@ -221,7 +221,7 @@ $activityTiming = $timelineSummary['meta_by_id'];
         }
 
         .btn:hover {
-            background: #1b6ca8;
+            background: #2563eb;
         }
 
         @page {

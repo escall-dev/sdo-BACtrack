@@ -95,7 +95,7 @@ if (!$isBacSecretaryView) {
     margin-bottom: 14px;
     font-size: 1.95rem;
     color: #ffffff;
-    background: #2563eb;
+    background: #1b4a9a;
 }
 
 .helpdesk-floating-icon.is-survey {
@@ -146,14 +146,14 @@ if (!$isBacSecretaryView) {
 }
 
 .helpdesk-floating-link.primary {
-    background: #0f67a1;
+    background: #1b4a9a;
     color: #ffffff;
-    border-color: #0f67a1;
+    border-color: #1b4a9a;
 }
 
 .helpdesk-floating-link.primary:hover {
-    background: #0e5585;
-    border-color: #0e5585;
+    background: #0f2d5c;
+    border-color: #0f2d5c;
 }
 
 .helpdesk-floating-link.success {

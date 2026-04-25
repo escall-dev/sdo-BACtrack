@@ -368,9 +368,9 @@ $activityStatusLabels = [
             cursor: pointer;
         }
         .btn-primary {
-            background: #1d4f91;
+            background: #1b4a9a;
             color: #fff;
-            border-color: #1d4f91;
+            border-color: #1b4a9a;
         }
         @media print {
             body { background: #fff; padding: 0; }

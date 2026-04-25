@@ -537,7 +537,7 @@ if (empty($allCatKeys)) {
 }
 
 $catTrendDatasets = [];
-$catTrendColors = ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899'];
+$catTrendColors = ['#1b4a9a','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899'];
 foreach ($allCatKeys as $ci => $catKey) {
     $monthly = [];
     foreach (array_keys($catTrendMonths) as $mk) {
@@ -864,7 +864,7 @@ foreach ($trends as $trend) {
 }
 
 $volumeChartData = [
-    ['key' => 'users', 'label' => 'Users', 'color' => '#2563eb'],
+    ['key' => 'users', 'label' => 'Users', 'color' => '#1b4a9a'],
     ['key' => 'projects', 'label' => 'Projects', 'color' => '#0ea5e9'],
     ['key' => 'activities', 'label' => 'Activities', 'color' => '#14b8a6'],
     ['key' => 'documents', 'label' => 'Documents', 'color' => '#ef4444'],
@@ -925,7 +925,7 @@ foreach ($statusAvgRaw as $row) {
 
 $statusBarColors = [
     'PENDING'     => '#f59e0b',
-    'IN_PROGRESS' => '#3b82f6',
+    'IN_PROGRESS' => '#1b4a9a',
     'COMPLETED'   => '#10b981',
     'DELAYED'     => '#ef4444',
 ];
@@ -1072,8 +1072,8 @@ require_once __DIR__ . '/../includes/header.php';
         }
 
         .volume-mode-link.is-active {
-            background: #1d4f91;
-            border-color: #1d4f91;
+            background: #1b4a9a;
+            border-color: #1b4a9a;
             color: #ffffff;
         }
 
@@ -1446,7 +1446,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="volume-card-shell">
                 <div class="volume-card-header">
                     <div class="volume-card-title">
-                        <i class="fas fa-chart-column" style="color: #1d4f91;"></i>
+                        <i class="fas fa-chart-column" style="color: #1b4a9a;"></i>
                         Volume Analysis
                         <?php if ($volumeWindowLabel !== ''): ?>
                         <span class="volume-card-subtitle">&mdash; <?php echo htmlspecialchars($volumeWindowLabel); ?></span>
@@ -1632,7 +1632,7 @@ require_once __DIR__ . '/../includes/header.php';
                 font-weight: 600;
             }
             .overdue-status-badge.status-pending     { background: #fef3c7; color: #92400e; }
-            .overdue-status-badge.status-in_progress { background: #dbeafe; color: #1e40af; }
+            .overdue-status-badge.status-in_progress { background: #eff6ff; color: #0f2d5c; }
             .overdue-status-badge.status-delayed     { background: #fee2e2; color: #991b1b; }
             .overdue-status-badge.status-completed   { background: #d1fae5; color: #065f46; }
             </style>
@@ -2107,11 +2107,11 @@ require_once __DIR__ . '/../includes/header.php';
                             {
                                 label: 'Actual',
                                 data: actual,
-                                borderColor: '#1d4f91',
+                                borderColor: '#1b4a9a',
                                 backgroundColor: 'rgba(29,79,145,0.10)',
                                 borderWidth: 2.5,
                                 pointRadius: 3,
-                                pointBackgroundColor: '#1d4f91',
+                                pointBackgroundColor: '#1b4a9a',
                                 fill: true,
                                 tension: 0,
                                 spanGaps: false,

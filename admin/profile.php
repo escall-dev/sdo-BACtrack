@@ -496,7 +496,7 @@ body {
     left: 0;
     width: 100%;
     height: 4px;
-    background: linear-gradient(to right, #154c79, #2b7bc0);
+    background: linear-gradient(to right, #1b4a9a, #2563eb);
 }
 
 .profile-left .data-card::before {
@@ -533,7 +533,7 @@ body {
 }
 
 .card-header h2 i {
-    color: #154c79; /* Theme primary */
+    color: #1b4a9a; /* Theme primary */
 }
 
 .card-body {
@@ -565,10 +565,10 @@ body {
 }
 
 .form-control:focus {
-    border-color: #154c79;
+    border-color: #1b4a9a;
     background: #ffffff;
     outline: none;
-    box-shadow: 0 0 0 4px rgba(21, 76, 121, 0.1);
+    box-shadow: 0 0 0 4px rgba(27, 74, 154, 0.1);
 }
 
 .form-control:disabled {
@@ -578,7 +578,7 @@ body {
 }
 
 .btn.btn-primary {
-    background: #154c79;
+    background: #1b4a9a;
     color: #ffffff;
     border: none;
     border-radius: 10px;
@@ -591,13 +591,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 4px 6px -1px rgba(21, 76, 121, 0.2), 0 2px 4px -1px rgba(21, 76, 121, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(27, 74, 154, 0.2), 0 2px 4px -1px rgba(27, 74, 154, 0.1);
 }
 
 .btn.btn-primary:hover {
-    background: #0f3a5e;
+    background: #0f2d5c;
     transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(21, 76, 121, 0.3), 0 4px 6px -1px rgba(21, 76, 121, 0.2);
+    box-shadow: 0 6px 8px -1px rgba(27, 74, 154, 0.3), 0 4px 6px -1px rgba(27, 74, 154, 0.2);
 }
 
 .btn.btn-primary:active {
@@ -606,7 +606,7 @@ body {
 }
 
 .profile-card {
-    background: linear-gradient(135deg, #154c79 0%, #0a2e4a 100%);
+    background: linear-gradient(135deg, #1b4a9a 0%, #0f2d5c 100%);
     border-radius: 16px;
     box-shadow: 0 15px 35px rgba(21, 76, 121, 0.3);
     padding: 40px 24px;
